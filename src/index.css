@@ -4,7 +4,71 @@
 
 @layer base {
   :root {
-    /* Apple-inspired Glass Design System */
+    /* Dark Apple Glass Design System */
+    --background: 17 24 39;
+    --foreground: 248 250 252;
+    --card: 30 41 59;
+    --card-foreground: 248 250 252;
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
+    
+    /* Primary - Apple Blue */
+    --primary: 212 100% 50%;
+    --primary-foreground: 17 24 39;
+    --primary-glow: 212 100% 60%;
+    --primary-variant: 220 95% 55%;
+    
+    /* Secondary - Apple Purple */
+    --secondary: 253 91% 70%;
+    --secondary-foreground: 17 24 39;
+    --secondary-glow: 253 91% 80%;
+    
+    /* Accent - Apple Green */
+    --accent: 142 76% 40%;
+    --accent-foreground: 248 250 252;
+    
+    /* Dark Glass System */
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184;
+    --border: 51 65 85;
+    --input: 30 41 59;
+    --ring: 212 100% 50%;
+    --radius: 0.75rem;
+    
+    /* Glass Effects - Dark Mode */
+    --glass-bg: 30 41 59;
+    --glass-border: 51 65 85;
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-blur: blur(20px);
+    
+    /* Gradients - Dark Apple Style */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-variant)) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%);
+    
+    /* Shadows - Dark Apple Style */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.35);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+    
+    /* Transitions - Apple Smooth */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --sidebar-background: 30 41 59;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 212 100% 50%;
+    --sidebar-primary-foreground: 17 24 39;
+    --sidebar-accent: 51 65 85;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 51 65 85;
+    --sidebar-ring: 212 100% 50%;
+  }
+
+  .light {
+    /* Light Mode Override */
     --background: 248 250 252;
     --foreground: 15 23 42;
     --card: 255 255 255;
@@ -12,93 +76,29 @@
     --popover: 255 255 255;
     --popover-foreground: 15 23 42;
     
-    /* Primary - Apple Blue */
     --primary: 212 100% 47%;
     --primary-foreground: 248 250 252;
     --primary-glow: 212 100% 57%;
     --primary-variant: 220 95% 52%;
     
-    /* Secondary - Apple Purple */
     --secondary: 253 91% 67%;
     --secondary-foreground: 248 250 252;
     --secondary-glow: 253 91% 77%;
     
-    /* Accent - Apple Green */
     --accent: 142 76% 36%;
     --accent-foreground: 248 250 252;
     
-    /* Apple Glass System */
     --muted: 241 245 249;
     --muted-foreground: 100 116 139;
     --border: 226 232 240;
     --input: 248 250 252;
     --ring: 212 100% 47%;
-    --radius: 0.75rem;
-    
-    /* Glass Effects */
+
+    /* Light Glass Effects */
     --glass-bg: 255 255 255;
     --glass-border: 226 232 240;
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --glass-blur: blur(20px);
-    
-    /* Gradients - Subtle Apple Style */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-variant)) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
-    
-    /* Shadows - Apple Style */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.12);
-    
-    /* Transitions - Apple Smooth */
-    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    /* Dark Mode - Apple Style */
-    --background: 16 16 20;
-    --foreground: 248 250 252;
-    --card: 28 28 35;
-    --card-foreground: 248 250 252;
-    --popover: 28 28 35;
-    --popover-foreground: 248 250 252;
-    
-    --primary: 212 100% 60%;
-    --primary-foreground: 16 16 20;
-    --primary-glow: 212 100% 70%;
-    --primary-variant: 220 95% 65%;
-    
-    --secondary: 253 91% 77%;
-    --secondary-foreground: 16 16 20;
-    --secondary-glow: 253 91% 87%;
-    
-    --accent: 142 76% 46%;
-    --accent-foreground: 16 16 20;
-    
-    --muted: 44 44 52;
-    --muted-foreground: 156 163 175;
-    --border: 44 44 52;
-    --input: 28 28 35;
-    --ring: 212 100% 60%;
-
-    /* Dark Glass Effects */
-    --glass-bg: 28 28 35;
-    --glass-border: 55 55 66;
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --gradient-glass: linear-gradient(135deg, rgba(28, 28, 35, 0.9) 0%, rgba(28, 28, 35, 0.7) 100%);
   }
 
   * {
@@ -110,6 +110,7 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background-attachment: fixed;
     min-height: 100vh;
   }
 
@@ -122,39 +123,52 @@
 @layer components {
   /* Apple Glass Components */
   .glass-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(51, 65, 85, 0.3);
     box-shadow: var(--shadow-glass);
     border-radius: 16px;
+    transition: var(--transition-smooth);
   }
   
-  .dark .glass-card {
-    background: rgba(28, 28, 35, 0.8);
-    border: 1px solid rgba(55, 55, 66, 0.3);
+  .glass-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+  
+  .light .glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .light .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
   
   .glass-nav {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(30, 41, 59, 0.85);
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
   }
   
-  .dark .glass-nav {
-    background: rgba(28, 28, 35, 0.85);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  .light .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 
   /* Apple Button Styles */
   .apple-button {
     @apply bg-primary text-primary-foreground rounded-xl px-6 py-3 font-medium;
     @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
   }
   
   .apple-button-secondary {
-    @apply bg-white/80 text-foreground rounded-xl px-6 py-3 font-medium border border-border/50;
-    @apply transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98];
+    @apply bg-card/60 text-foreground rounded-xl px-6 py-3 font-medium border border-border/50;
+    @apply transition-all duration-200 hover:bg-card/80 hover:scale-[1.02] active:scale-[0.98];
     backdrop-filter: blur(20px);
   }
 
@@ -169,13 +183,13 @@
 
   /* Apple Input Style */
   .apple-input {
-    @apply bg-white/60 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3;
-    @apply placeholder:text-muted-foreground focus:bg-white/80 focus:border-primary/50;
+    @apply bg-card/40 backdrop-blur-xl border border-border/30 rounded-xl px-4 py-3;
+    @apply placeholder:text-muted-foreground focus:bg-card/60 focus:border-primary/50;
     @apply transition-all duration-200;
   }
   
-  .dark .apple-input {
-    @apply bg-white/10 border-white/10 focus:bg-white/15;
+  .light .apple-input {
+    @apply bg-white/60 border-white/20 focus:bg-white/80;
   }
 
   /* Apple Card Hover */
