@@ -784,6 +784,7 @@ export type Database = {
       }
       manga: {
         Row: {
+          anilist_id: number | null
           authors: string[] | null
           chapters: number | null
           created_at: string
@@ -816,6 +817,7 @@ export type Database = {
           volumes: number | null
         }
         Insert: {
+          anilist_id?: number | null
           authors?: string[] | null
           chapters?: number | null
           created_at?: string
@@ -848,6 +850,7 @@ export type Database = {
           volumes?: number | null
         }
         Update: {
+          anilist_id?: number | null
           authors?: string[] | null
           chapters?: number | null
           created_at?: string
