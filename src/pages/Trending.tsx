@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Navigation } from "@/components/Navigation";
+import { NameToggle } from "@/components/NameToggle";
+import { useNamePreference } from "@/hooks/useNamePreference";
 import { 
   TrendingUp, 
   Star, 
@@ -225,8 +228,12 @@ const Trending = () => {
   const topAnime = animeData[0]; // Highest ranked anime
   const topManga = mangaData[0]; // Highest ranked manga
 
+  const { showEnglish, setShowEnglish } = useNamePreference();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
+      <Navigation />
       {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
