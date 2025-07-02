@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.trigger-full-sync]
 verify_jwt = false
+
+[functions.fix-manga-sync]
+verify_jwt = false

@@ -362,6 +362,7 @@ async function processMangaData(anilistData: AniListManga[], malData: MALManga[]
     );
 
     const processedItem = {
+      anilist_id: manga.id,
       mal_id: malMatch?.mal_id || null,
       title: manga.title.romaji,
       title_english: manga.title.english || malMatch?.title_english || null,
@@ -521,7 +522,7 @@ serve(async (req) => {
         const { error } = await supabase
           .from('manga')
           .upsert(batch, { 
-            onConflict: 'mal_id',
+            onConflict: 'id',
             ignoreDuplicates: false 
           });
 
