@@ -102,6 +102,7 @@ export type Database = {
         Row: {
           aired_from: string | null
           aired_to: string | null
+          airing_schedule: Json | null
           anilist_id: number | null
           anilist_score: number | null
           banner_image: string | null
@@ -118,8 +119,11 @@ export type Database = {
           genres: string[] | null
           id: string
           image_url: string | null
+          last_sync_check: string | null
           mal_id: number | null
           members: number | null
+          next_episode_date: string | null
+          next_episode_number: number | null
           popularity: number | null
           rank: number | null
           recommendations_data: Json | null
@@ -147,6 +151,7 @@ export type Database = {
         Insert: {
           aired_from?: string | null
           aired_to?: string | null
+          airing_schedule?: Json | null
           anilist_id?: number | null
           anilist_score?: number | null
           banner_image?: string | null
@@ -163,8 +168,11 @@ export type Database = {
           genres?: string[] | null
           id?: string
           image_url?: string | null
+          last_sync_check?: string | null
           mal_id?: number | null
           members?: number | null
+          next_episode_date?: string | null
+          next_episode_number?: number | null
           popularity?: number | null
           rank?: number | null
           recommendations_data?: Json | null
@@ -192,6 +200,7 @@ export type Database = {
         Update: {
           aired_from?: string | null
           aired_to?: string | null
+          airing_schedule?: Json | null
           anilist_id?: number | null
           anilist_score?: number | null
           banner_image?: string | null
@@ -208,8 +217,11 @@ export type Database = {
           genres?: string[] | null
           id?: string
           image_url?: string | null
+          last_sync_check?: string | null
           mal_id?: number | null
           members?: number | null
+          next_episode_date?: string | null
+          next_episode_number?: number | null
           popularity?: number | null
           rank?: number | null
           recommendations_data?: Json | null
@@ -436,6 +448,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_sync_status: {
+        Row: {
+          completed_at: string | null
+          content_type: string
+          current_page: number | null
+          error_message: string | null
+          id: string
+          next_run_at: string | null
+          operation_type: string
+          processed_items: number | null
+          started_at: string | null
+          status: string
+          total_items: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          content_type: string
+          current_page?: number | null
+          error_message?: string | null
+          id?: string
+          next_run_at?: string | null
+          operation_type: string
+          processed_items?: number | null
+          started_at?: string | null
+          status?: string
+          total_items?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          content_type?: string
+          current_page?: number | null
+          error_message?: string | null
+          id?: string
+          next_run_at?: string | null
+          operation_type?: string
+          processed_items?: number | null
+          started_at?: string | null
+          status?: string
+          total_items?: number | null
+        }
+        Relationships: []
       }
       curated_list_items: {
         Row: {
@@ -738,12 +792,16 @@ export type Database = {
           genres: string[] | null
           id: string
           image_url: string | null
+          last_sync_check: string | null
           mal_id: number | null
           members: number | null
+          next_chapter_date: string | null
+          next_chapter_number: number | null
           popularity: number | null
           published_from: string | null
           published_to: string | null
           rank: number | null
+          release_schedule: Json | null
           score: number | null
           scored_by: number | null
           serializations: string[] | null
@@ -766,12 +824,16 @@ export type Database = {
           genres?: string[] | null
           id?: string
           image_url?: string | null
+          last_sync_check?: string | null
           mal_id?: number | null
           members?: number | null
+          next_chapter_date?: string | null
+          next_chapter_number?: number | null
           popularity?: number | null
           published_from?: string | null
           published_to?: string | null
           rank?: number | null
+          release_schedule?: Json | null
           score?: number | null
           scored_by?: number | null
           serializations?: string[] | null
@@ -794,12 +856,16 @@ export type Database = {
           genres?: string[] | null
           id?: string
           image_url?: string | null
+          last_sync_check?: string | null
           mal_id?: number | null
           members?: number | null
+          next_chapter_date?: string | null
+          next_chapter_number?: number | null
           popularity?: number | null
           published_from?: string | null
           published_to?: string | null
           rank?: number | null
+          release_schedule?: Json | null
           score?: number | null
           scored_by?: number | null
           serializations?: string[] | null
