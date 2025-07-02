@@ -28,6 +28,7 @@ import { AddToListButton } from "@/components/AddToListButton";
 import { NameToggle } from "@/components/NameToggle";
 import { CharacterSection } from "@/components/CharacterSection";
 import { StreamingLinks } from "@/components/StreamingLinks";
+import { Navigation } from "@/components/Navigation";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();

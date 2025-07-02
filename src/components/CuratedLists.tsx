@@ -80,7 +80,7 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
         .select(`
           *,
           influencer:influencers(*),
-          items:curated_list_items(count)
+          curated_list_items!inner(anime_id)
         `)
         .eq('curated_list_items.anime_id', animeId)
         .eq('is_public', true)
@@ -88,6 +88,12 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
         .limit(10);
 
       if (listsError) throw listsError;
+
+      // Transform data to include items_count
+      const transformedLists = listsData?.map(list => ({
+        ...list,
+        items_count: Array.isArray(list.curated_list_items) ? list.curated_list_items.length : 0
+      })) || [];
 
       // Fetch video content about this anime
       const { data: videosData, error: videosError } = await supabase
@@ -102,7 +108,7 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
 
       if (videosError) throw videosError;
 
-      setLists(listsData || []);
+      setLists(transformedLists);
       setVideos(videosData || []);
     } catch (error) {
       console.error('Error fetching curated content:', error);
@@ -114,9 +120,15 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
 
   const followList = async (listId: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to follow lists');
+        return;
+      }
+
       const { error } = await supabase
         .from('list_follows')
-        .insert({ list_id: listId });
+        .insert({ list_id: listId, user_id: user.id });
 
       if (error) throw error;
       
