@@ -15,6 +15,9 @@ import {
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useApiData } from "@/hooks/useApiData";
 import { Navigation } from "@/components/Navigation";
+import { InitialSyncTrigger } from "@/components/InitialSyncTrigger";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const MangaCard = ({ manga }: { manga: Manga }) => (
   <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale">
@@ -90,6 +93,8 @@ const Manga = () => {
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { toast } = useToast();
 
   // Fetch manga data from database
   const { data: mangaData, loading } = useApiData<Manga>({ 
@@ -124,6 +129,49 @@ const Manga = () => {
     setSortBy("popularity");
   };
 
+  const triggerMangaSync = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('intelligent-content-sync', {
+        body: { 
+          contentType: 'manga',
+          operation: 'full_sync',
+          page: 1 
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Manga Sync Started!",
+        description: "Fetching trending manga from AniList and MAL. This will take a few minutes.",
+      });
+
+      // Trigger additional pages
+      for (let page = 2; page <= 3; page++) {
+        setTimeout(() => {
+          supabase.functions.invoke('intelligent-content-sync', {
+            body: { 
+              contentType: 'manga',
+              operation: 'full_sync',
+              page 
+            }
+          });
+        }, page * 2000); // Stagger the requests
+      }
+
+    } catch (error: any) {
+      console.error('Manga sync failed:', error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Failed to start manga sync. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
@@ -142,6 +190,36 @@ const Manga = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Show sync trigger if no manga data */}
+        {mangaData.length === 0 && (
+          <div className="mb-8">
+            <InitialSyncTrigger />
+          </div>
+        )}
+
+        {/* Manual sync trigger */}
+        {mangaData.length === 0 && (
+          <div className="mb-8 text-center">
+            <Button 
+              onClick={triggerMangaSync}
+              disabled={isSyncing}
+              size="lg"
+              className="bg-gradient-primary hover:bg-gradient-primary/90"
+            >
+              {isSyncing ? (
+                <>
+                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Syncing Manga...
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Load Manga Database
+                </>
+              )}
+            </Button>
+          </div>
+        )}
         {/* Search and Filters */}
         <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
