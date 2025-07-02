@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   TrendingUp, 
   Star, 
@@ -11,9 +12,14 @@ import {
   Clock,
   Users,
   Heart,
-  Trophy
+  Trophy,
+  Download,
+  Database,
+  Loader2
 } from "lucide-react";
-import { mockAnime, mockManga, type Anime, type Manga } from "@/data/animeData";
+import { useApiData } from "@/hooks/useApiData";
+import { useToast } from "@/hooks/use-toast";
+import { type Anime, type Manga } from "@/data/animeData";
 
 const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
   <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm">
@@ -117,18 +123,64 @@ const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
 
 const Trending = () => {
   const [activeTab, setActiveTab] = useState("anime");
+  const { toast } = useToast();
+
+  // Get real anime data from API
+  const { data: animeData, loading: animeLoading, syncFromExternal: syncAnime } = useApiData<Anime>({ 
+    contentType: 'anime',
+    limit: 50,
+    sort_by: 'score',
+    order: 'desc'
+  });
+
+  // Get real manga data from API  
+  const { data: mangaData, loading: mangaLoading, syncFromExternal: syncManga } = useApiData<Manga>({ 
+    contentType: 'manga',
+    limit: 50,
+    sort_by: 'score',
+    order: 'desc'
+  });
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncData = async (type: 'anime' | 'manga') => {
+    setIsSyncing(true);
+    try {
+      if (type === 'anime') {
+        await syncAnime(3); // Sync 3 pages of anime data
+        toast({
+          title: "Anime data synced!",
+          description: "Successfully fetched real anime data from MyAnimeList API",
+        });
+      } else {
+        await syncManga(3); // Sync 3 pages of manga data  
+        toast({
+          title: "Manga data synced!",
+          description: "Successfully fetched real manga data from MyAnimeList API",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Sync failed",
+        description: "Failed to sync data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Sort by score for trending
-  const trendingAnime = [...mockAnime]
+  const trendingAnime = [...animeData]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, 10);
     
-  const trendingManga = [...mockManga]
+  const trendingManga = [...mangaData]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, 10);
 
-  const topAnime = mockAnime[0]; // Highest ranked anime
-  const topManga = mockManga[0]; // Highest ranked manga
+  const topAnime = animeData[0]; // Highest ranked anime
+  const topManga = mangaData[0]; // Highest ranked manga
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
@@ -150,6 +202,63 @@ const Trending = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Data Sync Section */}
+        {animeData.length === 0 && (
+          <Alert className="mb-8 border-primary/20 bg-primary/5">
+            <Database className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium mb-1">No anime data found</p>
+                  <p className="text-sm text-muted-foreground">
+                    Click below to fetch real anime & manga data from MyAnimeList API
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleSyncData('anime')} 
+                    disabled={isSyncing}
+                    size="sm"
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 mr-2" />
+                    )}
+                    Sync Anime
+                  </Button>
+                  <Button 
+                    onClick={() => handleSyncData('manga')} 
+                    disabled={isSyncing}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {isSyncing ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 mr-2" />
+                    )}
+                    Sync Manga
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Loading State */}
+        {(animeLoading || mangaLoading) && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p>Loading trending content...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Show content only if we have data */}
+        {animeData.length > 0 && (
+          <>
         {/* Featured Spotlight */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Top Anime Spotlight */}
@@ -164,6 +273,7 @@ const Trending = () => {
                 </Badge>
               </div>
               
+            {topAnime && (
               <div className="flex gap-4">
                 <img 
                   src={topAnime.image_url} 
@@ -187,6 +297,7 @@ const Trending = () => {
                   </p>
                 </div>
               </div>
+            )}
             </CardContent>
           </Card>
 
@@ -202,29 +313,31 @@ const Trending = () => {
                 </Badge>
               </div>
               
-              <div className="flex gap-4">
-                <img 
-                  src={topManga.image_url} 
-                  alt={topManga.title}
-                  className="w-24 h-32 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-2">{topManga.title}</h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      <span>{topManga.score}</span>
+              {topManga && (
+                <div className="flex gap-4">
+                  <img 
+                    src={topManga.image_url} 
+                    alt={topManga.title}
+                    className="w-24 h-32 object-cover rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2">{topManga.title}</h3>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-400" />
+                        <span>{topManga.score}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        <span>{topManga.members?.toLocaleString()} members</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{topManga.members?.toLocaleString()} members</span>
-                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {topManga.synopsis}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {topManga.synopsis}
-                  </p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -290,12 +403,12 @@ const Trending = () => {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{mockAnime.length}</div>
+            <div className="text-2xl font-bold text-primary mb-2">{animeData.length}</div>
             <div className="text-sm text-muted-foreground">Anime Titles</div>
           </Card>
           
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{mockManga.length}</div>
+            <div className="text-2xl font-bold text-primary mb-2">{mangaData.length}</div>
             <div className="text-sm text-muted-foreground">Manga Titles</div>
           </Card>
           
@@ -309,6 +422,8 @@ const Trending = () => {
             <div className="text-sm text-muted-foreground">Latest Season</div>
           </Card>
         </div>
+        </>
+        )}
       </div>
     </div>
   );
