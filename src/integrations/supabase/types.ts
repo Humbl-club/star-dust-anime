@@ -236,6 +236,65 @@ export type Database = {
         }
         Relationships: []
       }
+      anime_detailed_stats: {
+        Row: {
+          age_demographics: Json | null
+          anime_id: string
+          completed_count: number | null
+          country_demographics: Json | null
+          created_at: string
+          dropped_count: number | null
+          gender_demographics: Json | null
+          id: string
+          on_hold_count: number | null
+          plan_to_watch_count: number | null
+          score_distribution: Json | null
+          seasonal_popularity: Json | null
+          updated_at: string
+          watching_count: number | null
+        }
+        Insert: {
+          age_demographics?: Json | null
+          anime_id: string
+          completed_count?: number | null
+          country_demographics?: Json | null
+          created_at?: string
+          dropped_count?: number | null
+          gender_demographics?: Json | null
+          id?: string
+          on_hold_count?: number | null
+          plan_to_watch_count?: number | null
+          score_distribution?: Json | null
+          seasonal_popularity?: Json | null
+          updated_at?: string
+          watching_count?: number | null
+        }
+        Update: {
+          age_demographics?: Json | null
+          anime_id?: string
+          completed_count?: number | null
+          country_demographics?: Json | null
+          created_at?: string
+          dropped_count?: number | null
+          gender_demographics?: Json | null
+          id?: string
+          on_hold_count?: number | null
+          plan_to_watch_count?: number | null
+          score_distribution?: Json | null
+          seasonal_popularity?: Json | null
+          updated_at?: string
+          watching_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anime_detailed_stats_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: true
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -378,6 +437,105 @@ export type Database = {
           },
         ]
       }
+      curated_list_items: {
+        Row: {
+          anime_id: string | null
+          created_at: string
+          curator_note: string | null
+          id: string
+          list_id: string
+          manga_id: string | null
+          position: number
+        }
+        Insert: {
+          anime_id?: string | null
+          created_at?: string
+          curator_note?: string | null
+          id?: string
+          list_id: string
+          manga_id?: string | null
+          position: number
+        }
+        Update: {
+          anime_id?: string | null
+          created_at?: string
+          curator_note?: string | null
+          id?: string
+          list_id?: string
+          manga_id?: string | null
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curated_list_items_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curated_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "curated_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curated_list_items_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curated_lists: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          follower_count: number | null
+          id: string
+          influencer_id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          id?: string
+          influencer_id: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          follower_count?: number | null
+          id?: string
+          influencer_id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curated_lists_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_posts: {
         Row: {
           content: string | null
@@ -460,6 +618,115 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      influencer_follows: {
+        Row: {
+          created_at: string
+          id: string
+          influencer_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          influencer_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "influencer_follows_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      influencers: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          follower_count: number | null
+          id: string
+          instagram_handle: string | null
+          specialty_genres: string[] | null
+          tiktok_handle: string | null
+          twitter_handle: string | null
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+          youtube_channel: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          follower_count?: number | null
+          id?: string
+          instagram_handle?: string | null
+          specialty_genres?: string[] | null
+          tiktok_handle?: string | null
+          twitter_handle?: string | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+          youtube_channel?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          follower_count?: number | null
+          id?: string
+          instagram_handle?: string | null
+          specialty_genres?: string[] | null
+          tiktok_handle?: string | null
+          twitter_handle?: string | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+          youtube_channel?: string | null
+        }
+        Relationships: []
+      }
+      list_follows: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "list_follows_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "curated_lists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manga: {
         Row: {
@@ -1035,6 +1302,88 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_content: {
+        Row: {
+          anime_id: string | null
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          influencer_id: string
+          like_count: number | null
+          manga_id: string | null
+          platform: string
+          platform_video_id: string | null
+          published_at: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+          view_count: number | null
+        }
+        Insert: {
+          anime_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          influencer_id: string
+          like_count?: number | null
+          manga_id?: string | null
+          platform: string
+          platform_video_id?: string | null
+          published_at?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+          view_count?: number | null
+        }
+        Update: {
+          anime_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          influencer_id?: string
+          like_count?: number | null
+          manga_id?: string | null
+          platform?: string
+          platform_video_id?: string | null
+          published_at?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_content_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_content_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_content_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
             referencedColumns: ["id"]
           },
         ]

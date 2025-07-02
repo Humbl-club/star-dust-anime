@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.sync-anilist-data]
 verify_jwt = false
+
+[functions.auto-sync-all]
+verify_jwt = false

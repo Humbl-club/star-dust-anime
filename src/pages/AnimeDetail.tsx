@@ -91,6 +91,8 @@ const AnimeDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
+      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
+      <Navigation />
       {/* Name Toggle */}
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       

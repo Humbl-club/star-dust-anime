@@ -252,88 +252,22 @@ const Trending = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Data Sync Section */}
+        {/* Auto-Sync Status */}
         {animeData.length === 0 && (
           <Alert className="mb-8 border-primary/20 bg-primary/5">
             <Database className="h-4 w-4" />
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium mb-1">Comprehensive Database Population</p>
+                  <p className="font-medium mb-1">Database Auto-Sync Active</p>
                   <p className="text-sm text-muted-foreground">
-                    Get the complete MyAnimeList database: ~2000 anime + ~1500 manga
+                    Comprehensive anime & manga database is automatically syncing in the background
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => handleBulkSync('both')} 
-                    disabled={isSyncing}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    {isSyncing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Loading Everything... (~10 min)
-                      </>
-                    ) : (
-                      <>
-                        <Database className="w-4 h-4 mr-2" />
-                        Get All Content
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    onClick={() => handleBulkSync('anime')} 
-                    disabled={isSyncing}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Anime Only
-                  </Button>
-                  <Button 
-                    onClick={() => handleBulkSync('manga')} 
-                    disabled={isSyncing}
-                    variant="outline"
-                    size="sm"
-                  >
-                     Manga Only
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="text-sm text-primary font-medium">Syncing...</span>
                 </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* AniList Enhancement Section */}
-        {animeData.length > 0 && (
-          <Alert className="mb-8 border-blue-500/20 bg-blue-500/5">
-            <Star className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium mb-1">AniList Enhancement</p>
-                  <p className="text-sm text-muted-foreground">
-                    Upgrade your database with high-quality images, characters, and streaming links from AniList
-                  </p>
-                </div>
-                <Button 
-                  onClick={handleAniListSync} 
-                  disabled={isSyncing}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-                >
-                  {isSyncing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Syncing AniList...
-                    </>
-                  ) : (
-                    <>
-                      <Star className="w-4 h-4 mr-2" />
-                      Sync AniList Data
-                    </>
-                  )}
-                </Button>
               </div>
             </AlertDescription>
           </Alert>
