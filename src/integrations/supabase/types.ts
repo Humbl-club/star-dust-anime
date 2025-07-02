@@ -102,9 +102,18 @@ export type Database = {
         Row: {
           aired_from: string | null
           aired_to: string | null
+          anilist_id: number | null
+          anilist_score: number | null
+          banner_image: string | null
+          characters_data: Json | null
+          color_theme: string | null
+          cover_image_extra_large: string | null
+          cover_image_large: string | null
           created_at: string
           demographics: string[] | null
+          detailed_tags: Json | null
           episodes: number | null
+          external_links: Json | null
           favorites: number | null
           genres: string[] | null
           id: string
@@ -113,16 +122,23 @@ export type Database = {
           members: number | null
           popularity: number | null
           rank: number | null
+          recommendations_data: Json | null
+          relations_data: Json | null
           score: number | null
           scored_by: number | null
           season: string | null
+          staff_data: Json | null
           status: string | null
+          streaming_episodes: Json | null
           studios: string[] | null
+          studios_data: Json | null
           synopsis: string | null
           themes: string[] | null
           title: string
           title_english: string | null
           title_japanese: string | null
+          trailer_id: string | null
+          trailer_site: string | null
           trailer_url: string | null
           type: string | null
           updated_at: string
@@ -131,9 +147,18 @@ export type Database = {
         Insert: {
           aired_from?: string | null
           aired_to?: string | null
+          anilist_id?: number | null
+          anilist_score?: number | null
+          banner_image?: string | null
+          characters_data?: Json | null
+          color_theme?: string | null
+          cover_image_extra_large?: string | null
+          cover_image_large?: string | null
           created_at?: string
           demographics?: string[] | null
+          detailed_tags?: Json | null
           episodes?: number | null
+          external_links?: Json | null
           favorites?: number | null
           genres?: string[] | null
           id?: string
@@ -142,16 +167,23 @@ export type Database = {
           members?: number | null
           popularity?: number | null
           rank?: number | null
+          recommendations_data?: Json | null
+          relations_data?: Json | null
           score?: number | null
           scored_by?: number | null
           season?: string | null
+          staff_data?: Json | null
           status?: string | null
+          streaming_episodes?: Json | null
           studios?: string[] | null
+          studios_data?: Json | null
           synopsis?: string | null
           themes?: string[] | null
           title: string
           title_english?: string | null
           title_japanese?: string | null
+          trailer_id?: string | null
+          trailer_site?: string | null
           trailer_url?: string | null
           type?: string | null
           updated_at?: string
@@ -160,9 +192,18 @@ export type Database = {
         Update: {
           aired_from?: string | null
           aired_to?: string | null
+          anilist_id?: number | null
+          anilist_score?: number | null
+          banner_image?: string | null
+          characters_data?: Json | null
+          color_theme?: string | null
+          cover_image_extra_large?: string | null
+          cover_image_large?: string | null
           created_at?: string
           demographics?: string[] | null
+          detailed_tags?: Json | null
           episodes?: number | null
+          external_links?: Json | null
           favorites?: number | null
           genres?: string[] | null
           id?: string
@@ -171,16 +212,23 @@ export type Database = {
           members?: number | null
           popularity?: number | null
           rank?: number | null
+          recommendations_data?: Json | null
+          relations_data?: Json | null
           score?: number | null
           scored_by?: number | null
           season?: string | null
+          staff_data?: Json | null
           status?: string | null
+          streaming_episodes?: Json | null
           studios?: string[] | null
+          studios_data?: Json | null
           synopsis?: string | null
           themes?: string[] | null
           title?: string
           title_english?: string | null
           title_japanese?: string | null
+          trailer_id?: string | null
+          trailer_site?: string | null
           trailer_url?: string | null
           type?: string | null
           updated_at?: string

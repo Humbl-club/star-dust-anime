@@ -42,26 +42,34 @@ const AnimeDetail = () => {
 
   const anime = allAnime.find(a => a.id === id);
 
-  // Fetch enhanced AniList data using MAL ID
-  const { 
-    data: anilistData, 
-    loading: anilistLoading, 
-    getEnhancedData 
-  } = useAniListData({
-    malId: anime?.mal_id,
-    autoFetch: !!anime?.mal_id
-  });
+  // Use local database data instead of fetching from AniList
+  const enhancedAnime = anime ? {
+    ...anime,
+    // Use stored AniList data
+    image_url: anime.cover_image_extra_large || anime.cover_image_large || anime.image_url,
+    banner_image: anime.banner_image,
+    anilist_score: anime.anilist_score,
+    color_theme: anime.color_theme,
+    characters: anime.characters_data || [],
+    staff: anime.staff_data || [],
+    relations: anime.relations_data || [],
+    recommendations: anime.recommendations_data || [],
+    external_links: anime.external_links || [],
+    streaming_episodes: anime.streaming_episodes || [],
+    detailed_tags: anime.detailed_tags || [],
+    trailer: anime.trailer_id ? {
+      id: anime.trailer_id,
+      site: anime.trailer_site || 'YouTube',
+      thumbnail: `https://img.youtube.com/vi/${anime.trailer_id}/maxresdefault.jpg`
+    } : null,
+  } : null;
 
-  // Merge MAL and AniList data for enhanced experience
-  const enhancedAnime = anime ? getEnhancedData(anime) : null;
-
-  if (loading || anilistLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Loading anime details...</p>
-          {anilistLoading && <p className="text-sm text-muted-foreground">Fetching high-quality images...</p>}
         </div>
       </div>
     );

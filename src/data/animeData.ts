@@ -25,6 +25,23 @@ export interface Anime {
   studios?: string[];
   themes?: string[];
   demographics?: string[];
+  // Enhanced AniList fields
+  anilist_id?: number;
+  banner_image?: string;
+  cover_image_large?: string;
+  cover_image_extra_large?: string;
+  color_theme?: string;
+  anilist_score?: number;
+  trailer_id?: string;
+  trailer_site?: string;
+  characters_data?: any[];
+  staff_data?: any[];
+  external_links?: any[];
+  streaming_episodes?: any[];
+  detailed_tags?: any[];
+  relations_data?: any[];
+  recommendations_data?: any[];
+  studios_data?: any[];
 }
 
 export interface Manga {
