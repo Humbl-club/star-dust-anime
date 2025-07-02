@@ -6,11 +6,14 @@ import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useApiData } from "@/hooks/useApiData";
+import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
+import { NameToggle } from "@/components/NameToggle";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -109,7 +112,8 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation onSearch={handleSearch} />
       
       {/* Hero Section */}
