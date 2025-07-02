@@ -70,6 +70,57 @@ interface MALAnime {
   };
 }
 
+interface AniListManga {
+  id: number;
+  title: {
+    romaji: string;
+    english?: string;
+    native?: string;
+  };
+  description?: string;
+  chapters?: number;
+  volumes?: number;
+  status: string;
+  startDate?: { year?: number; month?: number; day?: number };
+  endDate?: { year?: number; month?: number; day?: number };
+  genres?: string[];
+  staff?: { nodes: Array<{ name: { full: string }; role: string }> };
+  averageScore?: number;
+  popularity?: number;
+  favourites?: number;
+  coverImage?: {
+    extraLarge?: string;
+    large?: string;
+  };
+  bannerImage?: string;
+}
+
+interface MALManga {
+  mal_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  chapters?: number;
+  volumes?: number;
+  status: string;
+  published?: {
+    from?: string;
+    to?: string;
+  };
+  score?: number;
+  scored_by?: number;
+  rank?: number;
+  popularity?: number;
+  members?: number;
+  favorites?: number;
+  genres?: Array<{ name: string }>;
+  authors?: Array<{ name: string }>;
+  images?: {
+    jpg?: { large_image_url?: string };
+  };
+}
+
 // Enhanced AI-powered schedule detection
 async function getAIEnhancedSchedule(title: string, status: string, currentEpisode?: number): Promise<{
   nextEpisodeDate?: string;
@@ -246,6 +297,111 @@ async function processAnimeData(anilistData: AniListAnime[], malData: MALAnime[]
   return processedAnime;
 }
 
+// Fetch manga from AniList
+async function fetchMangaFromAniList(page = 1, perPage = 50): Promise<AniListManga[]> {
+  const query = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        media(type: MANGA, sort: POPULARITY_DESC) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          description
+          chapters
+          volumes
+          status
+          startDate { year month day }
+          endDate { year month day }
+          genres
+          staff { nodes { name { full } role } }
+          averageScore
+          popularity
+          favourites
+          coverImage {
+            extraLarge
+            large
+          }
+          bannerImage
+        }
+      }
+    }
+  `;
+
+  const response = await fetch('https://graphql.anilist.co', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query,
+      variables: { page, perPage }
+    }),
+  });
+
+  const data = await response.json();
+  return data.data.Page.media;
+}
+
+// Fetch manga from MyAnimeList (Jikan API)
+async function fetchMangaFromMAL(page = 1): Promise<MALManga[]> {
+  const response = await fetch(`https://api.jikan.moe/v4/manga?page=${page}&limit=25&order_by=popularity`);
+  const data = await response.json();
+  return data.data || [];
+}
+
+// Process and merge manga data
+async function processMangaData(anilistData: AniListManga[], malData: MALManga[]) {
+  const processedManga = [];
+
+  for (const manga of anilistData) {
+    // Find corresponding MAL data
+    const malMatch = malData.find(mal => 
+      mal.title.toLowerCase().includes(manga.title.romaji.toLowerCase()) ||
+      (manga.title.english && mal.title_english?.toLowerCase().includes(manga.title.english.toLowerCase()))
+    );
+
+    const processedItem = {
+      mal_id: malMatch?.mal_id || null,
+      title: manga.title.romaji,
+      title_english: manga.title.english || malMatch?.title_english || null,
+      title_japanese: manga.title.native || malMatch?.title_japanese || null,
+      synopsis: manga.description?.replace(/<[^>]*>/g, '') || malMatch?.synopsis || null,
+      chapters: manga.chapters || malMatch?.chapters || null,
+      volumes: manga.volumes || malMatch?.volumes || null,
+      status: manga.status || malMatch?.status || 'Unknown',
+      published_from: manga.startDate ? 
+        `${manga.startDate.year}-${String(manga.startDate.month || 1).padStart(2, '0')}-${String(manga.startDate.day || 1).padStart(2, '0')}` : 
+        malMatch?.published?.from || null,
+      published_to: manga.endDate ? 
+        `${manga.endDate.year}-${String(manga.endDate.month || 12).padStart(2, '0')}-${String(manga.endDate.day || 31).padStart(2, '0')}` : 
+        malMatch?.published?.to || null,
+      score: manga.averageScore ? manga.averageScore / 10 : malMatch?.score || null,
+      scored_by: malMatch?.scored_by || null,
+      rank: malMatch?.rank || null,
+      popularity: manga.popularity || malMatch?.popularity || null,
+      members: malMatch?.members || null,
+      favorites: manga.favourites || malMatch?.favorites || null,
+      genres: manga.genres || malMatch?.genres?.map(g => g.name) || [],
+      authors: malMatch?.authors?.map(a => a.name) || manga.staff?.nodes?.filter(s => s.role === 'Story & Art' || s.role === 'Story').map(s => s.name.full) || [],
+      image_url: manga.coverImage?.extraLarge || manga.coverImage?.large || malMatch?.images?.jpg?.large_image_url || null,
+      
+      // Manga-specific schedule tracking
+      next_chapter_date: null, // Will be enhanced with AI in future updates
+      next_chapter_number: null,
+      release_schedule: [],
+      last_sync_check: new Date().toISOString(),
+    };
+
+    processedManga.push(processedItem);
+    
+    // Add delay to respect rate limits
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  return processedManga;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -336,10 +492,76 @@ serve(async (req) => {
       });
     }
 
-    // TODO: Add manga sync logic here
+    // Handle manga sync
+    if (contentType === 'manga') {
+      // Fetch from multiple sources
+      const [anilistMangaData, malMangaData] = await Promise.all([
+        fetchMangaFromAniList(page, 50),
+        fetchMangaFromMAL(page)
+      ]);
+
+      console.log(`Fetched ${anilistMangaData.length} manga from AniList, ${malMangaData.length} from MAL`);
+
+      // Process with AI enhancement
+      const processedManga = await processMangaData(anilistMangaData, malMangaData);
+
+      // Update sync status
+      await supabase
+        .from('content_sync_status')
+        .update({
+          total_items: anilistMangaData.length,
+          processed_items: 0
+        })
+        .eq('id', syncStatus.id);
+
+      // Batch upsert manga data
+      for (let i = 0; i < processedManga.length; i += 10) {
+        const batch = processedManga.slice(i, i + 10);
+        
+        const { error } = await supabase
+          .from('manga')
+          .upsert(batch, { 
+            onConflict: 'mal_id',
+            ignoreDuplicates: false 
+          });
+
+        if (error) {
+          console.error('Manga batch upsert error:', error);
+          continue;
+        }
+
+        // Update progress
+        await supabase
+          .from('content_sync_status')
+          .update({ processed_items: i + batch.length })
+          .eq('id', syncStatus.id);
+
+        console.log(`Processed ${i + batch.length}/${processedManga.length} manga`);
+      }
+
+      // Complete sync status
+      await supabase
+        .from('content_sync_status')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          processed_items: processedManga.length
+        })
+        .eq('id', syncStatus.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: `Successfully synced ${processedManga.length} manga with AI-enhanced schedules`,
+        syncId: syncStatus.id,
+        nextSyncAt: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({
       success: false,
-      message: 'Manga sync not implemented yet'
+      message: `Content type ${contentType} not supported`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 501

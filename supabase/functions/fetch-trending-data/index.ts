@@ -17,56 +17,73 @@ serve(async (req) => {
   }
 
   try {
-    console.log('6-hour sync trigger activated');
+    console.log('Fetching trending data from AniList and MAL...');
 
-    // Check if any syncs are currently running
-    const { data: runningSyncs } = await supabase
-      .from('content_sync_status')
-      .select('*')
-      .eq('status', 'running');
-
-    if (runningSyncs && runningSyncs.length > 0) {
-      console.log('Sync already running, skipping...');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Sync already in progress, skipping this run'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Trigger anime and manga sync
+    // Trigger both anime and manga sync
     const [animeResponse, mangaResponse] = await Promise.all([
       supabase.functions.invoke('intelligent-content-sync', {
         body: { 
           contentType: 'anime', 
-          operation: 'schedule_update',
+          operation: 'trending_sync',
           page: 1 
         }
       }),
       supabase.functions.invoke('intelligent-content-sync', {
         body: { 
           contentType: 'manga', 
-          operation: 'schedule_update',
+          operation: 'trending_sync',
           page: 1 
         }
       })
     ]);
 
-    console.log('Triggered 6-hour sync update');
+    // Fetch multiple pages for comprehensive data
+    const additionalSyncs = [];
+    
+    // Fetch 5 pages of trending anime
+    for (let page = 2; page <= 5; page++) {
+      additionalSyncs.push(
+        supabase.functions.invoke('intelligent-content-sync', {
+          body: { 
+            contentType: 'anime', 
+            operation: 'trending_sync',
+            page 
+          }
+        })
+      );
+    }
+
+    // Fetch 3 pages of trending manga
+    for (let page = 2; page <= 3; page++) {
+      additionalSyncs.push(
+        supabase.functions.invoke('intelligent-content-sync', {
+          body: { 
+            contentType: 'manga', 
+            operation: 'trending_sync',
+            page 
+          }
+        })
+      );
+    }
+
+    // Wait for additional syncs
+    await Promise.allSettled(additionalSyncs);
+
+    console.log('All trending data sync initiated');
 
     return new Response(JSON.stringify({
       success: true,
-      message: '6-hour sync triggered successfully for anime and manga',
+      message: 'Trending data sync initiated for anime and manga',
       animeSync: animeResponse.data,
       mangaSync: mangaResponse.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      estimatedCompletion: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutes
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Cron trigger error:', error);
+    console.error('Trending data fetch error:', error);
 
     return new Response(JSON.stringify({
       success: false,

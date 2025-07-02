@@ -68,6 +68,22 @@ export const SyncStatus = () => {
     }
   };
 
+  const triggerTrendingSync = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-trending-data');
+
+      if (error) throw error;
+      
+      // Refresh status after a short delay
+      setTimeout(fetchSyncStatuses, 2000);
+    } catch (error) {
+      console.error('Trending sync trigger failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchSyncStatuses();
     
@@ -133,7 +149,17 @@ export const SyncStatus = () => {
             <Database className="w-5 h-5 text-primary" />
             Sync Status & Control
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={triggerTrendingSync}
+              disabled={isLoading}
+              className="bg-gradient-primary hover:bg-gradient-primary/90"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Sync All Trending
+            </Button>
             <Button
               variant="outline"
               size="sm"

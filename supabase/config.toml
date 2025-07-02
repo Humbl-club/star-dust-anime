@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.schedule-cron-trigger]
 verify_jwt = false
+
+[functions.fetch-trending-data]
+verify_jwt = false

@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { SyncStatus } from "@/components/SyncStatus";
+import { InitialSyncTrigger } from "@/components/InitialSyncTrigger";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -123,6 +124,13 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Initial Sync Trigger - show if no data available */}
+        {animeStats.total === 0 && mangaStats.total === 0 && (
+          <div className="mb-8">
+            <InitialSyncTrigger />
+          </div>
+        )}
+
         {/* Sync Status Section */}
         <div className="mb-8">
           <SyncStatus />
