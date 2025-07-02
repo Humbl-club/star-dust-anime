@@ -1,1 +1,16 @@
 project_id = "axtpbgsjbmhbuqomarcr"
+
+[functions.bulk-sync-anime]
+verify_jwt = false
+
+[functions.anime-api]
+verify_jwt = false
+
+[functions.fetch-anime-data]
+verify_jwt = false
+
+[functions.sync-images]
+verify_jwt = false
+
+[functions.ai-recommendations]
+verify_jwt = false

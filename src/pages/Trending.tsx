@@ -143,26 +143,33 @@ const Trending = () => {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleSyncData = async (type: 'anime' | 'manga') => {
+  const handleBulkSync = async () => {
     setIsSyncing(true);
     try {
-      if (type === 'anime') {
-        await syncAnime(3); // Sync 3 pages of anime data
+      const response = await fetch('https://axtpbgsjbmhbuqomarcr.supabase.co/functions/v1/bulk-sync-anime', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
         toast({
-          title: "Anime data synced!",
-          description: "Successfully fetched real anime data from MyAnimeList API",
+          title: "Database populated!",
+          description: `Successfully added ${result.total_processed} anime to the database`,
         });
+        // Refresh the data
+        window.location.reload();
       } else {
-        await syncManga(3); // Sync 3 pages of manga data  
-        toast({
-          title: "Manga data synced!",
-          description: "Successfully fetched real manga data from MyAnimeList API",
-        });
+        throw new Error(result.error);
       }
     } catch (error) {
       toast({
         title: "Sync failed",
-        description: "Failed to sync data. Please try again.",
+        description: "Failed to populate database. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -209,38 +216,29 @@ const Trending = () => {
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium mb-1">No anime data found</p>
+                  <p className="font-medium mb-1">Database needs to be populated</p>
                   <p className="text-sm text-muted-foreground">
-                    Click below to fetch real anime & manga data from MyAnimeList API
+                    Click below to populate the database with 500+ real anime from MyAnimeList
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => handleSyncData('anime')} 
-                    disabled={isSyncing}
-                    size="sm"
-                  >
-                    {isSyncing ? (
+                <Button 
+                  onClick={handleBulkSync} 
+                  disabled={isSyncing}
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {isSyncing ? (
+                    <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4 mr-2" />
-                    )}
-                    Sync Anime
-                  </Button>
-                  <Button 
-                    onClick={() => handleSyncData('manga')} 
-                    disabled={isSyncing}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isSyncing ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4 mr-2" />
-                    )}
-                    Sync Manga
-                  </Button>
-                </div>
+                      Populating Database... (~2 min)
+                    </>
+                  ) : (
+                    <>
+                      <Database className="w-4 h-4 mr-2" />
+                      Populate Database
+                    </>
+                  )}
+                </Button>
               </div>
             </AlertDescription>
           </Alert>
