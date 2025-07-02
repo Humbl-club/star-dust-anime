@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.auto-initialize]
 verify_jwt = false
+
+[functions.trigger-full-sync]
+verify_jwt = false
