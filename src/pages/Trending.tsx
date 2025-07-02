@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useApiData } from "@/hooks/useApiData";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
 const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
@@ -180,36 +181,31 @@ const Trending = () => {
   const handleAniListSync = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch('https://axtpbgsjbmhbuqomarcr.supabase.co/functions/v1/sync-anilist-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ batchSize: 50, offset: 0 })
+      const { data, error } = await supabase.functions.invoke('sync-anilist-data', {
+        body: { batchSize: 50, offset: 0 }
       });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Sync failed');
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Function invocation failed');
       }
 
       toast({
         title: "AniList sync completed!",
-        description: `Processed: ${result.processed}, Remaining: ${result.remaining}`,
+        description: `Processed: ${data.processed}, Remaining: ${data.remaining}`,
       });
 
-      if (result.remaining > 0) {
+      if (data.remaining > 0) {
         toast({
           title: "More data available",
-          description: `${result.remaining} anime still need AniList data. Run sync again to continue.`,
+          description: `${data.remaining} anime still need AniList data. Run sync again to continue.`,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('AniList sync error:', error);
       toast({
         title: "AniList sync failed",
-        description: "Failed to sync AniList data. Please try again.",
+        description: error.message || "Failed to sync AniList data. Please try again.",
         variant: "destructive",
       });
     } finally {

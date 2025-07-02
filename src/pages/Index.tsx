@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
@@ -114,7 +113,6 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
-      <Navigation onSearch={handleSearch} />
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
