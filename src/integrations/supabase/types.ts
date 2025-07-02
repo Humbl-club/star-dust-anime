@@ -53,6 +53,96 @@ export type Database = {
           },
         ]
       }
+      anime: {
+        Row: {
+          aired_from: string | null
+          aired_to: string | null
+          created_at: string
+          demographics: string[] | null
+          episodes: number | null
+          favorites: number | null
+          genres: string[] | null
+          id: string
+          image_url: string | null
+          mal_id: number | null
+          members: number | null
+          popularity: number | null
+          rank: number | null
+          score: number | null
+          scored_by: number | null
+          season: string | null
+          status: string | null
+          studios: string[] | null
+          synopsis: string | null
+          themes: string[] | null
+          title: string
+          title_english: string | null
+          title_japanese: string | null
+          trailer_url: string | null
+          type: string | null
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          aired_from?: string | null
+          aired_to?: string | null
+          created_at?: string
+          demographics?: string[] | null
+          episodes?: number | null
+          favorites?: number | null
+          genres?: string[] | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          members?: number | null
+          popularity?: number | null
+          rank?: number | null
+          score?: number | null
+          scored_by?: number | null
+          season?: string | null
+          status?: string | null
+          studios?: string[] | null
+          synopsis?: string | null
+          themes?: string[] | null
+          title: string
+          title_english?: string | null
+          title_japanese?: string | null
+          trailer_url?: string | null
+          type?: string | null
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          aired_from?: string | null
+          aired_to?: string | null
+          created_at?: string
+          demographics?: string[] | null
+          episodes?: number | null
+          favorites?: number | null
+          genres?: string[] | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          members?: number | null
+          popularity?: number | null
+          rank?: number | null
+          score?: number | null
+          scored_by?: number | null
+          season?: string | null
+          status?: string | null
+          studios?: string[] | null
+          synopsis?: string | null
+          themes?: string[] | null
+          title?: string
+          title_english?: string | null
+          title_japanese?: string | null
+          trailer_url?: string | null
+          type?: string | null
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -236,6 +326,93 @@ export type Database = {
           },
         ]
       }
+      manga: {
+        Row: {
+          authors: string[] | null
+          chapters: number | null
+          created_at: string
+          demographics: string[] | null
+          favorites: number | null
+          genres: string[] | null
+          id: string
+          image_url: string | null
+          mal_id: number | null
+          members: number | null
+          popularity: number | null
+          published_from: string | null
+          published_to: string | null
+          rank: number | null
+          score: number | null
+          scored_by: number | null
+          serializations: string[] | null
+          status: string | null
+          synopsis: string | null
+          themes: string[] | null
+          title: string
+          title_english: string | null
+          title_japanese: string | null
+          type: string | null
+          updated_at: string
+          volumes: number | null
+        }
+        Insert: {
+          authors?: string[] | null
+          chapters?: number | null
+          created_at?: string
+          demographics?: string[] | null
+          favorites?: number | null
+          genres?: string[] | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          members?: number | null
+          popularity?: number | null
+          published_from?: string | null
+          published_to?: string | null
+          rank?: number | null
+          score?: number | null
+          scored_by?: number | null
+          serializations?: string[] | null
+          status?: string | null
+          synopsis?: string | null
+          themes?: string[] | null
+          title: string
+          title_english?: string | null
+          title_japanese?: string | null
+          type?: string | null
+          updated_at?: string
+          volumes?: number | null
+        }
+        Update: {
+          authors?: string[] | null
+          chapters?: number | null
+          created_at?: string
+          demographics?: string[] | null
+          favorites?: number | null
+          genres?: string[] | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          members?: number | null
+          popularity?: number | null
+          published_from?: string | null
+          published_to?: string | null
+          rank?: number | null
+          score?: number | null
+          scored_by?: number | null
+          serializations?: string[] | null
+          status?: string | null
+          synopsis?: string | null
+          themes?: string[] | null
+          title?: string
+          title_english?: string | null
+          title_japanese?: string | null
+          type?: string | null
+          updated_at?: string
+          volumes?: number | null
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
@@ -352,6 +529,109 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      user_anime_lists: {
+        Row: {
+          anime_id: string
+          created_at: string
+          episodes_watched: number | null
+          finish_date: string | null
+          id: string
+          notes: string | null
+          score: number | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anime_id: string
+          created_at?: string
+          episodes_watched?: number | null
+          finish_date?: string | null
+          id?: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anime_id?: string
+          created_at?: string
+          episodes_watched?: number | null
+          finish_date?: string | null
+          id?: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_anime_lists_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_manga_lists: {
+        Row: {
+          chapters_read: number | null
+          created_at: string
+          finish_date: string | null
+          id: string
+          manga_id: string
+          notes: string | null
+          score: number | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          volumes_read: number | null
+        }
+        Insert: {
+          chapters_read?: number | null
+          created_at?: string
+          finish_date?: string | null
+          id?: string
+          manga_id: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          volumes_read?: number | null
+        }
+        Update: {
+          chapters_read?: number | null
+          created_at?: string
+          finish_date?: string | null
+          id?: string
+          manga_id?: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          volumes_read?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_manga_lists_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_settings: {
         Row: {

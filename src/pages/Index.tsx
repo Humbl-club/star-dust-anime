@@ -5,6 +5,7 @@ import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getTrendingAnime, getRecentlyAdded, getTopRated, type AnimeData } from "@/data/mockData";
+import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
 
 const Index = () => {
@@ -32,6 +33,20 @@ const Index = () => {
     console.log("Opening anime details for:", anime.title);
     // In production, this would navigate to a detailed anime page
   };
+
+  // Convert AnimeData to Anime format
+  const convertToAnime = (data: AnimeData): Anime => ({
+    id: data.id.toString(),
+    title: data.title,
+    synopsis: data.synopsis || "",
+    type: data.type === "anime" ? "TV" : "Movie",
+    episodes: data.episode_count,
+    status: data.status,
+    year: data.year,
+    score: data.rating,
+    image_url: data.image,
+    genres: data.genres
+  });
 
   const AnimeSection = ({ 
     title, 
@@ -72,7 +87,7 @@ const Index = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <AnimeCard 
-                {...anime} 
+                anime={convertToAnime(anime)} 
                 onClick={() => handleAnimeClick(anime)}
               />
             </div>
@@ -119,7 +134,7 @@ const Index = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <AnimeCard 
-                    {...anime} 
+                    anime={convertToAnime(anime)} 
                     onClick={() => handleAnimeClick(anime)}
                   />
                 </div>

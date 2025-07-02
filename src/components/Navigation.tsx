@@ -50,10 +50,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   };
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/", active: true },
-    { icon: TrendingUp, label: "Trending", href: "/trending" },
-    { icon: Play, label: "Anime", href: "/anime" },
-    { icon: BookOpen, label: "Manga", href: "/manga" },
+    { icon: Home, label: "Home", href: "/", active: window.location.pathname === "/" },
+    { icon: TrendingUp, label: "Trending", href: "/trending", active: window.location.pathname === "/trending" },
+    { icon: Play, label: "Anime", href: "/anime", active: window.location.pathname === "/anime" },
+    { icon: BookOpen, label: "Manga", href: "/manga", active: window.location.pathname === "/manga" },
   ];
 
   return (
@@ -76,18 +76,19 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => (
-              <Button
-                key={item.label}
-                variant={item.active ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "transition-all duration-200",
-                  item.active && "shadow-glow-primary"
-                )}
-              >
-                <item.icon className="w-4 h-4 mr-2" />
-                {item.label}
-              </Button>
+              <Link key={item.label} to={item.href}>
+                <Button
+                  variant={item.active ? "default" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "transition-all duration-200",
+                    item.active && "shadow-glow-primary"
+                  )}
+                >
+                  <item.icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                </Button>
+              </Link>
             ))}
           </div>
 
