@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { useApiData } from "@/hooks/useApiData";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
+import { Navigation } from "@/components/Navigation";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -107,6 +108,7 @@ const Anime = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      <Navigation />
       {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">

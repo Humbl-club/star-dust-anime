@@ -31,6 +31,7 @@ import {
   Pause,
   X
 } from "lucide-react";
+import { Navigation } from "@/components/Navigation";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -105,6 +106,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      <Navigation />
       {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
