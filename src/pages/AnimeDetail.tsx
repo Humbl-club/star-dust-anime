@@ -21,10 +21,13 @@ import {
   Zap
 } from "lucide-react";
 import { useApiData } from "@/hooks/useApiData";
+import { useAniListData } from "@/hooks/useAniListData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
 import { NameToggle } from "@/components/NameToggle";
+import { CharacterSection } from "@/components/CharacterSection";
+import { StreamingLinks } from "@/components/StreamingLinks";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,12 +42,26 @@ const AnimeDetail = () => {
 
   const anime = allAnime.find(a => a.id === id);
 
-  if (loading) {
+  // Fetch enhanced AniList data using MAL ID
+  const { 
+    data: anilistData, 
+    loading: anilistLoading, 
+    getEnhancedData 
+  } = useAniListData({
+    malId: anime?.mal_id,
+    autoFetch: !!anime?.mal_id
+  });
+
+  // Merge MAL and AniList data for enhanced experience
+  const enhancedAnime = anime ? getEnhancedData(anime) : null;
+
+  if (loading || anilistLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Loading anime details...</p>
+          {anilistLoading && <p className="text-sm text-muted-foreground">Fetching high-quality images...</p>}
         </div>
       </div>
     );
@@ -69,17 +86,24 @@ const AnimeDetail = () => {
       {/* Name Toggle */}
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       
-      {/* Hero Background */}
+      {/* Hero Background with AniList banner or blurred cover */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url(${anime.image_url})`,
+            backgroundImage: `url(${enhancedAnime?.banner_image || enhancedAnime?.image_url || anime.image_url})`,
             filter: 'blur(20px) brightness(0.3)',
             transform: 'scale(1.1)'
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: enhancedAnime?.color_theme 
+              ? `linear-gradient(to bottom, ${enhancedAnime.color_theme}10, rgba(0,0,0,0.9))` 
+              : 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.9))'
+          }}
+        />
       </div>
 
       {/* Header */}
@@ -104,16 +128,18 @@ const AnimeDetail = () => {
               <Card className="overflow-hidden border-border/50 bg-card/90 backdrop-blur-sm shadow-2xl animate-scale-in">
                 <div className="aspect-[3/4] relative group">
                   <img 
-                    src={anime.image_url} 
+                    src={enhancedAnime?.image_url || anime.image_url} 
                     alt={getDisplayName(anime)}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   
-                  {/* Floating Score Badge */}
-                  {anime.score && (
+                  {/* Floating Score Badge with AniList score if available */}
+                  {(enhancedAnime?.anilist_score || anime.score) && (
                     <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-full p-3 flex items-center gap-2 shadow-lg">
                       <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                      <span className="text-white font-bold text-lg">{anime.score}</span>
+                      <span className="text-white font-bold text-lg">
+                        {enhancedAnime?.anilist_score || anime.score}
+                      </span>
                     </div>
                   )}
                   
@@ -147,7 +173,7 @@ const AnimeDetail = () => {
                   className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg"
                 />
                 
-                {anime.trailer_url && (
+                {enhancedAnime?.trailer && (
                   <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 group">
                     <Play className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
                     Watch Trailer
@@ -206,15 +232,23 @@ const AnimeDetail = () => {
               )}
             </div>
 
-            {/* Quick Stats Bar */}
-            {anime.score && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-lg p-6 border border-border/30 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            {/* Quick Stats Bar with enhanced AniList data */}
+            {(enhancedAnime?.anilist_score || anime.score) && (
+              <div 
+                className="bg-card/50 backdrop-blur-sm rounded-lg p-6 border border-border/30 animate-fade-in" 
+                style={{ 
+                  animationDelay: '0.3s',
+                  borderColor: enhancedAnime?.color_theme ? `${enhancedAnime.color_theme}30` : undefined
+                }}
+              >
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">{anime.score}</div>
+                    <div className="text-3xl font-bold text-primary mb-1">
+                      {enhancedAnime?.anilist_score || anime.score}
+                    </div>
                     <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                       <Star className="w-3 h-3" />
-                      Score
+                      {enhancedAnime?.anilist_score ? 'AniList Score' : 'Score'}
                     </div>
                   </div>
                   
@@ -253,16 +287,21 @@ const AnimeDetail = () => {
                   )}
                 </div>
                 
-                {/* Score Progress Bar */}
-                {anime.score && (
+                {/* Score Progress Bar with AniList score */}
+                {(enhancedAnime?.anilist_score || anime.score) && (
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium">Overall Rating</span>
-                      <span className="text-sm text-muted-foreground">{anime.score}/10</span>
+                      <span className="text-sm text-muted-foreground">
+                        {enhancedAnime?.anilist_score || anime.score}/10
+                      </span>
                     </div>
                     <Progress 
-                      value={(anime.score / 10) * 100} 
+                      value={((enhancedAnime?.anilist_score || anime.score) / 10) * 100} 
                       className="h-2 bg-muted/30"
+                      style={{
+                        background: enhancedAnime?.color_theme ? `${enhancedAnime.color_theme}20` : undefined
+                      }}
                     />
                   </div>
                 )}
@@ -403,6 +442,21 @@ const AnimeDetail = () => {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* AniList Enhanced Sections */}
+            {enhancedAnime?.characters && enhancedAnime.characters.length > 0 && (
+              <CharacterSection 
+                characters={enhancedAnime.characters} 
+                colorTheme={enhancedAnime.color_theme}
+              />
+            )}
+
+            {enhancedAnime?.external_links && enhancedAnime.external_links.length > 0 && (
+              <StreamingLinks 
+                externalLinks={enhancedAnime.external_links}
+                colorTheme={enhancedAnime.color_theme}
+              />
             )}
           </div>
         </div>
