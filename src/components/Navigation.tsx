@@ -15,16 +15,11 @@ import {
   Settings,
   Database,
   Star,
-  Heart,
-  Languages,
-  Vault
+  Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileMenu } from "@/components/ProfileMenu";
-import { NameToggle } from "@/components/NameToggle";
-import { useNamePreference } from "@/hooks/useNamePreference";
-import aniVaultLogo from "@/assets/anivault-logo.png";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -32,7 +27,6 @@ interface NavigationProps {
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
-  const { showEnglish, setShowEnglish } = useNamePreference();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -69,21 +63,17 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     <nav className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
       isScrolled 
-        ? "glass-nav shadow-lg" 
+        ? "bg-background/80 backdrop-blur-md border-b border-border/50 shadow-glow-card" 
         : "bg-transparent"
     )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <img 
-              src={aniVaultLogo} 
-              alt="AniVault" 
-              className="w-10 h-10 group-hover:scale-110 transition-transform duration-300" 
-            />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-              AniVault
-            </span>
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+              <Play className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold text-gradient-primary group-hover:opacity-80 transition-opacity">AnimeHub</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -94,8 +84,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "apple-transition rounded-full font-medium",
-                    item.active && "bg-primary text-primary-foreground shadow-md"
+                    "transition-all duration-200 hover:scale-105",
+                    item.active && "shadow-glow-primary bg-gradient-primary"
                   )}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -110,8 +100,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
                 size="sm"
                 className={cn(
-                  "apple-transition rounded-full font-medium",
-                  window.location.pathname === "/my-lists" && "bg-primary text-primary-foreground shadow-md"
+                  "transition-all duration-200 hover:scale-105",
+                  window.location.pathname === "/my-lists" && "shadow-glow-primary bg-gradient-primary"
                 )}
               >
                 <Star className="w-4 h-4 mr-2" />
@@ -124,8 +114,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
                 size="sm"
                 className={cn(
-                  "apple-transition rounded-full font-medium",
-                  window.location.pathname === "/dashboard" && "bg-primary text-primary-foreground shadow-md"
+                  "transition-all duration-200 hover:scale-105",
+                  window.location.pathname === "/dashboard" && "shadow-glow-primary bg-gradient-primary"
                 )}
               >
                 <User className="w-4 h-4 mr-2" />
@@ -139,30 +129,17 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search anime & manga..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 apple-input rounded-full"
+                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 focus:border-primary/50"
               />
             </div>
           </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
-            {/* Name Toggle - integrated into nav */}
-            <div className="hidden md:block">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowEnglish(!showEnglish)}
-                className="gap-2 text-xs font-medium rounded-full apple-transition"
-              >
-                <Languages className="w-4 h-4" />
-                {showEnglish ? "EN" : "原"}
-              </Button>
-            </div>
-
             {!loading && user && (
               <>
                 {/* Notifications */}
@@ -197,12 +174,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             {!loading && !user && (
               <>
                 <Link to="/auth">
-                  <Button variant="outline" size="sm" className="apple-button-secondary">
+                  <Button variant="outline" size="sm" className="hidden sm:flex">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button size="sm" className="apple-button">
+                  <Button variant="hero" size="sm" className="hidden sm:flex">
                     Get Started
                   </Button>
                 </Link>
@@ -223,33 +200,20 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 glass-card m-4 rounded-2xl">
+          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-md">
             <div className="py-4 space-y-2">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
-                    placeholder="Search anime & manga..."
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="pl-10 apple-input rounded-full"
+                    className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
                   />
                 </div>
-              </div>
-
-              {/* Mobile Name Toggle */}
-              <div className="px-4 mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowEnglish(!showEnglish)}
-                  className="w-full justify-start gap-3"
-                >
-                  <Languages className="w-4 h-4" />
-                  {showEnglish ? "Show Original Names" : "Show English Names"}
-                </Button>
               </div>
 
               {/* Mobile Nav Items */}

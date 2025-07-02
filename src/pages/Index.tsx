@@ -113,6 +113,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative">
+      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation onSearch={handleSearch} />
       
       {/* Hero Section */}
@@ -190,7 +191,7 @@ const Index = () => {
       <section className="py-20 bg-gradient-to-br from-primary/10 to-secondary/10">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-gradient-primary mb-8">
-            Join the Premier Anime & Manga Platform
+            Join the Ultimate Anime Community
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             <div className="space-y-2">

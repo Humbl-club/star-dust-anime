@@ -50,21 +50,24 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           {/* Title Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+              <Sparkles className="w-8 h-8 text-primary animate-glow-pulse" />
               <Zap className="w-6 h-6 text-accent animate-bounce" />
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gradient-primary animate-fade-in">
-              Your Personal
-              <br />
-              Anime & Manga Vault
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
+              <span className="text-gradient-primary">Anime</span>
+              <span className="text-foreground"> & </span>
+              <span className="text-gradient-secondary">Manga</span>
             </h1>
+            
+            <h2 className="text-3xl md:text-4xl font-semibold text-foreground/90">
+              Discovery Hub
+            </h2>
           </div>
 
           {/* Subtitle */}
-          <p className="text-xl md:text-2xl mb-8 text-primary-foreground/80 max-w-3xl mx-auto animate-fade-in animation-delay-200">
-            Curate, track, and discover anime & manga with sophisticated tools designed for discerning enthusiasts.
-            Your premium entertainment vault.
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Discover, track, and dive deep into your favorite anime and manga series with the most advanced tracking platform ever created.
           </p>
 
           {/* Search Section */}

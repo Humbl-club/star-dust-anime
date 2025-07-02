@@ -2,208 +2,187 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Anime-inspired design system with vibrant gradients and modern aesthetics */
+
 @layer base {
   :root {
-    /* Dark Apple Glass Design System */
-    --background: 17 24 39;
-    --foreground: 248 250 252;
-    --card: 30 41 59;
-    --card-foreground: 248 250 252;
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
-    
-    /* Primary - Apple Blue */
-    --primary: 212 100% 50%;
-    --primary-foreground: 17 24 39;
-    --primary-glow: 212 100% 60%;
-    --primary-variant: 220 95% 55%;
-    
-    /* Secondary - Apple Purple */
-    --secondary: 253 91% 70%;
-    --secondary-foreground: 17 24 39;
-    --secondary-glow: 253 91% 80%;
-    
-    /* Accent - Apple Green */
-    --accent: 142 76% 40%;
-    --accent-foreground: 248 250 252;
-    
-    /* Dark Glass System */
-    --muted: 51 65 85;
-    --muted-foreground: 148 163 184;
-    --border: 51 65 85;
-    --input: 30 41 59;
-    --ring: 212 100% 50%;
+    /* Core Brand Colors - Anime Electric Theme */
+    --background: 220 26% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 20% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 20% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary - Electric Blue */
+    --primary: 219 100% 65%;
+    --primary-foreground: 220 26% 6%;
+    --primary-glow: 219 100% 75%;
+
+    /* Secondary - Deep Purple */
+    --secondary: 270 95% 50%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Muted tones */
+    --muted: 220 15% 15%;
+    --muted-foreground: 215 16% 65%;
+
+    /* Accent - Neon Pink */
+    --accent: 315 100% 65%;
+    --accent-foreground: 220 26% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 15%;
+    --ring: 219 100% 65%;
+
+    /* Enhanced radius for modern feel */
     --radius: 0.75rem;
-    
-    /* Glass Effects - Dark Mode */
-    --glass-bg: 30 41 59;
-    --glass-border: 51 65 85;
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --glass-blur: blur(20px);
-    
-    /* Gradients - Dark Apple Style */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-variant)) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%);
-    
-    /* Shadows - Dark Apple Style */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
-    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.35);
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
-    
-    /* Transitions - Apple Smooth */
-    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-    --sidebar-background: 30 41 59;
-    --sidebar-foreground: 248 250 252;
-    --sidebar-primary: 212 100% 50%;
-    --sidebar-primary-foreground: 17 24 39;
-    --sidebar-accent: 51 65 85;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 51 65 85;
-    --sidebar-ring: 212 100% 50%;
+    /* Anime-specific design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(219 100% 65%), hsl(270 95% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(270 95% 50%), hsl(315 100% 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(219 100% 65% / 0.1), hsl(270 95% 50% / 0.1));
+    --gradient-card: linear-gradient(135deg, hsl(220 20% 8%), hsl(220 15% 12%));
+    
+    /* Glow effects */
+    --glow-primary: 0 0 30px hsl(219 100% 65% / 0.3);
+    --glow-accent: 0 0 20px hsl(315 100% 65% / 0.4);
+    --glow-card: 0 4px 20px hsl(0 0% 0% / 0.3);
+
+    /* Animation variables */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .light {
-    /* Light Mode Override */
-    --background: 248 250 252;
-    --foreground: 15 23 42;
-    --card: 255 255 255;
-    --card-foreground: 15 23 42;
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
-    
-    --primary: 212 100% 47%;
-    --primary-foreground: 248 250 252;
-    --primary-glow: 212 100% 57%;
-    --primary-variant: 220 95% 52%;
-    
-    --secondary: 253 91% 67%;
-    --secondary-foreground: 248 250 252;
-    --secondary-glow: 253 91% 77%;
-    
-    --accent: 142 76% 36%;
-    --accent-foreground: 248 250 252;
-    
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
-    --border: 226 232 240;
-    --input: 248 250 252;
-    --ring: 212 100% 47%;
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    /* Light Glass Effects */
-    --glass-bg: 255 255 255;
-    --glass-border: 226 232 240;
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
-    background-attachment: fixed;
+    @apply bg-background text-foreground font-sans;
+    background: linear-gradient(135deg, hsl(220 26% 6%), hsl(220 20% 8%));
     min-height: 100vh;
-  }
-
-  /* Typography */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
   }
 }
 
 @layer components {
-  /* Apple Glass Components */
-  .glass-card {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(51, 65, 85, 0.3);
-    box-shadow: var(--shadow-glass);
-    border-radius: 16px;
+  /* Anime Card Components */
+  .anime-card {
+    @apply relative overflow-hidden rounded-xl bg-gradient-to-br from-card to-card/80;
+    @apply backdrop-blur-sm border border-border/50;
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+    box-shadow: var(--glow-card);
+  }
+
+  .anime-card:hover {
+    box-shadow: var(--glow-primary);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  /* Gradient Backgrounds */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
     transition: var(--transition-smooth);
   }
-  
-  .glass-card:hover {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  }
-  
-  .light .glass-card {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .light .glass-card:hover {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-  }
-  
-  .glass-nav {
-    background: rgba(30, 41, 59, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
-  }
-  
-  .light .glass-nav {
-    background: rgba(255, 255, 255, 0.85);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
   }
 
-  /* Apple Button Styles */
-  .apple-button {
-    @apply bg-primary text-primary-foreground rounded-xl px-6 py-3 font-medium;
-    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  }
-  
-  .apple-button-secondary {
-    @apply bg-card/60 text-foreground rounded-xl px-6 py-3 font-medium border border-border/50;
-    @apply transition-all duration-200 hover:bg-card/80 hover:scale-[1.02] active:scale-[0.98];
-    backdrop-filter: blur(20px);
-  }
-
-  /* Text Gradients - Apple Style */
+  /* Text Gradients */
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary to-primary-variant bg-clip-text text-transparent;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  
+
   .text-gradient-secondary {
-    @apply bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent;
-  }
-
-  /* Apple Input Style */
-  .apple-input {
-    @apply bg-card/40 backdrop-blur-xl border border-border/30 rounded-xl px-4 py-3;
-    @apply placeholder:text-muted-foreground focus:bg-card/60 focus:border-primary/50;
-    @apply transition-all duration-200;
-  }
-  
-  .light .apple-input {
-    @apply bg-white/60 border-white/20 focus:bg-white/80;
-  }
-
-  /* Apple Card Hover */
-  .apple-card-hover {
-    @apply transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1;
-    @apply hover:shadow-xl;
-  }
-
-  /* Apple Smooth Transitions */
-  .apple-transition {
-    transition: var(--transition-smooth);
-  }
-  
-  .apple-spring {
-    transition: var(--transition-spring);
+    background: var(--gradient-secondary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
