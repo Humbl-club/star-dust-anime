@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Social from "./pages/Social";
+import DataSync from "./pages/DataSync";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/my-lists" element={<MyLists />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/social" element={<Social />} />
+            <Route path="/data-sync" element={<DataSync />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

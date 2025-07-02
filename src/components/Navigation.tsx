@@ -12,7 +12,8 @@ import {
   Play, 
   User,
   Bell,
-  Settings
+  Settings,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -119,6 +120,13 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     3
                   </Badge>
                 </Button>
+
+                {/* Data Sync */}
+                <Link to="/data-sync">
+                  <Button variant="ghost" size="icon" title="Data Sync">
+                    <Database className="w-4 h-4" />
+                  </Button>
+                </Link>
 
                 {/* Settings */}
                 <Button variant="ghost" size="icon">

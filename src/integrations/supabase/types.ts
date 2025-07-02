@@ -757,6 +757,42 @@ export type Database = {
           },
         ]
       }
+      sync_logs: {
+        Row: {
+          completed_at: string | null
+          content_type: string
+          created_at: string
+          error_message: string | null
+          id: string
+          items_processed: number | null
+          operation_type: string
+          page: number | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          content_type: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_processed?: number | null
+          operation_type: string
+          page?: number | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          content_type?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_processed?: number | null
+          operation_type?: string
+          page?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       user_anime_lists: {
         Row: {
           anime_id: string
