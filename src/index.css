@@ -49,6 +49,12 @@
     --gradient-hero: linear-gradient(135deg, hsl(219 100% 65% / 0.1), hsl(270 95% 50% / 0.1));
     --gradient-card: linear-gradient(135deg, hsl(220 20% 8%), hsl(220 15% 12%));
     
+    /* Apple Glassmorphism Effects */
+    --glass-bg: hsl(220 20% 8% / 0.4);
+    --glass-border: hsl(220 15% 20% / 0.3);
+    --glass-blur: blur(20px);
+    --glass-shadow: 0 8px 32px hsl(0 0% 0% / 0.4);
+    
     /* Glow effects */
     --glow-primary: 0 0 30px hsl(219 100% 65% / 0.3);
     --glow-accent: 0 0 20px hsl(315 100% 65% / 0.4);
@@ -57,6 +63,7 @@
     /* Animation variables */
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --sidebar-background: 0 0% 98%;
 
@@ -121,23 +128,65 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    background: linear-gradient(135deg, hsl(220 26% 6%), hsl(220 20% 8%));
+    background: 
+      radial-gradient(ellipse at top, hsl(219 100% 65% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom, hsl(270 95% 50% / 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, hsl(220 26% 6%), hsl(220 20% 8%));
     min-height: 100vh;
+    backdrop-filter: blur(100px);
   }
 }
 
 @layer components {
-  /* Anime Card Components */
+  /* Apple Glass Components */
   .anime-card {
-    @apply relative overflow-hidden rounded-xl bg-gradient-to-br from-card to-card/80;
-    @apply backdrop-blur-sm border border-border/50;
-    @apply transition-all duration-300 hover:scale-105 hover:shadow-2xl;
-    box-shadow: var(--glow-card);
+    @apply relative overflow-hidden rounded-xl;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    @apply transition-all duration-500;
+    transition-timing-function: var(--spring);
   }
 
   .anime-card:hover {
-    box-shadow: var(--glow-primary);
+    transform: scale(1.02) translateY(-4px);
+    box-shadow: 
+      var(--glass-shadow),
+      var(--glow-primary);
+    border-color: hsl(var(--primary) / 0.4);
+    background: hsl(220 20% 8% / 0.6);
+  }
+
+  /* Glass Navigation */
+  .glass-nav {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Glass Card */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    @apply rounded-2xl;
+  }
+
+  /* Glass Input */
+  .glass-input {
+    background: hsl(220 20% 8% / 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    @apply transition-all duration-300;
+  }
+
+  .glass-input:focus {
+    background: hsl(220 20% 8% / 0.5);
     border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
   }
 
   /* Gradient Backgrounds */

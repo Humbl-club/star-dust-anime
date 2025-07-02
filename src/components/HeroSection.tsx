@@ -71,10 +71,10 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           {/* Search Section */}
-          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="max-w-2xl mx-auto space-y-6">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-300" />
-              <div className="relative flex gap-2 p-2 bg-card/50 backdrop-blur-md rounded-lg border border-border/30">
+              <div className="relative flex gap-2 p-2 glass-card">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                   <Input

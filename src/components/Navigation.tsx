@@ -61,9 +61,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
       isScrolled 
-        ? "bg-background/80 backdrop-blur-md border-b border-border/50 shadow-glow-card" 
+        ? "glass-nav" 
         : "bg-transparent"
     )}>
       <div className="container mx-auto px-4">
@@ -133,7 +133,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 focus:border-primary/50"
+                className="pl-10 glass-input"
               />
             </div>
           </div>
@@ -200,7 +200,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-md">
+          <div className="md:hidden border-t border-border/50 glass-card">
             <div className="py-4 space-y-2">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
@@ -211,7 +211,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
+                    className="pl-10 glass-input"
                   />
                 </div>
               </div>
