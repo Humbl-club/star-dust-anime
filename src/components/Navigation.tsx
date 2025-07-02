@@ -13,7 +13,9 @@ import {
   User,
   Bell,
   Settings,
-  Database
+  Database,
+  Star,
+  Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,12 +69,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <Play className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-gradient-primary">AnimeHub</span>
-          </div>
+            <span className="text-xl font-bold text-gradient-primary group-hover:opacity-80 transition-opacity">AnimeHub</span>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
@@ -82,8 +84,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "transition-all duration-200",
-                    item.active && "shadow-glow-primary"
+                    "transition-all duration-200 hover:scale-105",
+                    item.active && "shadow-glow-primary bg-gradient-primary"
                   )}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -91,6 +93,35 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
             ))}
+            
+            {/* Additional Navigation Items */}
+            <Link to="/my-lists">
+              <Button
+                variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
+                size="sm"
+                className={cn(
+                  "transition-all duration-200 hover:scale-105",
+                  window.location.pathname === "/my-lists" && "shadow-glow-primary bg-gradient-primary"
+                )}
+              >
+                <Star className="w-4 h-4 mr-2" />
+                My Lists
+              </Button>
+            </Link>
+            
+            <Link to="/dashboard">
+              <Button
+                variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
+                size="sm"
+                className={cn(
+                  "transition-all duration-200 hover:scale-105",
+                  window.location.pathname === "/dashboard" && "shadow-glow-primary bg-gradient-primary"
+                )}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+            </Link>
           </div>
 
           {/* Search Bar */}
@@ -187,16 +218,40 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
               {/* Mobile Nav Items */}
               {navItems.map((item) => (
+                <Link key={item.label} to={item.href}>
+                  <Button
+                    variant={item.active ? "default" : "ghost"}
+                    className="w-full justify-start px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4 mr-3" />
+                    {item.label}
+                  </Button>
+                </Link>
+              ))}
+              
+              {/* Additional Mobile Nav Items */}
+              <Link to="/my-lists">
                 <Button
-                  key={item.label}
-                  variant={item.active ? "default" : "ghost"}
+                  variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
                   className="w-full justify-start px-4"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <item.icon className="w-4 h-4 mr-3" />
-                  {item.label}
+                  <Heart className="w-4 h-4 mr-3" />
+                  My Lists
                 </Button>
-              ))}
+              </Link>
+              
+              <Link to="/dashboard">
+                <Button
+                  variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <User className="w-4 h-4 mr-3" />
+                  Dashboard
+                </Button>
+              </Link>
 
               {/* Mobile Auth/Profile */}
               <div className="border-t border-border/50 pt-4 px-4">
