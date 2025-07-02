@@ -11,7 +11,7 @@ interface NameToggleProps {
 
 export const NameToggle = ({ showEnglish, onToggle }: NameToggleProps) => {
   return (
-    <Card className="fixed top-4 right-4 z-50 p-3 glass-card">
+    <Card className="fixed bottom-4 right-4 z-40 p-3 glass-card">
       <div className="flex items-center space-x-3">
         <Languages className="w-4 h-4 text-muted-foreground" />
         <div className="flex items-center space-x-2">

@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileMenu } from "@/components/ProfileMenu";
+import { AnimatedLogo } from "@/components/AnimatedLogo";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -69,15 +70,20 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-              <Play className="w-4 h-4 text-primary-foreground" />
+          <Link to="/" className="flex items-center space-x-3 group">
+            <AnimatedLogo size="md" />
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-gradient-primary group-hover:opacity-80 transition-opacity">
+                AniVault
+              </span>
+              <span className="text-xs text-muted-foreground font-medium tracking-wide">
+                Premium Discovery
+              </span>
             </div>
-            <span className="text-xl font-bold text-gradient-primary group-hover:opacity-80 transition-opacity">AnimeHub</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation - Condensed */}
+          <div className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => (
               <Link key={item.label} to={item.href}>
                 <Button
@@ -93,39 +99,28 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
             ))}
-            
-            {/* Additional Navigation Items */}
-            <Link to="/my-lists">
-              <Button
-                variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "transition-all duration-200 hover:scale-105",
-                  window.location.pathname === "/my-lists" && "shadow-glow-primary bg-gradient-primary"
-                )}
-              >
-                <Star className="w-4 h-4 mr-2" />
-                My Lists
-              </Button>
-            </Link>
-            
-            <Link to="/dashboard">
-              <Button
-                variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "transition-all duration-200 hover:scale-105",
-                  window.location.pathname === "/dashboard" && "shadow-glow-primary bg-gradient-primary"
-                )}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Dashboard
-              </Button>
-            </Link>
           </div>
 
-          {/* Search Bar */}
-          <div className="hidden lg:flex items-center space-x-4 flex-1 max-w-md mx-6">
+          {/* Compact Navigation for medium screens */}
+          <div className="hidden md:lg:hidden flex items-center space-x-1">
+            {navItems.slice(0, 3).map((item) => (
+              <Link key={item.label} to={item.href}>
+                <Button
+                  variant={item.active ? "default" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "transition-all duration-200 hover:scale-105",
+                    item.active && "shadow-glow-primary bg-gradient-primary"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                </Button>
+              </Link>
+            ))}
+          </div>
+
+          {/* Search Bar - Only on large screens */}
+          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -138,31 +133,31 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             </div>
           </div>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center space-x-2">
+          {/* Right Side Actions - Condensed */}
+          <div className="flex items-center space-x-1">
             {!loading && user && (
               <>
-                {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="w-4 h-4" />
-                  <Badge 
-                    className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-accent text-xs"
-                  >
-                    3
-                  </Badge>
-                </Button>
-
-                {/* Data Sync */}
-                <Link to="/data-sync">
-                  <Button variant="ghost" size="icon" title="Data Sync">
-                    <Database className="w-4 h-4" />
+                {/* Quick Actions */}
+                <div className="hidden lg:flex items-center space-x-1">
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="w-4 h-4" />
+                    <Badge 
+                      className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0 bg-accent text-xs"
+                    >
+                      3
+                    </Badge>
                   </Button>
-                </Link>
 
-                {/* Settings */}
-                <Button variant="ghost" size="icon">
-                  <Settings className="w-4 h-4" />
-                </Button>
+                  <Link to="/data-sync">
+                    <Button variant="ghost" size="icon" title="Data Sync">
+                      <Database className="w-4 h-4" />
+                    </Button>
+                  </Link>
+
+                  <Button variant="ghost" size="icon">
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </div>
 
                 {/* Profile Menu */}
                 <div className="hidden sm:block">
@@ -172,25 +167,25 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             )}
 
             {!loading && !user && (
-              <>
+              <div className="hidden sm:flex items-center space-x-2">
                 <Link to="/auth">
-                  <Button variant="outline" size="sm" className="hidden sm:flex">
+                  <Button variant="outline" size="sm">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="hero" size="sm" className="hidden sm:flex">
+                  <Button variant="hero" size="sm">
                     Get Started
                   </Button>
                 </Link>
-              </>
+              </div>
             )}
 
             {/* Mobile Menu Toggle */}
             <Button 
               variant="ghost" 
               size="icon" 
-              className="md:hidden"
+              className="lg:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <Menu className="w-4 h-4" />

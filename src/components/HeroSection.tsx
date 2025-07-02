@@ -55,13 +55,12 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
             </div>
             
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="text-gradient-primary">Anime</span>
-              <span className="text-foreground"> & </span>
-              <span className="text-gradient-secondary">Manga</span>
+              <span className="text-gradient-primary">Ani</span>
+              <span className="text-foreground">Vault</span>
             </h1>
             
             <h2 className="text-3xl md:text-4xl font-semibold text-foreground/90">
-              Discovery Hub
+              Premium Discovery Platform
             </h2>
           </div>
 
