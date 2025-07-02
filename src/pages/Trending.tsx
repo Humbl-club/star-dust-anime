@@ -143,7 +143,7 @@ const Trending = () => {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleBulkSync = async () => {
+  const handleBulkSync = async (type: 'anime' | 'manga' | 'both' = 'both') => {
     setIsSyncing(true);
     try {
       const response = await fetch('https://axtpbgsjbmhbuqomarcr.supabase.co/functions/v1/bulk-sync-anime', {
@@ -151,7 +151,7 @@ const Trending = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({ contentType: type })
       });
 
       const result = await response.json();
@@ -159,7 +159,7 @@ const Trending = () => {
       if (result.success) {
         toast({
           title: "Database populated!",
-          description: `Successfully added ${result.total_processed} anime to the database`,
+          description: `Successfully added ${result.anime_processed || 0} anime and ${result.manga_processed || 0} manga`,
         });
         // Refresh the data
         window.location.reload();
@@ -216,29 +216,47 @@ const Trending = () => {
             <AlertDescription>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium mb-1">Database needs to be populated</p>
+                  <p className="font-medium mb-1">Comprehensive Database Population</p>
                   <p className="text-sm text-muted-foreground">
-                    Click below to populate the database with 500+ real anime from MyAnimeList
+                    Get the complete MyAnimeList database: ~2000 anime + ~1500 manga
                   </p>
                 </div>
-                <Button 
-                  onClick={handleBulkSync} 
-                  disabled={isSyncing}
-                  size="lg"
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {isSyncing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Populating Database... (~2 min)
-                    </>
-                  ) : (
-                    <>
-                      <Database className="w-4 h-4 mr-2" />
-                      Populate Database
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleBulkSync('both')} 
+                    disabled={isSyncing}
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading Everything... (~10 min)
+                      </>
+                    ) : (
+                      <>
+                        <Database className="w-4 h-4 mr-2" />
+                        Get All Content
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={() => handleBulkSync('anime')} 
+                    disabled={isSyncing}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Anime Only
+                  </Button>
+                  <Button 
+                    onClick={() => handleBulkSync('manga')} 
+                    disabled={isSyncing}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Manga Only
+                  </Button>
+                </div>
               </div>
             </AlertDescription>
           </Alert>
