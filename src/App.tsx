@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Anime from "./pages/Anime";
 import Manga from "./pages/Manga"; 
 import Trending from "./pages/Trending";
+import Dashboard from "./pages/Dashboard";
+import MyLists from "./pages/MyLists";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/anime" element={<Anime />} />
             <Route path="/manga" element={<Manga />} />
             <Route path="/trending" element={<Trending />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/my-lists" element={<MyLists />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

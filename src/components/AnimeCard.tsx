@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Play, BookOpen, Calendar } from "lucide-react";
+import { AddToListButton } from "@/components/AddToListButton";
 import { type Anime } from "@/data/animeData";
 
 interface AnimeCardProps {
@@ -78,6 +79,17 @@ export const AnimeCard = ({
                 {genre}
               </Badge>
             ))}
+          </div>
+          
+          {/* Add to List Button */}
+          <div className="mt-3">
+            <AddToListButton 
+              item={anime} 
+              type="anime" 
+              variant="outline" 
+              size="sm"
+              className="w-full bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+            />
           </div>
         </div>
       </CardContent>

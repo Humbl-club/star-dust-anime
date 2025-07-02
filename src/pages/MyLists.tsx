@@ -1,0 +1,358 @@
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserLists } from "@/hooks/useUserLists";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RatingComponent } from "@/components/RatingComponent";
+import { AddToListButton } from "@/components/AddToListButton";
+import { 
+  Search,
+  Filter,
+  Play, 
+  BookOpen, 
+  Star,
+  Calendar,
+  Check,
+  Clock,
+  Pause,
+  X,
+  Eye,
+  Edit,
+  Trash2
+} from "lucide-react";
+import { mockAnime, mockManga, listStatuses } from "@/data/animeData";
+
+const MyLists = () => {
+  const { user } = useAuth();
+  const { 
+    animeList, 
+    mangaList, 
+    loading,
+    updateAnimeListEntry,
+    updateMangaListEntry,
+    removeFromAnimeList,
+    removeFromMangaList
+  } = useUserLists();
+  
+  const [activeTab, setActiveTab] = useState("anime");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Get anime/manga details from mock data
+  const getAnimeDetails = (animeId: string) => {
+    return mockAnime.find(anime => anime.id === animeId);
+  };
+
+  const getMangaDetails = (mangaId: string) => {
+    return mockManga.find(manga => manga.id === mangaId);
+  };
+
+  // Filter lists
+  const filteredAnimeList = animeList.filter(entry => {
+    const anime = getAnimeDetails(entry.anime_id);
+    if (!anime) return false;
+    
+    const matchesSearch = searchQuery === "" || 
+      anime.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredMangaList = mangaList.filter(entry => {
+    const manga = getMangaDetails(entry.manga_id);
+    if (!manga) return false;
+    
+    const matchesSearch = searchQuery === "" || 
+      manga.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const statusIcons = {
+    watching: Play,
+    reading: Eye,
+    completed: Check,
+    on_hold: Pause,
+    dropped: X,
+    plan_to_watch: Clock,
+    plan_to_read: Clock
+  };
+
+  const statusColors = {
+    watching: "bg-green-500",
+    reading: "bg-green-500", 
+    completed: "bg-blue-500",
+    on_hold: "bg-yellow-500",
+    dropped: "bg-red-500",
+    plan_to_watch: "bg-gray-500",
+    plan_to_read: "bg-gray-500"
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <CardContent>
+            <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
+            <p className="text-muted-foreground">You need to be signed in to view your lists.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      {/* Header */}
+      <div className="bg-gradient-primary text-primary-foreground py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              My Lists
+            </h1>
+            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+              Manage your anime and manga collections. Track your progress and ratings.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Search and Filters */}
+        <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search your lists..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  {activeTab === "anime" 
+                    ? listStatuses.anime.map(status => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))
+                    : listStatuses.manga.map(status => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Lists */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+            <TabsTrigger value="anime" className="flex items-center gap-2">
+              <Play className="w-4 h-4" />
+              Anime ({animeList.length})
+            </TabsTrigger>
+            <TabsTrigger value="manga" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Manga ({mangaList.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="anime">
+            {filteredAnimeList.length > 0 ? (
+              <div className="space-y-4">
+                {filteredAnimeList.map(entry => {
+                  const anime = getAnimeDetails(entry.anime_id);
+                  if (!anime) return null;
+                  
+                  const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
+                  const statusColor = statusColors[entry.status as keyof typeof statusColors];
+                  
+                  return (
+                    <Card key={entry.id} className="border-border/50 bg-card/80 backdrop-blur-sm">
+                      <CardContent className="p-6">
+                        <div className="flex gap-4">
+                          <img 
+                            src={anime.image_url}
+                            alt={anime.title}
+                            className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="text-lg font-semibold line-clamp-1">{anime.title}</h3>
+                              <AddToListButton item={anime} type="anime" />
+                            </div>
+                            
+                            <div className="flex items-center gap-2 mb-3">
+                              <Badge variant="secondary" className={`${statusColor} text-white`}>
+                                <StatusIcon className="w-3 h-3 mr-1" />
+                                {listStatuses.anime.find(s => s.value === entry.status)?.label}
+                              </Badge>
+                              
+                              <Badge variant="outline">
+                                {anime.type} • {anime.year}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">
+                                  Episodes Watched
+                                </label>
+                                <div className="text-lg">
+                                  {entry.episodes_watched} / {anime.episodes || "?"}
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                                  Your Rating
+                                </label>
+                                <RatingComponent
+                                  value={entry.score || 0}
+                                  onChange={(rating) => updateAnimeListEntry(entry.id, { score: rating })}
+                                  size="sm"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardContent>
+                  <div className="flex flex-col items-center gap-4">
+                    <Play className="w-16 h-16 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">No anime in your list</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start building your anime collection by browsing and adding titles.
+                      </p>
+                      <Button>Browse Anime</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="manga">
+            {filteredMangaList.length > 0 ? (
+              <div className="space-y-4">
+                {filteredMangaList.map(entry => {
+                  const manga = getMangaDetails(entry.manga_id);
+                  if (!manga) return null;
+                  
+                  const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
+                  const statusColor = statusColors[entry.status as keyof typeof statusColors];
+                  
+                  return (
+                    <Card key={entry.id} className="border-border/50 bg-card/80 backdrop-blur-sm">
+                      <CardContent className="p-6">
+                        <div className="flex gap-4">
+                          <img 
+                            src={manga.image_url}
+                            alt={manga.title}
+                            className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="text-lg font-semibold line-clamp-1">{manga.title}</h3>
+                              <AddToListButton item={manga} type="manga" />
+                            </div>
+                            
+                            <div className="flex items-center gap-2 mb-3">
+                              <Badge variant="secondary" className={`${statusColor} text-white`}>
+                                <StatusIcon className="w-3 h-3 mr-1" />
+                                {listStatuses.manga.find(s => s.value === entry.status)?.label}
+                              </Badge>
+                              
+                              <Badge variant="outline">
+                                {manga.type}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">
+                                  Chapters Read
+                                </label>
+                                <div className="text-lg">
+                                  {entry.chapters_read} / {manga.chapters || "?"}
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">
+                                  Volumes Read
+                                </label>
+                                <div className="text-lg">
+                                  {entry.volumes_read} / {manga.volumes || "?"}
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                                  Your Rating
+                                </label>
+                                <RatingComponent
+                                  value={entry.score || 0}
+                                  onChange={(rating) => updateMangaListEntry(entry.id, { score: rating })}
+                                  size="sm"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+                <CardContent>
+                  <div className="flex flex-col items-center gap-4">
+                    <BookOpen className="w-16 h-16 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">No manga in your list</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Start building your manga collection by browsing and adding titles.
+                      </p>
+                      <Button>Browse Manga</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default MyLists;
