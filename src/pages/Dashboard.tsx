@@ -32,6 +32,7 @@ import {
   X
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import { SyncStatus } from "@/components/SyncStatus";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -122,6 +123,11 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Sync Status Section */}
+        <div className="mb-8">
+          <SyncStatus />
+        </div>
+
         {/* Overview Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="text-center border-border/50 bg-card/80 backdrop-blur-sm">
