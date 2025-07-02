@@ -16,17 +16,23 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split('/').filter(Boolean);
-    
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Supabase configuration missing');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse query parameters
-    const params = Object.fromEntries(url.searchParams.entries());
+    // Parse request body
+    const body = await req.json();
+    const requestPath = body.path || '';
+    
+    // Extract content type and query parameters from the path
+    const [pathPart, queryPart] = requestPath.split('?');
+    const contentType = pathPart.replace('/', ''); // Remove leading slash
+    
+    // Parse query parameters from the path
+    const searchParams = new URLSearchParams(queryPart || '');
+    const params = Object.fromEntries(searchParams.entries());
     const {
       page = '1',
       limit = '20',
@@ -44,8 +50,6 @@ serve(async (req) => {
     const limitNum = Math.min(parseInt(limit), 100); // Max 100 per request
     const offset = (pageNum - 1) * limitNum;
 
-    // Determine content type from path
-    const contentType = pathSegments[0]; // 'anime' or 'manga'
     
     if (!['anime', 'manga'].includes(contentType)) {
       return new Response(JSON.stringify({ 
