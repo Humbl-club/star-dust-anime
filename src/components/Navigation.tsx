@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +15,15 @@ import {
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { ProfileMenu } from "@/components/ProfileMenu";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
 }
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
+  const { user, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -103,26 +107,44 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-4 h-4" />
-              <Badge 
-                className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-accent text-xs"
-              >
-                3
-              </Badge>
-            </Button>
+            {!loading && user && (
+              <>
+                {/* Notifications */}
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="w-4 h-4" />
+                  <Badge 
+                    className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 bg-accent text-xs"
+                  >
+                    3
+                  </Badge>
+                </Button>
 
-            {/* Settings */}
-            <Button variant="ghost" size="icon">
-              <Settings className="w-4 h-4" />
-            </Button>
+                {/* Settings */}
+                <Button variant="ghost" size="icon">
+                  <Settings className="w-4 h-4" />
+                </Button>
 
-            {/* Profile */}
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
+                {/* Profile Menu */}
+                <div className="hidden sm:block">
+                  <ProfileMenu />
+                </div>
+              </>
+            )}
+
+            {!loading && !user && (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" size="sm" className="hidden sm:flex">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="hero" size="sm" className="hidden sm:flex">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button 
@@ -167,12 +189,27 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               ))}
 
-              {/* Mobile Profile */}
+              {/* Mobile Auth/Profile */}
               <div className="border-t border-border/50 pt-4 px-4">
-                <Button variant="outline" className="w-full justify-start">
-                  <User className="w-4 h-4 mr-3" />
-                  Profile
-                </Button>
+                {user ? (
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <User className="w-4 h-4 text-primary" />
+                    <span className="font-medium">Welcome back!</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Link to="/auth">
+                      <Button variant="outline" className="w-full justify-start">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/auth">
+                      <Button variant="hero" className="w-full justify-start">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
