@@ -12,7 +12,9 @@ import {
   Star,
   Calendar
 } from "lucide-react";
-import { mockManga, genres, mangaStatuses, type Manga } from "@/data/animeData";
+import { genres, mangaStatuses, type Manga } from "@/data/animeData";
+import { useApiData } from "@/hooks/useApiData";
+import { Navigation } from "@/components/Navigation";
 
 const MangaCard = ({ manga }: { manga: Manga }) => (
   <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale">
@@ -82,13 +84,23 @@ const MangaCard = ({ manga }: { manga: Manga }) => (
 
 const Manga = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [mangaList, setMangaList] = useState<Manga[]>(mockManga);
-  const [filteredManga, setFilteredManga] = useState<Manga[]>(mockManga);
+  const [filteredManga, setFilteredManga] = useState<Manga[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") || "all");
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Fetch manga data from database
+  const { data: mangaData, loading } = useApiData<Manga>({ 
+    contentType: 'manga',
+    limit: 1000,
+    search: searchQuery || undefined,
+    genre: selectedGenre !== 'all' ? selectedGenre : undefined,
+    status: selectedStatus !== 'all' ? selectedStatus : undefined,
+    sort_by: sortBy,
+    order: 'desc'
+  });
 
   // Update URL params when filters change
   useEffect(() => {
@@ -100,50 +112,10 @@ const Manga = () => {
     setSearchParams(params);
   }, [searchQuery, selectedGenre, selectedStatus, sortBy, setSearchParams]);
 
-  // Filter and sort manga
+  // Update filtered manga when data changes
   useEffect(() => {
-    let filtered = [...mangaList];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(manga =>
-        manga.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        manga.title_english?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        manga.synopsis.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Genre filter
-    if (selectedGenre !== "all") {
-      filtered = filtered.filter(manga =>
-        manga.genres.some(genre => genre.toLowerCase() === selectedGenre.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(manga =>
-        manga.status.toLowerCase() === selectedStatus.toLowerCase()
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "score":
-          return (b.score || 0) - (a.score || 0);
-        case "title":
-          return a.title.localeCompare(b.title);
-        case "chapters":
-          return (b.chapters || 0) - (a.chapters || 0);
-        case "popularity":
-        default:
-          return (a.popularity || 999999) - (b.popularity || 999999);
-      }
-    });
-
-    setFilteredManga(filtered);
-  }, [mangaList, searchQuery, selectedGenre, selectedStatus, sortBy]);
+    setFilteredManga(mangaData);
+  }, [mangaData]);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -154,6 +126,7 @@ const Manga = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      <Navigation />
       {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
@@ -245,7 +218,7 @@ const Manga = () => {
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {filteredManga.length} of {mangaList.length} manga
+            Showing {filteredManga.length} of {mangaData.length} manga
           </p>
           
           <div className="flex items-center gap-2">
