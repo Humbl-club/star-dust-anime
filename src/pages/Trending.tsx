@@ -177,6 +177,46 @@ const Trending = () => {
     }
   };
 
+  const handleAniListSync = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('https://axtpbgsjbmhbuqomarcr.supabase.co/functions/v1/sync-anilist-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ batchSize: 50, offset: 0 })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Sync failed');
+      }
+
+      toast({
+        title: "AniList sync completed!",
+        description: `Processed: ${result.processed}, Remaining: ${result.remaining}`,
+      });
+
+      if (result.remaining > 0) {
+        toast({
+          title: "More data available",
+          description: `${result.remaining} anime still need AniList data. Run sync again to continue.`,
+        });
+      }
+    } catch (error) {
+      console.error('AniList sync error:', error);
+      toast({
+        title: "AniList sync failed",
+        description: "Failed to sync AniList data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Sort by score for trending
   const trendingAnime = [...animeData]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
@@ -254,9 +294,43 @@ const Trending = () => {
                     variant="outline"
                     size="sm"
                   >
-                    Manga Only
+                     Manga Only
                   </Button>
                 </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* AniList Enhancement Section */}
+        {animeData.length > 0 && (
+          <Alert className="mb-8 border-blue-500/20 bg-blue-500/5">
+            <Star className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium mb-1">AniList Enhancement</p>
+                  <p className="text-sm text-muted-foreground">
+                    Upgrade your database with high-quality images, characters, and streaming links from AniList
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleAniListSync} 
+                  disabled={isSyncing}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                >
+                  {isSyncing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Syncing AniList...
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4 mr-2" />
+                      Sync AniList Data
+                    </>
+                  )}
+                </Button>
               </div>
             </AlertDescription>
           </Alert>

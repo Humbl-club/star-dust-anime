@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.ai-recommendations]
 verify_jwt = false
+
+[functions.sync-anilist-data]
+verify_jwt = false
