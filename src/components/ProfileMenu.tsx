@@ -113,12 +113,12 @@ export const ProfileMenu = () => {
         
         <DropdownMenuItem className="cursor-pointer">
           <Star className="mr-2 h-4 w-4" />
-          <span>Favorites</span>
+          <span>Recommendations</span>
         </DropdownMenuItem>
         
         <DropdownMenuItem className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <span>Social</span>
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />

@@ -11,6 +11,8 @@ import Manga from "./pages/Manga";
 import Trending from "./pages/Trending";
 import Dashboard from "./pages/Dashboard";
 import MyLists from "./pages/MyLists";
+import Recommendations from "./pages/Recommendations";
+import Social from "./pages/Social";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/trending" element={<Trending />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-lists" element={<MyLists />} />
+            <Route path="/recommendations" element={<Recommendations />} />
+            <Route path="/social" element={<Social />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
