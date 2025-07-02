@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import useAutoSync from "@/hooks/useAutoSync";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Anime from "./pages/Anime";
@@ -19,10 +20,16 @@ import AnimeDetail from "./pages/AnimeDetail";
 
 const queryClient = new QueryClient();
 
+const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
+  useAutoSync();
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <AutoSyncProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -41,7 +48,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </TooltipProvider>
+        </TooltipProvider>
+      </AutoSyncProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

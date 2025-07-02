@@ -124,17 +124,31 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Initial Sync Trigger - show if no data available */}
+        {/* Auto-sync status message - show if no data available */}
         {animeStats.total === 0 && mangaStats.total === 0 && (
           <div className="mb-8">
-            <InitialSyncTrigger />
+            <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 border border-primary/20">
+              <h3 className="text-lg font-semibold mb-2">Database Auto-Initialization Active</h3>
+              <p className="text-muted-foreground mb-4">
+                Our system is automatically building your comprehensive anime and manga database in the background. 
+                This includes trending titles, schedules, and metadata from AniList and MyAnimeList.
+              </p>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-75"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-150"></div>
+                <span className="text-sm text-primary ml-2">Processing in background...</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Sync Status Section */}
-        <div className="mb-8">
-          <SyncStatus />
-        </div>
+        {/* Sync Status Section - only show if there's data */}
+        {(animeStats.total > 0 || mangaStats.total > 0) && (
+          <div className="mb-8">
+            <SyncStatus />
+          </div>
+        )}
 
         {/* Overview Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

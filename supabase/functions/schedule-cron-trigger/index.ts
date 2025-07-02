@@ -17,49 +17,17 @@ serve(async (req) => {
   }
 
   try {
-    console.log('6-hour sync trigger activated');
+    console.log('6-hour automated sync triggered');
 
-    // Check if any syncs are currently running
-    const { data: runningSyncs } = await supabase
-      .from('content_sync_status')
-      .select('*')
-      .eq('status', 'running');
+    // Use auto-initialize to handle everything intelligently
+    const initResponse = await supabase.functions.invoke('auto-initialize');
 
-    if (runningSyncs && runningSyncs.length > 0) {
-      console.log('Sync already running, skipping...');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Sync already in progress, skipping this run'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Trigger anime and manga sync
-    const [animeResponse, mangaResponse] = await Promise.all([
-      supabase.functions.invoke('intelligent-content-sync', {
-        body: { 
-          contentType: 'anime', 
-          operation: 'schedule_update',
-          page: 1 
-        }
-      }),
-      supabase.functions.invoke('intelligent-content-sync', {
-        body: { 
-          contentType: 'manga', 
-          operation: 'schedule_update',
-          page: 1 
-        }
-      })
-    ]);
-
-    console.log('Triggered 6-hour sync update');
+    console.log('Auto-sync update completed');
 
     return new Response(JSON.stringify({
       success: true,
-      message: '6-hour sync triggered successfully for anime and manga',
-      animeSync: animeResponse.data,
-      mangaSync: mangaResponse.data,
+      message: 'Automated 6-hour sync completed',
+      autoInit: initResponse.data,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

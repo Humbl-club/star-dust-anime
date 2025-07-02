@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.fetch-trending-data]
 verify_jwt = false
+
+[functions.auto-initialize]
+verify_jwt = false

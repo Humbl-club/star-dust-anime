@@ -190,34 +190,21 @@ const Manga = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Show sync trigger if no manga data */}
-        {mangaData.length === 0 && (
-          <div className="mb-8">
-            <InitialSyncTrigger />
-          </div>
-        )}
-
-        {/* Manual sync trigger */}
+        {/* Show loading message if no manga data yet */}
         {mangaData.length === 0 && (
           <div className="mb-8 text-center">
-            <Button 
-              onClick={triggerMangaSync}
-              disabled={isSyncing}
-              size="lg"
-              className="bg-gradient-primary hover:bg-gradient-primary/90"
-            >
-              {isSyncing ? (
-                <>
-                  <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Syncing Manga...
-                </>
-              ) : (
-                <>
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Load Manga Database
-                </>
-              )}
-            </Button>
+            <div className="bg-muted/20 rounded-lg p-8">
+              <h3 className="text-lg font-semibold mb-2">Building Manga Database</h3>
+              <p className="text-muted-foreground mb-4">
+                Our system is automatically populating the manga database with trending titles from AniList and MyAnimeList. 
+                This process runs in the background and should complete within a few minutes.
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-75"></div>
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-150"></div>
+              </div>
+            </div>
           </div>
         )}
         {/* Search and Filters */}
