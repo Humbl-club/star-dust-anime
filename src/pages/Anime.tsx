@@ -14,18 +14,32 @@ import {
   Eye,
   Heart
 } from "lucide-react";
-import { mockAnime, genres, animeStatuses, type Anime } from "@/data/animeData";
+import { useNavigate } from "react-router-dom";
+import { useApiData } from "@/hooks/useApiData";
+import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
 
 const Anime = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [animeList, setAnimeList] = useState<Anime[]>(mockAnime);
-  const [filteredAnime, setFilteredAnime] = useState<Anime[]>(mockAnime);
+  const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") || "all");
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Get anime data from API
+  const { data: animeList, loading } = useApiData<Anime>({ 
+    contentType: 'anime',
+    limit: 100,
+    sort_by: 'score',
+    order: 'desc'
+  });
+
+  const handleAnimeClick = (anime: Anime) => {
+    navigate(`/anime/${anime.id}`);
+  };
 
   // Update URL params when filters change
   useEffect(() => {
@@ -197,10 +211,21 @@ const Anime = () => {
         </div>
 
         {/* Anime Grid */}
-        {filteredAnime.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Loading anime...</p>
+            </div>
+          </div>
+        ) : filteredAnime.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {filteredAnime.map((anime) => (
-              <AnimeCard key={anime.id} anime={anime} />
+              <AnimeCard 
+                key={anime.id} 
+                anime={anime} 
+                onClick={() => handleAnimeClick(anime)}
+              />
             ))}
           </div>
         ) : (

@@ -1,27 +1,33 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getTrendingAnime, getRecentlyAdded, getTopRated, type AnimeData } from "@/data/mockData";
+import { useApiData } from "@/hooks/useApiData";
 import { type Anime } from "@/data/animeData";
-import { TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
+import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 
 const Index = () => {
-  const [searchResults, setSearchResults] = useState<AnimeData[]>([]);
+  const navigate = useNavigate();
+  const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const trendingAnime = getTrendingAnime();
-  const recentlyAdded = getRecentlyAdded();
-  const topRated = getTopRated();
+  // Get anime data from API
+  const { data: allAnime, loading } = useApiData<Anime>({ 
+    contentType: 'anime',
+    limit: 50,
+    sort_by: 'score',
+    order: 'desc'
+  });
 
   const handleSearch = (query: string) => {
     setIsSearching(true);
-    // Simulate API search - in production this would be a real API call
     setTimeout(() => {
-      const results = [...trendingAnime, ...recentlyAdded, ...topRated].filter(
+      const results = allAnime.filter(
         anime => anime.title.toLowerCase().includes(query.toLowerCase()) ||
+        anime.title_english?.toLowerCase().includes(query.toLowerCase()) ||
         anime.genres.some(genre => genre.toLowerCase().includes(query.toLowerCase()))
       );
       setSearchResults(results);
@@ -29,24 +35,14 @@ const Index = () => {
     }, 500);
   };
 
-  const handleAnimeClick = (anime: AnimeData) => {
-    console.log("Opening anime details for:", anime.title);
-    // In production, this would navigate to a detailed anime page
+  const handleAnimeClick = (anime: Anime) => {
+    navigate(`/anime/${anime.id}`);
   };
 
-  // Convert AnimeData to Anime format
-  const convertToAnime = (data: AnimeData): Anime => ({
-    id: data.id.toString(),
-    title: data.title,
-    synopsis: data.synopsis || "",
-    type: data.type === "anime" ? "TV" : "Movie",
-    episodes: data.episode_count,
-    status: data.status,
-    year: data.year,
-    score: data.rating,
-    image_url: data.image,
-    genres: data.genres
-  });
+  // Split anime into sections
+  const trendingAnime = allAnime.slice(0, 12);
+  const recentlyAdded = allAnime.slice(12, 24);
+  const topRated = allAnime.slice(24, 36);
 
   const AnimeSection = ({ 
     title, 
@@ -58,7 +54,7 @@ const Index = () => {
     title: string; 
     subtitle: string; 
     icon: any; 
-    animeList: AnimeData[]; 
+    animeList: Anime[]; 
     className?: string;
   }) => (
     <section className={`py-16 ${className}`}>
@@ -73,7 +69,11 @@ const Index = () => {
               <p className="text-muted-foreground">{subtitle}</p>
             </div>
           </div>
-          <Button variant="outline" className="group">
+          <Button 
+            variant="outline" 
+            className="group"
+            onClick={() => navigate('/anime')}
+          >
             View All
             <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
@@ -87,7 +87,7 @@ const Index = () => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <AnimeCard 
-                anime={convertToAnime(anime)} 
+                anime={anime} 
                 onClick={() => handleAnimeClick(anime)}
               />
             </div>
@@ -96,6 +96,17 @@ const Index = () => {
       </div>
     </section>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Loading anime...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -134,7 +145,7 @@ const Index = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <AnimeCard 
-                    anime={convertToAnime(anime)} 
+                    anime={anime} 
                     onClick={() => handleAnimeClick(anime)}
                   />
                 </div>
@@ -145,7 +156,7 @@ const Index = () => {
       )}
 
       {/* Main Content Sections */}
-      {searchResults.length === 0 && !isSearching && (
+      {searchResults.length === 0 && !isSearching && allAnime.length > 0 && (
         <>
           <AnimeSection
             title="Trending Now"

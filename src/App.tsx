@@ -15,6 +15,7 @@ import Recommendations from "./pages/Recommendations";
 import Social from "./pages/Social";
 import DataSync from "./pages/DataSync";
 import NotFound from "./pages/NotFound";
+import AnimeDetail from "./pages/AnimeDetail";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/anime" element={<Anime />} />
+            <Route path="/anime/:id" element={<AnimeDetail />} />
             <Route path="/manga" element={<Manga />} />
             <Route path="/trending" element={<Trending />} />
             <Route path="/dashboard" element={<Dashboard />} />
