@@ -69,7 +69,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     <nav className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
       isScrolled 
-        ? "bg-background/80 backdrop-blur-md border-b border-border/50 shadow-glow-card" 
+        ? "glass-nav shadow-lg" 
         : "bg-transparent"
     )}>
       <div className="container mx-auto px-4">
@@ -94,8 +94,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "transition-all duration-200 hover:scale-105",
-                    item.active && "shadow-glow-primary bg-gradient-primary"
+                    "apple-transition rounded-full font-medium",
+                    item.active && "bg-primary text-primary-foreground shadow-md"
                   )}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -110,8 +110,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
                 size="sm"
                 className={cn(
-                  "transition-all duration-200 hover:scale-105",
-                  window.location.pathname === "/my-lists" && "shadow-glow-primary bg-gradient-primary"
+                  "apple-transition rounded-full font-medium",
+                  window.location.pathname === "/my-lists" && "bg-primary text-primary-foreground shadow-md"
                 )}
               >
                 <Star className="w-4 h-4 mr-2" />
@@ -124,8 +124,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
                 size="sm"
                 className={cn(
-                  "transition-all duration-200 hover:scale-105",
-                  window.location.pathname === "/dashboard" && "shadow-glow-primary bg-gradient-primary"
+                  "apple-transition rounded-full font-medium",
+                  window.location.pathname === "/dashboard" && "bg-primary text-primary-foreground shadow-md"
                 )}
               >
                 <User className="w-4 h-4 mr-2" />
@@ -143,7 +143,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 focus:border-primary/50 rounded-full"
+                className="pl-10 apple-input rounded-full"
               />
             </div>
           </div>
@@ -156,7 +156,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowEnglish(!showEnglish)}
-                className="gap-2 text-xs font-medium"
+                className="gap-2 text-xs font-medium rounded-full apple-transition"
               >
                 <Languages className="w-4 h-4" />
                 {showEnglish ? "EN" : "原"}
@@ -197,12 +197,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             {!loading && !user && (
               <>
                 <Link to="/auth">
-                  <Button variant="outline" size="sm" className="hidden sm:flex rounded-full">
+                  <Button variant="outline" size="sm" className="apple-button-secondary">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth">
-                  <Button variant="default" size="sm" className="hidden sm:flex rounded-full bg-gradient-primary hover:opacity-90">
+                  <Button size="sm" className="apple-button">
                     Get Started
                   </Button>
                 </Link>
@@ -223,7 +223,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-md">
+          <div className="md:hidden border-t border-border/50 glass-card m-4 rounded-2xl">
             <div className="py-4 space-y-2">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
@@ -234,7 +234,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 rounded-full"
+                    className="pl-10 apple-input rounded-full"
                   />
                 </div>
               </div>
