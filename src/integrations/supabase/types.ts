@@ -53,6 +53,51 @@ export type Database = {
           },
         ]
       }
+      activity_feed: {
+        Row: {
+          activity_type: string
+          anime_id: string | null
+          created_at: string
+          id: string
+          manga_id: string | null
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          anime_id?: string | null
+          created_at?: string
+          id?: string
+          manga_id?: string | null
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          anime_id?: string | null
+          created_at?: string
+          id?: string
+          manga_id?: string | null
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_feed_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anime: {
         Row: {
           aired_from: string | null
@@ -326,6 +371,48 @@ export type Database = {
           },
         ]
       }
+      import_export_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_url: string | null
+          id: string
+          items_processed: number | null
+          items_total: number | null
+          operation_type: string
+          source_platform: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_url?: string | null
+          id?: string
+          items_processed?: number | null
+          items_total?: number | null
+          operation_type: string
+          source_platform?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_url?: string | null
+          id?: string
+          items_processed?: number | null
+          items_total?: number | null
+          operation_type?: string
+          source_platform?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       manga: {
         Row: {
           authors: string[] | null
@@ -530,6 +617,146 @@ export type Database = {
         }
         Relationships: []
       }
+      recommendations: {
+        Row: {
+          anime_id: string | null
+          confidence_score: number | null
+          created_at: string
+          dismissed: boolean | null
+          id: string
+          manga_id: string | null
+          reason: string | null
+          recommendation_type: string
+          user_id: string
+        }
+        Insert: {
+          anime_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          dismissed?: boolean | null
+          id?: string
+          manga_id?: string | null
+          reason?: string | null
+          recommendation_type: string
+          user_id: string
+        }
+        Update: {
+          anime_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          dismissed?: boolean | null
+          id?: string
+          manga_id?: string | null
+          reason?: string | null
+          recommendation_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendations_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reactions_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          anime_id: string | null
+          content: string
+          created_at: string
+          helpful_count: number | null
+          id: string
+          manga_id: string | null
+          rating: number | null
+          spoiler_warning: boolean | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anime_id?: string | null
+          content: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          manga_id?: string | null
+          rating?: number | null
+          spoiler_warning?: boolean | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anime_id?: string | null
+          content?: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          manga_id?: string | null
+          rating?: number | null
+          spoiler_warning?: boolean | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_manga_id_fkey"
+            columns: ["manga_id"]
+            isOneToOne: false
+            referencedRelation: "manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_anime_lists: {
         Row: {
           anime_id: string
@@ -579,6 +806,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
       }
       user_manga_lists: {
         Row: {
@@ -632,6 +880,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          auto_add_sequels: boolean | null
+          created_at: string
+          excluded_genres: string[] | null
+          id: string
+          list_visibility: string | null
+          notification_settings: Json | null
+          preferred_genres: string[] | null
+          privacy_level: string | null
+          show_adult_content: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_add_sequels?: boolean | null
+          created_at?: string
+          excluded_genres?: string[] | null
+          id?: string
+          list_visibility?: string | null
+          notification_settings?: Json | null
+          preferred_genres?: string[] | null
+          privacy_level?: string | null
+          show_adult_content?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_add_sequels?: boolean | null
+          created_at?: string
+          excluded_genres?: string[] | null
+          id?: string
+          list_visibility?: string | null
+          notification_settings?: Json | null
+          preferred_genres?: string[] | null
+          privacy_level?: string | null
+          show_adult_content?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_settings: {
         Row: {
