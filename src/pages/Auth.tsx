@@ -116,7 +116,7 @@ const Auth = () => {
                         id="fullName"
                         name="fullName"
                         type="text"
-                        placeholder="Enter your full name"
+                        placeholder="Your display name"
                         value={formData.fullName}
                         onChange={handleChange}
                         className="pl-10"
@@ -133,7 +133,7 @@ const Auth = () => {
                         id="username"
                         name="username"
                         type="text"
-                        placeholder="Choose a username"
+                        placeholder="Pick a unique username"
                         value={formData.username}
                         onChange={handleChange}
                         className="pl-10"
@@ -152,7 +152,7 @@ const Auth = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="your@email.com"
                     value={formData.email}
                     onChange={handleChange}
                     className="pl-10"
@@ -169,7 +169,7 @@ const Auth = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a secure password"
                     value={formData.password}
                     onChange={handleChange}
                     className="pl-10 pr-10"

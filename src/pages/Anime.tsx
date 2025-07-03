@@ -132,7 +132,7 @@ const Anime = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search anime titles, descriptions..."
+                  placeholder="Search by title, studio, or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -155,7 +155,7 @@ const Anime = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-border/50">
                 <Select value={selectedGenre} onValueChange={setSelectedGenre}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Genres" />
+                    <SelectValue placeholder="Browse all genres" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Genres</SelectItem>
@@ -167,7 +167,7 @@ const Anime = () => {
 
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
+                    <SelectValue placeholder="Any status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
@@ -179,7 +179,7 @@ const Anime = () => {
 
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sort By" />
+                    <SelectValue placeholder="Sort by popularity" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="popularity">Popularity</SelectItem>
