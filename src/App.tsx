@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Anime from "./pages/Anime";
 import Manga from "./pages/Manga"; 
+import MangaDetail from "./pages/MangaDetail";
 import Trending from "./pages/Trending";
 import Dashboard from "./pages/Dashboard";
 import MyLists from "./pages/MyLists";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/anime" element={<Anime />} />
             <Route path="/anime/:id" element={<AnimeDetail />} />
             <Route path="/manga" element={<Manga />} />
+            <Route path="/manga/:id" element={<MangaDetail />} />
             <Route path="/trending" element={<Trending />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-lists" element={<MyLists />} />

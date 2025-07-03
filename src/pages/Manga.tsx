@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,19 @@ import { SyncTestComponent } from "@/components/SyncTestComponent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const MangaCard = ({ manga }: { manga: Manga }) => (
-  <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale">
-    <CardContent className="p-0">
+const MangaCard = ({ manga }: { manga: Manga }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/manga/${manga.id}`);
+  };
+
+  return (
+    <Card 
+      className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale cursor-pointer"
+      onClick={handleClick}
+    >
+      <CardContent className="p-0">
       <div className="relative overflow-hidden rounded-t-lg">
         <img 
           src={manga.image_url} 
@@ -83,7 +93,8 @@ const MangaCard = ({ manga }: { manga: Manga }) => (
       </div>
     </CardContent>
   </Card>
-);
+  );
+};
 
 const Manga = () => {
   const [searchParams, setSearchParams] = useSearchParams();
