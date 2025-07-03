@@ -491,6 +491,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_logs: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       curated_list_items: {
         Row: {
           anime_id: string | null

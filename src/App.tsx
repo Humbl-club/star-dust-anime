@@ -23,8 +23,23 @@ import AnimeDetail from "./pages/AnimeDetail";
 const queryClient = new QueryClient();
 
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
-  useAutoSync();
-  return <>{children}</>;
+  const { syncStatus } = useAutoSync();
+  
+  return (
+    <>
+      {syncStatus && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+          <div className="bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg backdrop-blur-sm border border-primary/20">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+              <span>{syncStatus}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      {children}
+    </>
+  );
 };
 
 const App = () => (
