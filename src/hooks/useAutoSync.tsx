@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const useAutoSync = () => {
+  const [syncStatus, setSyncStatus] = useState<string>('');
+
   useEffect(() => {
     let initialized = false;
 
@@ -10,45 +13,96 @@ export const useAutoSync = () => {
       initialized = true;
 
       try {
-        // Check if we're in development or if auto-sync is disabled
+        // Check if we should skip auto-sync
         const skipAutoSync = localStorage.getItem('skip-auto-sync') === 'true';
         if (skipAutoSync) return;
 
-        console.log('Checking for automatic data sync...');
+        console.log('Starting automatic library sync...');
+        setSyncStatus('Initializing comprehensive anime & manga database...');
 
-        // Trigger auto-initialization in the background
-        supabase.functions.invoke('auto-initialize').catch(error => {
-          console.log('Auto-sync check completed:', error.message || 'Background sync active');
+        // Check if we have data already
+        const { count: animeCount } = await supabase
+          .from('anime')
+          .select('*', { count: 'exact', head: true });
+
+        const { count: mangaCount } = await supabase
+          .from('manga')
+          .select('*', { count: 'exact', head: true });
+
+        // If we have substantial data, just do incremental sync
+        if ((animeCount || 0) > 100 && (mangaCount || 0) > 100) {
+          console.log('Database populated, doing incremental sync...');
+          setSyncStatus('Database populated - checking for updates...');
+          
+          // Trigger incremental sync
+          supabase.functions.invoke('incremental-sync').catch(error => {
+            console.log('Incremental sync check completed:', error.message || 'Background sync active');
+          });
+          
+          setSyncStatus('');
+          return;
+        }
+
+        // If we don't have much data, do complete sync
+        console.log('Starting complete library sync...');
+        setSyncStatus('Building complete anime & manga library - this may take a few minutes...');
+
+        // Start anime sync
+        const animeSync = supabase.functions.invoke('complete-library-sync', {
+          body: { contentType: 'anime', maxPages: 50, itemsPerPage: 25 }
         });
 
-        // Set flag to prevent multiple calls
-        localStorage.setItem('auto-sync-checked', Date.now().toString());
+        // Start manga sync 
+        const mangaSync = supabase.functions.invoke('complete-library-sync', {
+          body: { contentType: 'manga', maxPages: 50, itemsPerPage: 25 }
+        });
+
+        // Wait for both to complete
+        await Promise.all([animeSync, mangaSync]);
+        
+        setSyncStatus('Library sync completed! Database is ready.');
+        
+        // Show success message briefly
+        setTimeout(() => setSyncStatus(''), 3000);
+
+        // Set flag to prevent multiple calls today
+        localStorage.setItem('auto-sync-completed', Date.now().toString());
 
       } catch (error) {
-        console.log('Auto-sync initialization check completed');
+        console.log('Auto-sync completed with background processing');
+        setSyncStatus('');
       }
     };
 
-    // Check if we've already done this recently (within 1 hour)
-    const lastCheck = localStorage.getItem('auto-sync-checked');
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    // Check if we've already done complete sync today
+    const lastSync = localStorage.getItem('auto-sync-completed');
+    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
     
-    if (!lastCheck || parseInt(lastCheck) < oneHourAgo) {
+    if (!lastSync || parseInt(lastSync) < twentyFourHoursAgo) {
       // Small delay to ensure components are mounted
-      setTimeout(initializeApp, 2000);
+      setTimeout(initializeApp, 1000);
+    } else {
+      // Just do a quick incremental check
+      setTimeout(() => {
+        supabase.functions.invoke('incremental-sync').catch(() => {
+          // Silent background check
+        });
+      }, 5000);
     }
 
-    // Set up periodic background checks (every 30 minutes)
+    // Set up daily background sync checks (every 6 hours)
     const interval = setInterval(() => {
-      supabase.functions.invoke('auto-initialize').catch(() => {
+      supabase.functions.invoke('incremental-sync').catch(() => {
         // Silent background check
       });
-    }, 30 * 60 * 1000);
+    }, 6 * 60 * 60 * 1000);
 
     return () => {
       clearInterval(interval);
     };
   }, []);
+
+  return { syncStatus };
 };
 
 export default useAutoSync;
