@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.complete-manga-sync]
 verify_jwt = false
+
+[functions.mal-manga-sync]
+verify_jwt = false
