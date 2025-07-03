@@ -38,14 +38,69 @@ const Index = () => {
     }, 500);
   };
 
+  // Helper functions for improved scoring and trending
+  const calculateAverageScore = (malScore: number | null, anilistScore: number | null): number => {
+    const scores = [malScore, anilistScore].filter(score => score !== null && score > 0);
+    if (scores.length === 0) return 0;
+    return scores.reduce((sum, score) => sum + score!, 0) / scores.length;
+  };
+
+  const calculatePopularityScore = (anime: Anime): number => {
+    // AniList-based popularity scoring with timeline factors
+    let score = 0;
+    
+    // Base AniList popularity (primary factor)
+    if (anime.popularity) score += anime.popularity * 0.4;
+    
+    // Member count factor
+    if (anime.members) score += Math.log(anime.members) * 10;
+    
+    // Favorites factor (strong engagement indicator)
+    if (anime.favorites) score += Math.log(anime.favorites) * 15;
+    
+    // Currently airing bonus (timeline constraint)
+    if (anime.status === 'Currently Airing') score *= 1.5;
+    
+    // Recent release bonus
+    const releaseDate = new Date(anime.aired_from || 0);
+    const monthsAgo = (Date.now() - releaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    if (monthsAgo < 12) score *= (1 + (12 - monthsAgo) / 24); // Boost for recent releases
+    
+    return score;
+  };
+
   const handleAnimeClick = (anime: Anime) => {
     navigate(`/anime/${anime.id}`);
   };
 
-  // Split anime into sections
-  const trendingAnime = allAnime.slice(0, 12);
-  const recentlyAdded = allAnime.slice(12, 24);
-  const topRated = allAnime.slice(24, 36);
+  // Calculate averaged scores and apply smart sorting
+  const processedAnime = allAnime.map(anime => ({
+    ...anime,
+    averageScore: calculateAverageScore(anime.score, anime.anilist_score),
+    isCurrentlyAiring: anime.status === 'Currently Airing' || anime.status === 'Ongoing',
+    popularityScore: calculatePopularityScore(anime)
+  }));
+
+  // Hot right now - Currently airing with high popularity (timeline constraint)
+  const currentDate = new Date();
+  const trendingAnime = processedAnime
+    .filter(anime => anime.isCurrentlyAiring)
+    .sort((a, b) => b.popularityScore - a.popularityScore)
+    .slice(0, 12);
+
+  // Recently added - Latest entries by aired_from
+  const recentlyAdded = [...processedAnime]
+    .sort((a, b) => {
+      const aDate = new Date(a.aired_from || '1900-01-01');
+      const bDate = new Date(b.aired_from || '1900-01-01');
+      return bDate.getTime() - aDate.getTime();
+    })
+    .slice(0, 12);
+
+  // Top rated - Best average scores from both sources
+  const topRated = [...processedAnime]
+    .sort((a, b) => b.averageScore - a.averageScore)
+    .slice(0, 12);
 
   const AnimeSection = ({ 
     title, 
@@ -163,8 +218,8 @@ const Index = () => {
       {searchResults.length === 0 && !isSearching && allAnime.length > 0 && (
         <>
           <AnimeSection
-            title="Trending Now"
-            subtitle="Most popular anime this week"
+            title="Hot Right Now"
+            subtitle="Currently airing anime with highest popularity (AniList-based)"
             icon={TrendingUp}
             animeList={trendingAnime}
             className="bg-muted/10"
@@ -179,7 +234,7 @@ const Index = () => {
 
           <AnimeSection
             title="Top Rated"
-            subtitle="Highest rated series of all time"
+            subtitle="Highest average scores (MAL + AniList combined)"
             icon={Star}
             animeList={topRated}
             className="bg-muted/10"

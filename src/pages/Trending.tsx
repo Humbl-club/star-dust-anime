@@ -216,13 +216,50 @@ const Trending = () => {
     }
   };
 
-  // Sort by score for trending
+  // Helper functions for AniList-focused trending
+  const calculateAverageScore = (malScore: number | null, anilistScore: number | null): number => {
+    const scores = [malScore, anilistScore].filter(score => score !== null && score > 0);
+    if (scores.length === 0) return 0;
+    return scores.reduce((sum, score) => sum + score!, 0) / scores.length;
+  };
+
+  const calculateAniListTrendingScore = (item: any): number => {
+    let score = 0;
+    
+    // Prioritize AniList data for trending calculation
+    if (item.anilist_score) score += item.anilist_score * 0.3;
+    if (item.popularity) score += Math.log(item.popularity) * 0.4; // AniList popularity is key
+    if (item.favorites) score += Math.log(item.favorites) * 0.2;
+    
+    // Timeline constraints for "hot right now"
+    const isCurrentlyAiring = item.status === 'Currently Airing' || item.status === 'Ongoing';
+    if (isCurrentlyAiring) score *= 1.8; // Strong boost for currently airing
+    
+    // Recent activity boost (within last 6 months)
+    const releaseDate = new Date(item.aired_from || item.published_from || 0);
+    const monthsAgo = (Date.now() - releaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    if (monthsAgo < 6) score *= (1 + (6 - monthsAgo) / 12);
+    
+    return score;
+  };
+
+  // AniList-focused trending with timeline constraints
   const trendingAnime = [...animeData]
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .map(anime => ({
+      ...anime,
+      averageScore: calculateAverageScore(anime.score, anime.anilist_score),
+      trendingScore: calculateAniListTrendingScore(anime)
+    }))
+    .sort((a, b) => b.trendingScore - a.trendingScore)
     .slice(0, 10);
     
   const trendingManga = [...mangaData]
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .map(manga => ({
+      ...manga,
+      averageScore: calculateAverageScore(manga.score, null), // Manga doesn't have anilist_score yet
+      trendingScore: calculateAniListTrendingScore(manga)
+    }))
+    .sort((a, b) => b.trendingScore - a.trendingScore)
     .slice(0, 10);
 
   const topAnime = animeData[0]; // Highest ranked anime
