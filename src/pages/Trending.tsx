@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Navigation } from "@/components/Navigation";
 import { NameToggle } from "@/components/NameToggle";
 import { useNamePreference } from "@/hooks/useNamePreference";
+import { useStats } from "@/hooks/useStats";
 import { 
   TrendingUp, 
   Star, 
@@ -128,6 +129,7 @@ const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
 const Trending = () => {
   const [activeTab, setActiveTab] = useState("anime");
   const { toast } = useToast();
+  const { stats, formatCount } = useStats();
 
   // Get real anime data from API
   const { data: animeData, loading: animeLoading, syncFromExternal: syncAnime } = useApiData<Anime>({ 
@@ -467,18 +469,18 @@ const Trending = () => {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{animeData.length}</div>
+            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.animeCount)}</div>
             <div className="text-sm text-muted-foreground">Anime Titles</div>
           </Card>
           
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{mangaData.length}</div>
+            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.mangaCount)}</div>
             <div className="text-sm text-muted-foreground">Manga Titles</div>
           </Card>
           
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">9.4</div>
-            <div className="text-sm text-muted-foreground">Highest Rated</div>
+            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.userCount)}</div>
+            <div className="text-sm text-muted-foreground">Community Members</div>
           </Card>
           
           <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">

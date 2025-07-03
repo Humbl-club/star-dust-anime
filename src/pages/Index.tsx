@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useApiData } from "@/hooks/useApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
+import { useStats } from "@/hooks/useStats";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { NameToggle } from "@/components/NameToggle";
@@ -14,6 +15,7 @@ import { NameToggle } from "@/components/NameToggle";
 const Index = () => {
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
+  const { stats, formatCount } = useStats();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -250,15 +252,15 @@ const Index = () => {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">50K+</div>
+              <div className="text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
               <div className="text-muted-foreground">Anime Series</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-secondary">100K+</div>
+              <div className="text-4xl font-bold text-secondary">{formatCount(stats.mangaCount)}</div>
               <div className="text-muted-foreground">Manga Titles</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-accent">1M+</div>
+              <div className="text-4xl font-bold text-accent">{formatCount(stats.userCount)}</div>
               <div className="text-muted-foreground">Users</div>
             </div>
             <div className="space-y-2">

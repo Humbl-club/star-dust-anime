@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Sparkles, Zap } from "lucide-react";
 import heroImage from "@/assets/anime-hero-bg.jpg";
+import { useStats } from "@/hooks/useStats";
 
 interface HeroSectionProps {
   onSearch?: (query: string) => void;
@@ -10,6 +11,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onSearch }: HeroSectionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { stats, formatCount } = useStats();
 
   const handleSearch = () => {
     if (searchQuery.trim() && onSearch) {
@@ -109,15 +111,15 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           {/* Stats Section */}
           <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto pt-8">
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">50K+</div>
+              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.animeCount)}</div>
               <div className="text-sm text-muted-foreground">Anime Series</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-secondary">100K+</div>
+              <div className="text-3xl font-bold text-gradient-secondary">{formatCount(stats.mangaCount)}</div>
               <div className="text-sm text-muted-foreground">Manga Titles</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">1M+</div>
+              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.userCount)}</div>
               <div className="text-sm text-muted-foreground">Community Members</div>
             </div>
           </div>
