@@ -23,27 +23,23 @@ export const SyncTestComponent = () => {
 
   const testSync = async () => {
     setIsLoading(true);
-    setSyncStatus("Testing sync...");
+    setSyncStatus("Testing trending manga sync...");
     
     try {
-      console.log("Invoking intelligent-content-sync...");
+      console.log("Using fetch-trending-data for manga...");
       
-      const { data, error } = await supabase.functions.invoke('intelligent-content-sync', {
-        body: { 
-          contentType: 'manga',
-          operation: 'full_sync',
-          page: 1
-        }
+      const { data, error } = await supabase.functions.invoke('fetch-trending-data', {
+        body: { contentType: 'manga' }
       });
 
-      console.log("Sync response:", { data, error });
+      console.log("Trending sync response:", { data, error });
       
       if (error) {
         throw error;
       }
       
-      setSyncStatus(`Test sync completed: ${JSON.stringify(data)}`);
-      toast.success("Test sync completed successfully!");
+      setSyncStatus(`Trending manga sync completed: ${JSON.stringify(data)}`);
+      toast.success("Trending manga sync completed successfully!");
       
       // Check manga count after sync
       setTimeout(checkMangaCount, 2000);
