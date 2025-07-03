@@ -13,46 +13,22 @@ export const useAutoSync = () => {
       initialized = true;
 
       try {
-        // Check if we should skip auto-sync
-        const skipAutoSync = localStorage.getItem('skip-auto-sync') === 'true';
-        if (skipAutoSync) return;
+        // FORCE SYNC TO RUN NOW - Clear any skip flags
+        localStorage.removeItem('skip-auto-sync');
+        localStorage.removeItem('auto-sync-completed');
 
-        console.log('Starting automatic library sync...');
-        setSyncStatus('Initializing comprehensive anime & manga database...');
+        console.log('FORCING IMMEDIATE COMPLETE LIBRARY SYNC...');
+        setSyncStatus('STARTING IMMEDIATE COMPLETE SYNC - Building ENTIRE anime & manga library (this will take 15-30 minutes)...');
 
-        // Check if we have data already
-        const { count: animeCount } = await supabase
-          .from('anime')
-          .select('*', { count: 'exact', head: true });
-
-        const { count: mangaCount } = await supabase
-          .from('manga')
-          .select('*', { count: 'exact', head: true });
-
-        // If we have substantial data, just do incremental sync
-        if ((animeCount || 0) > 100 && (mangaCount || 0) > 100) {
-          console.log('Database populated, doing incremental sync...');
-          setSyncStatus('Database populated - checking for updates...');
-          
-          // Trigger incremental sync
-          supabase.functions.invoke('incremental-sync').catch(error => {
-            console.log('Incremental sync check completed:', error.message || 'Background sync active');
-          });
-          
-          setSyncStatus('');
-          return;
-        }
-
-        // If we don't have much data, do complete sync
+        // ALWAYS do complete sync now - ignore existing data
         console.log('Starting complete library sync...');
-        setSyncStatus('Building COMPLETE anime & manga library - syncing EVERYTHING (this will take 15-30 minutes)...');
 
         // Start anime sync - NO LIMITS, get everything
         const animeSync = supabase.functions.invoke('complete-library-sync', {
           body: { contentType: 'anime', maxPages: 999999, itemsPerPage: 25 }
         });
 
-        // Start manga sync - NO LIMITS, get everything
+        // Start manga sync - NO LIMITS, get everything  
         const mangaSync = supabase.functions.invoke('complete-library-sync', {
           body: { contentType: 'manga', maxPages: 999999, itemsPerPage: 25 }
         });
@@ -60,35 +36,22 @@ export const useAutoSync = () => {
         // Wait for both to complete
         await Promise.all([animeSync, mangaSync]);
         
-        setSyncStatus('Library sync completed! Database is ready.');
+        setSyncStatus('COMPLETE LIBRARY SYNC FINISHED! Database is ready with full anime & manga library.');
         
         // Show success message briefly
-        setTimeout(() => setSyncStatus(''), 3000);
+        setTimeout(() => setSyncStatus(''), 5000);
 
         // Set flag to prevent multiple calls today
         localStorage.setItem('auto-sync-completed', Date.now().toString());
 
       } catch (error) {
-        console.log('Auto-sync completed with background processing');
-        setSyncStatus('');
+        console.log('Complete sync running in background:', error.message || 'Processing...');
+        setSyncStatus('Complete sync is running in background...');
       }
     };
 
-    // Check if we've already done complete sync today
-    const lastSync = localStorage.getItem('auto-sync-completed');
-    const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
-    
-    if (!lastSync || parseInt(lastSync) < twentyFourHoursAgo) {
-      // Small delay to ensure components are mounted
-      setTimeout(initializeApp, 1000);
-    } else {
-      // Just do a quick incremental check
-      setTimeout(() => {
-        supabase.functions.invoke('incremental-sync').catch(() => {
-          // Silent background check
-        });
-      }, 5000);
-    }
+    // FORCE IMMEDIATE SYNC - Remove all checks
+    setTimeout(initializeApp, 500);
 
     // Set up daily background sync checks (every 6 hours)
     const interval = setInterval(() => {
