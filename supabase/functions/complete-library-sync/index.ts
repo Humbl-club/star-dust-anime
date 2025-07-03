@@ -17,9 +17,9 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType = 'anime', maxPages = 50, itemsPerPage = 25 } = await req.json();
+    const { contentType = 'anime', maxPages = 999999, itemsPerPage = 25 } = await req.json();
     
-    console.log(`Starting complete ${contentType} library sync...`);
+    console.log(`Starting COMPLETE ${contentType} library sync (NO LIMITS)...`);
     
     let processedItems = 0;
     let totalErrors = 0;
@@ -40,9 +40,9 @@ serve(async (req) => {
 
     for (let page = 1; page <= maxPages; page++) {
       try {
-        console.log(`Processing page ${page}/${maxPages} for ${contentType}...`);
+        console.log(`Processing page ${page} for ${contentType}... (unlimited sync)`);
         
-        // Fetch data from external API
+        // Fetch data from external API - get EVERYTHING
         const apiUrl = contentType === 'anime' 
           ? `https://api.jikan.moe/v4/anime?page=${page}&limit=${itemsPerPage}&order_by=score&sort=desc`
           : `https://api.jikan.moe/v4/manga?page=${page}&limit=${itemsPerPage}&order_by=score&sort=desc`;
@@ -68,7 +68,7 @@ serve(async (req) => {
         const items = data.data || [];
         
         if (items.length === 0) {
-          console.log(`No more items found at page ${page}, stopping sync`);
+          console.log(`No more items found at page ${page}, reached end of ${contentType} library`);
           break;
         }
 
@@ -114,15 +114,15 @@ serve(async (req) => {
           })
           .eq('id', logEntry.id);
 
-        // Rate limiting between pages
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Rate limiting between pages - slower for unlimited sync to respect API
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
       } catch (pageError) {
         console.error(`Error processing page ${page}:`, pageError);
         totalErrors++;
         
-        // Wait longer on errors
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Wait longer on errors for unlimited sync
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
 
@@ -140,7 +140,7 @@ serve(async (req) => {
       })
       .eq('id', logEntry.id);
 
-    console.log(`Complete sync finished: ${processedItems} items processed in ${duration}s with ${totalErrors} errors`);
+    console.log(`COMPLETE UNLIMITED ${contentType} sync finished: ${processedItems} items processed in ${duration}s with ${totalErrors} errors`);
 
     return new Response(
       JSON.stringify({
@@ -148,7 +148,8 @@ serve(async (req) => {
         processed: processedItems,
         errors: totalErrors,
         duration: duration,
-        pages_processed: Math.min(maxPages, page - 1)
+        pages_processed: page - 1,
+        message: `Complete unlimited ${contentType} library sync completed!`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -33,7 +33,7 @@ const SyncDashboard = () => {
       const { data, error } = await supabase.functions.invoke('complete-library-sync', {
         body: {
           contentType,
-          maxPages: 100, // Sync up to 100 pages (2500 items)
+          maxPages: 999999, // NO LIMITS - sync everything
           itemsPerPage: 25
         }
       });
@@ -139,17 +139,17 @@ const SyncDashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Sync the complete anime library from MyAnimeList. This will fetch thousands of anime titles with scores, rankings, and metadata.
+                Sync the COMPLETE anime library from MyAnimeList. This will fetch ALL available anime titles with scores, rankings, and metadata (estimated 20,000+ titles).
               </p>
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span>Estimated Items:</span>
-                  <Badge variant="secondary">~2,500 Anime</Badge>
+                  <Badge variant="secondary">~20,000+ Anime</Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span>Estimated Time:</span>
-                  <Badge variant="secondary">~15 minutes</Badge>
+                  <Badge variant="secondary">~20-30 minutes</Badge>
                 </div>
               </div>
 
@@ -160,7 +160,7 @@ const SyncDashboard = () => {
                 size="lg"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Sync Complete Anime Library
+                Sync COMPLETE Anime Library (NO LIMITS)
               </Button>
             </CardContent>
           </Card>
@@ -175,17 +175,17 @@ const SyncDashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Sync the complete manga library from MyAnimeList. This will fetch thousands of manga titles with scores, rankings, and metadata.
+                Sync the COMPLETE manga library from MyAnimeList. This will fetch ALL available manga titles with scores, rankings, and metadata (estimated 30,000+ titles).
               </p>
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span>Estimated Items:</span>
-                  <Badge variant="secondary">~2,500 Manga</Badge>
+                  <Badge variant="secondary">~30,000+ Manga</Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span>Estimated Time:</span>
-                  <Badge variant="secondary">~15 minutes</Badge>
+                  <Badge variant="secondary">~30-45 minutes</Badge>
                 </div>
               </div>
 
@@ -197,7 +197,7 @@ const SyncDashboard = () => {
                 variant="secondary"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Sync Complete Manga Library
+                Sync COMPLETE Manga Library (NO LIMITS)
               </Button>
             </CardContent>
           </Card>

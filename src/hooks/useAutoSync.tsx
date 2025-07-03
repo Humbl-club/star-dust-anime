@@ -45,16 +45,16 @@ export const useAutoSync = () => {
 
         // If we don't have much data, do complete sync
         console.log('Starting complete library sync...');
-        setSyncStatus('Building complete anime & manga library - this may take a few minutes...');
+        setSyncStatus('Building COMPLETE anime & manga library - syncing EVERYTHING (this will take 15-30 minutes)...');
 
-        // Start anime sync
+        // Start anime sync - NO LIMITS, get everything
         const animeSync = supabase.functions.invoke('complete-library-sync', {
-          body: { contentType: 'anime', maxPages: 50, itemsPerPage: 25 }
+          body: { contentType: 'anime', maxPages: 999999, itemsPerPage: 25 }
         });
 
-        // Start manga sync 
+        // Start manga sync - NO LIMITS, get everything
         const mangaSync = supabase.functions.invoke('complete-library-sync', {
-          body: { contentType: 'manga', maxPages: 50, itemsPerPage: 25 }
+          body: { contentType: 'manga', maxPages: 999999, itemsPerPage: 25 }
         });
 
         // Wait for both to complete
