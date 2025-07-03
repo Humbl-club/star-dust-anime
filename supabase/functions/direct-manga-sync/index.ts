@@ -66,8 +66,8 @@ serve(async (req) => {
 
     let totalProcessed = 0;
     
-    // Sync 10 pages of manga directly
-    for (let page = 1; page <= 10; page++) {
+    // Sync 40 pages of manga directly (2000 manga total)
+    for (let page = 1; page <= 40; page++) {
       console.log(`Processing manga page ${page}...`);
       
       try {
