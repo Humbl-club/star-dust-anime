@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -101,25 +102,33 @@ export const ProfileMenu = () => {
         
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem className="cursor-pointer">
-          <User className="mr-2 h-4 w-4" />
-          <span>Dashboard</span>
-        </DropdownMenuItem>
+        <Link to="/dashboard">
+          <DropdownMenuItem className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
+          </DropdownMenuItem>
+        </Link>
         
-        <DropdownMenuItem className="cursor-pointer">
-          <BookOpen className="mr-2 h-4 w-4" />
-          <span>My Lists</span>
-        </DropdownMenuItem>
+        <Link to="/my-lists">
+          <DropdownMenuItem className="cursor-pointer">
+            <BookOpen className="mr-2 h-4 w-4" />
+            <span>My Lists</span>
+          </DropdownMenuItem>
+        </Link>
         
-        <DropdownMenuItem className="cursor-pointer">
-          <Star className="mr-2 h-4 w-4" />
-          <span>Recommendations</span>
-        </DropdownMenuItem>
+        <Link to="/recommendations">
+          <DropdownMenuItem className="cursor-pointer">
+            <Star className="mr-2 h-4 w-4" />
+            <span>Recommendations</span>
+          </DropdownMenuItem>
+        </Link>
         
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Social</span>
-        </DropdownMenuItem>
+        <Link to="/social">
+          <DropdownMenuItem className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Social</span>
+          </DropdownMenuItem>
+        </Link>
         
         <DropdownMenuSeparator />
         
