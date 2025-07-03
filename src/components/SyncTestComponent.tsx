@@ -23,31 +23,29 @@ export const SyncTestComponent = () => {
 
   const testSync = async () => {
     setIsLoading(true);
-    setSyncStatus("Testing trending manga sync...");
+    setSyncStatus("Running direct manga sync...");
     
     try {
-      console.log("Using fetch-trending-data for manga...");
+      console.log("Using direct-manga-sync to bypass stuck system...");
       
-      const { data, error } = await supabase.functions.invoke('fetch-trending-data', {
-        body: { contentType: 'manga' }
-      });
+      const { data, error } = await supabase.functions.invoke('direct-manga-sync');
 
-      console.log("Trending sync response:", { data, error });
+      console.log("Direct sync response:", { data, error });
       
       if (error) {
         throw error;
       }
       
-      setSyncStatus(`Trending manga sync completed: ${JSON.stringify(data)}`);
-      toast.success("Trending manga sync completed successfully!");
+      setSyncStatus(`Direct manga sync completed: ${data.totalProcessed} manga processed`);
+      toast.success(`Successfully synced ${data.totalProcessed} manga!`);
       
       // Check manga count after sync
       setTimeout(checkMangaCount, 2000);
       
     } catch (error: any) {
-      console.error('Test sync error:', error);
-      setSyncStatus(`Test sync failed: ${error.message}`);
-      toast.error(`Test sync failed: ${error.message}`);
+      console.error('Direct sync error:', error);
+      setSyncStatus(`Direct sync failed: ${error.message}`);
+      toast.error(`Direct sync failed: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
