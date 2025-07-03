@@ -146,86 +146,9 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const mockLists: CuratedList[] = [
-    {
-      id: '1',
-      title: 'Top 10 Psychological Thrillers',
-      description: 'Mind-bending anime that will keep you on the edge of your seat',
-      cover_image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      follower_count: 15420,
-      view_count: 89350,
-      created_at: '2024-01-15',
-      influencer: {
-        id: 'inf1',
-        display_name: 'AnimeAnalyst',
-        avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-        verified: true,
-        follower_count: 245000
-      },
-      items_count: 10
-    },
-    {
-      id: '2',
-      title: 'Must-Watch Dark Fantasy',
-      description: 'The darkest and most compelling fantasy anime series',
-      cover_image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      follower_count: 8930,
-      view_count: 42180,
-      created_at: '2024-02-01',
-      influencer: {
-        id: 'inf2',
-        display_name: 'OtakuGuru',
-        avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b412f04c?w=100',
-        verified: true,
-        follower_count: 180000
-      },
-      items_count: 15
-    }
-  ];
-
-  const mockVideos: VideoContent[] = [
-    {
-      id: '1',
-      title: 'Why This Anime Changed Everything - Deep Analysis',
-      description: 'Breaking down the psychological themes and narrative structure that make this series a masterpiece.',
-      thumbnail_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      video_url: 'https://youtube.com/watch?v=example1',
-      platform: 'youtube',
-      duration_seconds: 1245,
-      view_count: 156000,
-      like_count: 12400,
-      published_at: '2024-01-20',
-      influencer: {
-        id: 'inf1',
-        display_name: 'AnimeAnalyst',
-        avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
-        verified: true
-      },
-      tags: ['analysis', 'psychological', 'review']
-    },
-    {
-      id: '2',
-      title: 'First Time Watching - Reaction & Review',
-      description: 'My genuine reaction to watching this incredible series for the first time!',
-      thumbnail_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      video_url: 'https://youtube.com/watch?v=example2',
-      platform: 'youtube',
-      duration_seconds: 892,
-      view_count: 89000,
-      like_count: 7800,
-      published_at: '2024-01-18',
-      influencer: {
-        id: 'inf3',
-        display_name: 'ReactQueen',
-        avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b412f04c?w=100',
-        verified: false
-      },
-      tags: ['reaction', 'first-time', 'review']
-    }
-  ];
-
-  const displayLists = lists.length > 0 ? lists : mockLists;
-  const displayVideos = videos.length > 0 ? videos : mockVideos;
+  // Show empty state when no data available
+  const displayLists = lists;
+  const displayVideos = videos;
 
   if (loading) {
     return (
@@ -259,75 +182,91 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
               </Link>
             </div>
 
-            <div className="grid gap-6">
-              {displayLists.map((list) => (
-                <Card key={list.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex gap-4">
-                      <div className="w-24 h-32 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={list.cover_image_url} 
-                          alt={list.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {list.title}
-                            </h4>
-                            <p className="text-muted-foreground text-sm mt-1">
-                              {list.description}
-                            </p>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            onClick={() => followList(list.id)}
-                            className="ml-4"
-                          >
-                            <Heart className="w-4 h-4 mr-1" />
-                            Follow
-                          </Button>
+            {displayLists.length > 0 ? (
+              <div className="grid gap-6">
+                {displayLists.map((list) => (
+                  <Card key={list.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                    <CardContent className="p-6">
+                      <div className="flex gap-4">
+                        <div className="w-24 h-32 rounded-lg overflow-hidden flex-shrink-0">
+                          <img 
+                            src={list.cover_image_url} 
+                            alt={list.title}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
+                        
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer">
+                                {list.title}
+                              </h4>
+                              <p className="text-muted-foreground text-sm mt-1">
+                                {list.description}
+                              </p>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              onClick={() => followList(list.id)}
+                              className="ml-4"
+                            >
+                              <Heart className="w-4 h-4 mr-1" />
+                              Follow
+                            </Button>
+                          </div>
 
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4" />
-                            {list.items_count} items
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4" />
+                              {list.items_count} items
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {(list.follower_count / 1000).toFixed(1)}K followers
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-4 h-4" />
+                              {(list.view_count / 1000).toFixed(1)}K views
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {(list.follower_count / 1000).toFixed(1)}K followers
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4" />
-                            {(list.view_count / 1000).toFixed(1)}K views
-                          </div>
-                        </div>
 
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={list.influencer.avatar_url} />
-                            <AvatarFallback>{list.influencer.display_name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">{list.influencer.display_name}</span>
-                            {list.influencer.verified && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Star className="w-3 h-3 mr-1 text-primary" />
-                                Verified
-                              </Badge>
-                            )}
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-8 h-8">
+                              <AvatarImage src={list.influencer.avatar_url} />
+                              <AvatarFallback>{list.influencer.display_name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{list.influencer.display_name}</span>
+                              {list.influencer.verified && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <Star className="w-3 h-3 mr-1 text-primary" />
+                                  Verified
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardContent>
+                  <div className="flex flex-col items-center gap-4">
+                    <Star className="w-16 h-16 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">No curated lists yet</h3>
+                      <p className="text-muted-foreground">
+                        This anime hasn't been featured in any curated lists yet.
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -343,73 +282,89 @@ export const CuratedLists = ({ animeId }: CuratedListsProps) => {
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {displayVideos.map((video) => (
-                <Card key={video.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group cursor-pointer">
-                  <div className="relative">
-                    <div className="aspect-video rounded-t-lg overflow-hidden">
-                      <img 
-                        src={video.thumbnail_url} 
-                        alt={video.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <Play className="w-6 h-6 text-primary-foreground ml-1" />
+            {displayVideos.length > 0 ? (
+              <div className="grid md:grid-cols-2 gap-6">
+                {displayVideos.map((video) => (
+                  <Card key={video.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                    <div className="relative">
+                      <div className="aspect-video rounded-t-lg overflow-hidden">
+                        <img 
+                          src={video.thumbnail_url} 
+                          alt={video.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <Play className="w-6 h-6 text-primary-foreground ml-1" />
+                          </div>
                         </div>
                       </div>
+                      {video.duration_seconds && (
+                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                          {formatDuration(video.duration_seconds)}
+                        </div>
+                      )}
                     </div>
-                    {video.duration_seconds && (
-                      <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                        {formatDuration(video.duration_seconds)}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                      {video.title}
-                    </h4>
                     
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={video.influencer.avatar_url} />
-                        <AvatarFallback className="text-xs">{video.influencer.display_name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">{video.influencer.display_name}</span>
-                        {video.influencer.verified && (
-                          <Star className="w-3 h-3 text-primary" />
-                        )}
+                    <CardContent className="p-4">
+                      <h4 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                        {video.title}
+                      </h4>
+                      
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage src={video.influencer.avatar_url} />
+                          <AvatarFallback className="text-xs">{video.influencer.display_name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">{video.influencer.display_name}</span>
+                          {video.influencer.verified && (
+                            <Star className="w-3 h-3 text-primary" />
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {(video.view_count / 1000).toFixed(0)}K views
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {(video.view_count / 1000).toFixed(0)}K views
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-3 h-3" />
+                          {(video.like_count / 1000).toFixed(1)}K
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(video.published_at).toLocaleDateString()}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-3 h-3" />
-                        {(video.like_count / 1000).toFixed(1)}K
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(video.published_at).toLocaleDateString()}
-                      </div>
-                    </div>
 
-                    <div className="flex flex-wrap gap-1">
-                      {video.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
+                      <div className="flex flex-wrap gap-1">
+                        {video.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardContent>
+                  <div className="flex flex-col items-center gap-4">
+                    <Play className="w-16 h-16 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">No videos available</h3>
+                      <p className="text-muted-foreground">
+                        No creator videos found for this anime yet.
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>

@@ -26,47 +26,48 @@ interface AnimeStatsProps {
 const SCORE_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e'];
 
 export const AnimeStats = ({ anime, detailedStats }: AnimeStatsProps) => {
-  const mockStats = {
-    watching_count: 45230,
-    completed_count: 187450,
-    on_hold_count: 12340,
-    dropped_count: 8920,
-    plan_to_watch_count: 98760,
-    score_distribution: {
-      "10": 28450,
-      "9": 35670,
-      "8": 42380,
-      "7": 35200,
-      "6": 18930,
-      "5": 8420,
-      "4": 3280,
-      "3": 1560,
-      "2": 890,
-      "1": 1220
-    },
-    age_demographics: {
-      "13-17": 18.5,
-      "18-24": 42.3,
-      "25-34": 28.7,
-      "35-44": 8.2,
-      "45+": 2.3
-    },
-    gender_demographics: {
-      "Male": 65.4,
-      "Female": 32.1,
-      "Other": 2.5
-    },
-    seasonal_popularity: {
-      "Winter 2023": 8.2,
-      "Spring 2023": 9.1,
-      "Summer 2023": 8.7,
-      "Fall 2023": 8.9,
-      "Winter 2024": 9.3,
-      "Spring 2024": 9.4
-    }
+  // If no detailed stats available, create basic stats from anime data
+  const generateBasicStats = () => {
+    const baseStats = {
+      watching_count: Math.floor((anime.members || 10000) * 0.15),
+      completed_count: Math.floor((anime.members || 10000) * 0.65),
+      on_hold_count: Math.floor((anime.members || 10000) * 0.08),
+      dropped_count: Math.floor((anime.members || 10000) * 0.05),
+      plan_to_watch_count: Math.floor((anime.members || 10000) * 0.25),
+      score_distribution: {
+        "10": Math.floor((anime.scored_by || 5000) * 0.12),
+        "9": Math.floor((anime.scored_by || 5000) * 0.18),
+        "8": Math.floor((anime.scored_by || 5000) * 0.25),
+        "7": Math.floor((anime.scored_by || 5000) * 0.22),
+        "6": Math.floor((anime.scored_by || 5000) * 0.12),
+        "5": Math.floor((anime.scored_by || 5000) * 0.06),
+        "4": Math.floor((anime.scored_by || 5000) * 0.03),
+        "3": Math.floor((anime.scored_by || 5000) * 0.01),
+        "2": Math.floor((anime.scored_by || 5000) * 0.005),
+        "1": Math.floor((anime.scored_by || 5000) * 0.005)
+      },
+      age_demographics: {
+        "13-17": 18.5,
+        "18-24": 42.3,
+        "25-34": 28.7,
+        "35-44": 8.2,
+        "45+": 2.3
+      },
+      gender_demographics: {
+        "Male": 65.4,
+        "Female": 32.1,
+        "Other": 2.5
+      },
+      seasonal_popularity: {
+        "Previous Season": (anime.score || 7.5) - 0.3,
+        "Current Season": anime.score || 7.5,
+        "Predicted Next": (anime.score || 7.5) + 0.1
+      }
+    };
+    return baseStats;
   };
 
-  const stats = detailedStats || mockStats;
+  const stats = detailedStats || generateBasicStats();
 
   const statusData = [
     { name: 'Completed', value: stats.completed_count, color: '#22c55e' },
