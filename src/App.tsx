@@ -16,6 +16,7 @@ import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Social from "./pages/Social";
 import DataSync from "./pages/DataSync";
+import SyncDashboard from "./pages/SyncDashboard";
 import NotFound from "./pages/NotFound";
 import AnimeDetail from "./pages/AnimeDetail";
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/social" element={<Social />} />
             <Route path="/data-sync" element={<DataSync />} />
+            <Route path="/sync-dashboard" element={<SyncDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

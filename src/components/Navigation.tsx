@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,13 @@ import {
   Settings,
   Database,
   Star,
-  Heart
+  Heart,
+  Loader2, 
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useAISearch } from "@/hooks/useAISearch";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 
@@ -28,9 +31,12 @@ interface NavigationProps {
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { aiSearch, isSearching, searchResults, lastSearchInfo, clearSearch } = useAISearch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,17 +47,40 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSearch = () => {
-    if (searchQuery.trim() && onSearch) {
-      onSearch(searchQuery.trim());
+  const handleSearch = async () => {
+    if (searchQuery.trim()) {
+      if (onSearch) {
+        onSearch(searchQuery.trim());
+      } else {
+        setShowResults(true);
+        await aiSearch(searchQuery.trim(), 'anime', 12);
+      }
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleSearch();
+      await handleSearch();
     }
   };
+
+  const handleAnimeClick = (anime: any) => {
+    navigate(`/anime/${anime.id}`);
+    setShowResults(false);
+    clearSearch();
+  };
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowResults(false);
+    };
+
+    if (showResults) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showResults]);
 
   const navItems = [
     { icon: Home, label: "Home", href: "/", active: window.location.pathname === "/" },
@@ -119,18 +148,86 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             ))}
           </div>
 
-          {/* Search Bar - Only on large screens */}
-          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6">
+          {/* Search Bar with AI - Only on large screens */}
+          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6 relative" onClick={(e) => e.stopPropagation()}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Quick search..."
+                placeholder="Search with AI assistance..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 glass-input"
+                onFocus={() => searchQuery.trim() && setShowResults(true)}
+                className="pl-10 pr-4 glass-input group-hover:border-primary/50 transition-colors"
               />
+              {isSearching && (
+                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
+              )}
             </div>
+
+            {/* AI Search Results Dropdown */}
+            {showResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+                {isSearching ? (
+                  <div className="p-4 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">AI is searching...</p>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="p-2">
+                    {lastSearchInfo?.searchType === 'ai-enhanced' && lastSearchInfo.aiSuggestion && (
+                      <div className="px-3 py-2 mb-2 bg-primary/10 rounded-md">
+                        <div className="flex items-center gap-2 text-xs text-primary">
+                          <Sparkles className="w-3 h-3" />
+                          <span>AI Enhanced: {lastSearchInfo.aiSuggestion.searchStrategy}</span>
+                        </div>
+                        {lastSearchInfo.aiSuggestion.correctedQuery !== searchQuery && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Searched for: "{lastSearchInfo.aiSuggestion.correctedQuery}"
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="grid gap-2">
+                      {searchResults.map((anime) => (
+                        <div 
+                          key={anime.id}
+                          className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors"
+                          onClick={() => handleAnimeClick(anime)}
+                        >
+                          <img 
+                            src={anime.image_url} 
+                            alt={anime.title}
+                            className="w-12 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm line-clamp-1">{anime.title}</h4>
+                            {anime.title_english && anime.title_english !== anime.title && (
+                              <p className="text-xs text-muted-foreground line-clamp-1">{anime.title_english}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              {anime.score && (
+                                <Badge variant="secondary" className="text-xs">
+                                  ★ {anime.score}
+                                </Badge>
+                              )}
+                              <Badge variant="outline" className="text-xs">
+                                {anime.type}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : searchQuery.trim() && (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    No results found for "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Side Actions - Condensed */}
@@ -148,8 +245,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     </Badge>
                   </Button>
 
-                  <Link to="/data-sync">
-                    <Button variant="ghost" size="icon" title="Data Sync">
+                  <Link to="/sync-dashboard">
+                    <Button variant="ghost" size="icon" title="Sync Dashboard">
                       <Database className="w-4 h-4" />
                     </Button>
                   </Link>
@@ -202,7 +299,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
-                    placeholder="Find anime, manga & more..."
+                    placeholder="Search with AI assistance..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -237,14 +334,14 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
               
-              <Link to="/dashboard">
+              <Link to="/sync-dashboard">
                 <Button
-                  variant={window.location.pathname === "/dashboard" ? "default" : "ghost"}
+                  variant={window.location.pathname === "/sync-dashboard" ? "default" : "ghost"}
                   className="w-full justify-start px-4"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <User className="w-4 h-4 mr-3" />
-                  Dashboard
+                  <Database className="w-4 h-4 mr-3" />
+                  Sync Dashboard
                 </Button>
               </Link>
 
