@@ -15,7 +15,7 @@ import {
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useApiData } from "@/hooks/useApiData";
 import { Navigation } from "@/components/Navigation";
-import { AutoAniListSync } from "@/components/AutoAniListSync";
+import { SyncTestComponent } from "@/components/SyncTestComponent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -190,8 +190,8 @@ const Manga = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Auto AniList Sync */}
-        <AutoAniListSync />
+        {/* Sync Test Component */}
+        <SyncTestComponent />
 
         {/* Show loading message if no manga data yet */}
         {mangaData.length === 0 && (
