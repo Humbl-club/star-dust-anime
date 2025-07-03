@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
+import { useApiData } from "@/hooks/useApiData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingComponent } from "@/components/RatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
 import { Navigation } from "@/components/Navigation";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import { useToast } from "@/hooks/use-toast";
+import { listStatuses, type Anime, type Manga } from "@/data/animeData";
 import { 
   Search,
   Filter,
@@ -25,14 +29,13 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
-import { mockAnime, mockManga, listStatuses } from "@/data/animeData";
 
 const MyLists = () => {
   const { user } = useAuth();
   const { 
     animeList, 
     mangaList, 
-    loading,
+    loading: userListsLoading,
     updateAnimeListEntry,
     updateMangaListEntry,
     removeFromAnimeList,
@@ -43,13 +46,24 @@ const MyLists = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Get anime/manga details from mock data
+  // Fetch anime and manga data from database
+  const { data: animeData, loading: animeLoading } = useApiData<Anime>({ 
+    contentType: 'anime',
+    limit: 1000 
+  });
+  
+  const { data: mangaData, loading: mangaLoading } = useApiData<Manga>({ 
+    contentType: 'manga',
+    limit: 1000 
+  });
+
+  // Get anime/manga details from database data
   const getAnimeDetails = (animeId: string) => {
-    return mockAnime.find(anime => anime.id === animeId);
+    return animeData.find(anime => anime.id === animeId);
   };
 
   const getMangaDetails = (mangaId: string) => {
-    return mockManga.find(manga => manga.id === mangaId);
+    return mangaData.find(manga => manga.id === mangaId);
   };
 
   // Filter lists
@@ -104,6 +118,14 @@ const MyLists = () => {
             <p className="text-muted-foreground">You need to be signed in to view your lists.</p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (userListsLoading || animeLoading || mangaLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
