@@ -32,7 +32,7 @@ export const TrailerPreview = ({
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   const sizeClasses = {
-    sm: "w-32 h-18",
+    sm: "w-8 h-8",
     md: "w-48 h-28", 
     lg: "w-64 h-36"
   };
@@ -61,24 +61,13 @@ export const TrailerPreview = ({
           />
           
           {/* Play Button Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-            <div className="bg-primary/90 rounded-full p-2 group-hover:bg-primary transition-colors">
-              <Play className="w-4 h-4 text-primary-foreground fill-current" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 group-hover:bg-black/60 transition-colors">
+            <div className="bg-red-600/90 rounded-full p-1 group-hover:bg-red-600 transition-colors">
+              <Play className="w-3 h-3 text-white fill-current" />
             </div>
-          </div>
-
-          {/* YouTube Badge */}
-          <div className="absolute top-2 right-2">
-            <Badge variant="secondary" className="text-xs bg-red-600 hover:bg-red-700 text-white">
-              YouTube
-            </Badge>
           </div>
         </div>
 
-        {/* Title */}
-        <p className="mt-2 text-xs text-muted-foreground truncate" title={title}>
-          {title}
-        </p>
       </div>
 
       {/* Video Dialog */}

@@ -53,40 +53,25 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
           {manga.title}
         </h3>
         
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-          <Badge variant="secondary" className="text-xs">
-            {manga.type}
-          </Badge>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{manga.type}</span>
           {manga.status && (
-            <span className={`px-2 py-1 rounded text-xs ${
-              manga.status === 'Publishing' ? 'bg-green-500/20 text-green-400' :
-              manga.status === 'Finished' ? 'bg-blue-500/20 text-blue-400' :
-              'bg-yellow-500/20 text-yellow-400'
-            }`}>
-              {manga.status}
-            </span>
+            <>
+              <span>•</span>
+              <span className={
+                manga.status === 'Publishing' ? 'text-green-400' :
+                manga.status === 'Finished' ? 'text-blue-400' :
+                'text-yellow-400'
+              }>
+                {manga.status}
+              </span>
+            </>
           )}
-        </div>
-        
-        <div className="text-xs text-muted-foreground space-y-1">
           {manga.chapters && (
-            <div>Chapters: {manga.chapters}</div>
-          )}
-          {manga.volumes && (
-            <div>Volumes: {manga.volumes}</div>
-          )}
-        </div>
-        
-        <div className="flex flex-wrap gap-1 mt-3">
-          {manga.genres.slice(0, 2).map(genre => (
-            <Badge key={genre} variant="outline" className="text-xs">
-              {genre}
-            </Badge>
-          ))}
-          {manga.genres.length > 2 && (
-            <Badge variant="outline" className="text-xs">
-              +{manga.genres.length - 2}
-            </Badge>
+            <>
+              <span>•</span>
+              <span>{manga.chapters} ch</span>
+            </>
           )}
         </div>
       </div>

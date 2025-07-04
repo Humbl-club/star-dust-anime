@@ -92,33 +92,17 @@ export const AnimeCard = ({
             {anime.title}
           </h3>
           
-          <div className="flex items-center gap-2 text-sm text-gray-300">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              <span>{anime.year}</span>
-            </div>
-            
-            <div className="flex items-center gap-1">
-              <Play className="w-4 h-4" />
-              <span>{anime.type}</span>
-            </div>
-            
+          {/* Simple info */}
+          <div className="flex items-center gap-2 text-xs text-gray-300">
+            <span>{anime.year}</span>
+            <span>•</span>
+            <span>{anime.type}</span>
             {anime.episodes && (
-              <span>{anime.episodes} eps</span>
+              <>
+                <span>•</span>
+                <span>{anime.episodes} eps</span>
+              </>
             )}
-          </div>
-          
-          {/* Genres */}
-          <div className="flex flex-wrap gap-1 max-h-12 overflow-hidden">
-            {anime.genres.slice(0, 3).map((genre, index) => (
-              <Badge 
-                key={index}
-                variant="secondary" 
-                className="text-xs bg-secondary/80 backdrop-blur-sm"
-              >
-                {genre}
-              </Badge>
-            ))}
           </div>
           
           {/* Add to List Button */}
@@ -132,14 +116,14 @@ export const AnimeCard = ({
             />
           </div>
 
-          {/* Trailer Preview */}
+          {/* Trailer Preview - Subtle */}
           {(anime as any).trailer_id && (
-            <div className="mt-2">
+            <div className="absolute top-16 right-3 z-20">
               <TrailerPreview
                 videoId={(anime as any).trailer_id}
                 title={`${anime.title} Trailer`}
                 size="sm"
-                className="rounded-md overflow-hidden"
+                className="w-8 h-8 opacity-70 hover:opacity-100 transition-opacity"
               />
             </div>
           )}
