@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -77,6 +77,9 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
             <Shield className="w-5 h-5 text-primary" />
             Age Verification Required
           </DialogTitle>
+          <DialogDescription>
+            Please verify your age to access appropriate content for your age group.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
