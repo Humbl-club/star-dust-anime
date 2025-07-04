@@ -43,10 +43,26 @@ export interface AniListAnime {
     color?: string;
   };
   bannerImage?: string;
+  nextAiringEpisode?: {
+    id: number;
+    airingAt: number;
+    timeUntilAiring: number;
+    episode: number;
+  };
   trailer?: {
     id: string;
     site: string;
     thumbnail: string;
+  };
+  airingSchedule?: {
+    edges: Array<{
+      node: {
+        id: number;
+        airingAt: number;
+        timeUntilAiring: number;
+        episode: number;
+      };
+    }>;
   };
   tags: Array<{
     id: number;

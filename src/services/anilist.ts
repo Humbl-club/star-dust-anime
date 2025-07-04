@@ -2,9 +2,9 @@ import { AniListAnime, AniListSearchResponse, AniListAnimeResponse } from '@/typ
 
 const ANILIST_API_URL = 'https://graphql.anilist.co';
 
-// GraphQL queries
-const SEARCH_ANIME_QUERY = `
-  query SearchAnime($page: Int, $perPage: Int, $search: String, $type: MediaType, $genre: String, $status: MediaStatus, $format: MediaFormat, $sort: [MediaSort]) {
+// Enhanced GraphQL query for comprehensive media data (anime & manga)
+const SEARCH_MEDIA_QUERY = `
+  query SearchMedia($page: Int, $perPage: Int, $search: String, $type: MediaType, $genre: String, $status: MediaStatus, $format: MediaFormat, $sort: [MediaSort]) {
     Page(page: $page, perPage: $perPage) {
       pageInfo {
         total
@@ -38,6 +38,8 @@ const SEARCH_ANIME_QUERY = `
         format
         status
         episodes
+        chapters
+        volumes
         duration
         genres
         synonyms
@@ -47,6 +49,12 @@ const SEARCH_ANIME_QUERY = `
         favourites
         countryOfOrigin
         isAdult
+        nextAiringEpisode {
+          id
+          airingAt
+          timeUntilAiring
+          episode
+        }
         coverImage {
           extraLarge
           large
@@ -89,14 +97,31 @@ const SEARCH_ANIME_QUERY = `
           color
           icon
         }
+        streamingEpisodes {
+          title
+          thumbnail
+          url
+          site
+        }
+        airingSchedule(page: 1, perPage: 25) {
+          edges {
+            node {
+              id
+              airingAt
+              timeUntilAiring
+              episode
+            }
+          }
+        }
       }
     }
   }
 `;
 
-const GET_ANIME_DETAILS_QUERY = `
-  query GetAnimeDetails($id: Int, $malId: Int) {
-    Media(id: $id, idMal: $malId, type: ANIME) {
+// Enhanced details query with all streaming and countdown data
+const GET_MEDIA_DETAILS_QUERY = `
+  query GetMediaDetails($id: Int, $malId: Int, $type: MediaType) {
+    Media(id: $id, idMal: $malId, type: $type) {
       id
       malId
       title {
@@ -121,6 +146,8 @@ const GET_ANIME_DETAILS_QUERY = `
       format
       status
       episodes
+      chapters
+      volumes
       duration
       genres
       synonyms
@@ -131,6 +158,12 @@ const GET_ANIME_DETAILS_QUERY = `
       hashtag
       countryOfOrigin
       isAdult
+      nextAiringEpisode {
+        id
+        airingAt
+        timeUntilAiring
+        episode
+      }
       coverImage {
         extraLarge
         large
@@ -279,6 +312,16 @@ const GET_ANIME_DETAILS_QUERY = `
         url
         site
       }
+      airingSchedule(page: 1, perPage: 25) {
+        edges {
+          node {
+            id
+            airingAt
+            timeUntilAiring
+            episode
+          }
+        }
+      }
     }
   }
 `;
@@ -315,10 +358,12 @@ class AniListService {
     }
   }
 
-  async searchAnime(options: {
+  // Enhanced search supporting both anime and manga
+  async searchMedia(options: {
     search?: string;
     page?: number;
     perPage?: number;
+    type?: 'ANIME' | 'MANGA';
     genre?: string;
     status?: string;
     format?: string;
@@ -328,6 +373,7 @@ class AniListService {
       search,
       page = 1,
       perPage = 20,
+      type = 'ANIME',
       genre,
       status,
       format,
@@ -337,7 +383,7 @@ class AniListService {
     const variables: any = {
       page,
       perPage,
-      type: 'ANIME',
+      type,
       sort,
     };
 
@@ -346,19 +392,55 @@ class AniListService {
     if (status) variables.status = status;
     if (format) variables.format = format;
 
-    return await this.makeRequest(SEARCH_ANIME_QUERY, variables);
+    return await this.makeRequest(SEARCH_MEDIA_QUERY, variables);
   }
 
-  async getAnimeDetails(id?: number, malId?: number): Promise<AniListAnimeResponse> {
+  // Backward compatibility - search anime only
+  async searchAnime(options: {
+    search?: string;
+    page?: number;
+    perPage?: number;
+    genre?: string;
+    status?: string;
+    format?: string;
+    sort?: string[];
+  } = {}): Promise<AniListSearchResponse> {
+    return this.searchMedia({ ...options, type: 'ANIME' });
+  }
+
+  // Search manga specifically
+  async searchManga(options: {
+    search?: string;
+    page?: number;
+    perPage?: number;
+    genre?: string;
+    status?: string;
+    format?: string;
+    sort?: string[];
+  } = {}): Promise<AniListSearchResponse> {
+    return this.searchMedia({ ...options, type: 'MANGA' });
+  }
+
+  // Enhanced details method supporting both anime and manga
+  async getMediaDetails(id?: number, malId?: number, type: 'ANIME' | 'MANGA' = 'ANIME'): Promise<AniListAnimeResponse> {
     if (!id && !malId) {
       throw new Error('Either AniList ID or MAL ID must be provided');
     }
 
-    const variables: any = {};
+    const variables: any = { type };
     if (id) variables.id = id;
     if (malId) variables.malId = malId;
 
-    return await this.makeRequest(GET_ANIME_DETAILS_QUERY, variables);
+    return await this.makeRequest(GET_MEDIA_DETAILS_QUERY, variables);
+  }
+
+  // Backward compatibility methods
+  async getAnimeDetails(id?: number, malId?: number): Promise<AniListAnimeResponse> {
+    return this.getMediaDetails(id, malId, 'ANIME');
+  }
+
+  async getMangaDetails(id?: number, malId?: number): Promise<AniListAnimeResponse> {
+    return this.getMediaDetails(id, malId, 'MANGA');
   }
 
   async getAnimeByMalId(malId: number): Promise<AniListAnime | null> {
@@ -366,25 +448,33 @@ class AniListService {
       const response = await this.getAnimeDetails(undefined, malId);
       return response.data.Media;
     } catch (error) {
-      console.error(`Failed to fetch AniList data for MAL ID ${malId}:`, error);
+      console.error(`Failed to fetch AniList anime data for MAL ID ${malId}:`, error);
       return null;
     }
   }
 
-  // Utility function to get the best available image
-  getBestImage(anime: AniListAnime): string {
-    return anime.coverImage.extraLarge || anime.coverImage.large || anime.coverImage.medium;
-  }
-
-  // Utility function to get formatted title
-  getTitle(anime: AniListAnime, preferEnglish: boolean = true): string {
-    if (preferEnglish && anime.title.english) {
-      return anime.title.english;
+  async getMangaByMalId(malId: number): Promise<AniListAnime | null> {
+    try {
+      const response = await this.getMangaDetails(undefined, malId);
+      return response.data.Media;
+    } catch (error) {
+      console.error(`Failed to fetch AniList manga data for MAL ID ${malId}:`, error);
+      return null;
     }
-    return anime.title.romaji;
   }
 
-  // Utility function to format date
+  // Enhanced utility functions
+  getBestImage(media: AniListAnime): string {
+    return media.coverImage.extraLarge || media.coverImage.large || media.coverImage.medium;
+  }
+
+  getTitle(media: AniListAnime, preferEnglish: boolean = true): string {
+    if (preferEnglish && media.title.english) {
+      return media.title.english;
+    }
+    return media.title.romaji;
+  }
+
   formatDate(date?: { year?: number; month?: number; day?: number }): string | null {
     if (!date?.year) return null;
     
@@ -395,51 +485,150 @@ class AniListService {
     return `${year}-${month}-${day}`;
   }
 
+  // Enhanced streaming links detection
+  getStreamingLinks(media: AniListAnime): Array<{
+    platform: string;
+    url: string;
+    type: 'streaming' | 'info' | 'social';
+  }> {
+    if (!media.externalLinks) return [];
+
+    return media.externalLinks.map(link => ({
+      platform: link.site,
+      url: link.url,
+      type: this.categorizeExternalLink(link.site, link.type)
+    }));
+  }
+
+  private categorizeExternalLink(site: string, type: string): 'streaming' | 'info' | 'social' {
+    const streamingPlatforms = [
+      'Crunchyroll', 'Funimation', 'Netflix', 'Hulu', 'Amazon Prime Video',
+      'Disney Plus', 'AnimeLab', 'Wakanim', 'VIZ', 'Shonen Jump'
+    ];
+    
+    if (streamingPlatforms.includes(site)) {
+      return 'streaming';
+    }
+    
+    if (type === 'SOCIAL' || ['Twitter', 'YouTube', 'Instagram', 'TikTok'].includes(site)) {
+      return 'social';
+    }
+    
+    return 'info';
+  }
+
+  // Get countdown information
+  getCountdownInfo(media: AniListAnime): {
+    nextEpisode?: {
+      episode: number;
+      airingAt: number;
+      timeUntilAiring: number;
+    };
+    isAiring: boolean;
+    upcomingEpisodes: Array<{
+      episode: number;
+      airingAt: number;
+      timeUntilAiring: number;
+    }>;
+  } {
+    const result = {
+      nextEpisode: undefined as any,
+      isAiring: media.status === 'RELEASING',
+      upcomingEpisodes: [] as any[]
+    };
+
+    if (media.nextAiringEpisode) {
+      result.nextEpisode = {
+        episode: media.nextAiringEpisode.episode,
+        airingAt: media.nextAiringEpisode.airingAt,
+        timeUntilAiring: media.nextAiringEpisode.timeUntilAiring
+      };
+    }
+
+    if (media.airingSchedule?.edges) {
+      result.upcomingEpisodes = media.airingSchedule.edges
+        .map(edge => ({
+          episode: edge.node.episode,
+          airingAt: edge.node.airingAt,
+          timeUntilAiring: edge.node.timeUntilAiring
+        }))
+        .filter(ep => ep.timeUntilAiring > 0)
+        .sort((a, b) => a.airingAt - b.airingAt);
+    }
+
+    return result;
+  }
+
   // Convert AniList data to our internal format
-  convertToInternalFormat(anilistAnime: AniListAnime): any {
+  convertToInternalFormat(media: AniListAnime, contentType: 'anime' | 'manga' = 'anime'): any {
+    const countdownInfo = this.getCountdownInfo(media);
+    const streamingLinks = this.getStreamingLinks(media);
+
     return {
-      id: `anilist-${anilistAnime.id}`,
-      mal_id: anilistAnime.malId || null,
-      anilist_id: anilistAnime.id,
-      title: anilistAnime.title.romaji,
-      title_english: anilistAnime.title.english || null,
-      title_japanese: anilistAnime.title.native || null,
-      type: anilistAnime.format || anilistAnime.type,
-      status: anilistAnime.status,
-      episodes: anilistAnime.episodes || null,
-      aired_from: this.formatDate(anilistAnime.startDate),
-      aired_to: this.formatDate(anilistAnime.endDate),
-      score: anilistAnime.averageScore ? anilistAnime.averageScore / 10 : null,
-      scored_by: null, // AniList doesn't provide this
-      rank: null, // We'd need to calculate this
-      popularity: anilistAnime.popularity || null,
-      members: anilistAnime.favourites || null,
-      favorites: anilistAnime.favourites || null,
-      synopsis: anilistAnime.description ? anilistAnime.description.replace(/<[^>]*>/g, '') : null,
-      image_url: this.getBestImage(anilistAnime),
-      banner_image: anilistAnime.bannerImage || null,
-      trailer_url: anilistAnime.trailer ? `https://www.youtube.com/watch?v=${anilistAnime.trailer.id}` : null,
-      genres: anilistAnime.genres || [],
-      studios: anilistAnime.studios?.edges
+      id: `anilist-${media.id}`,
+      mal_id: media.malId || null,
+      anilist_id: media.id,
+      title: media.title.romaji,
+      title_english: media.title.english || null,
+      title_japanese: media.title.native || null,
+      type: media.format || media.type,
+      status: media.status,
+      episodes: media.episodes || null,
+      chapters: media.chapters || null,
+      volumes: media.volumes || null,
+      aired_from: this.formatDate(media.startDate),
+      aired_to: this.formatDate(media.endDate),
+      published_from: contentType === 'manga' ? this.formatDate(media.startDate) : null,
+      published_to: contentType === 'manga' ? this.formatDate(media.endDate) : null,
+      score: media.averageScore ? media.averageScore / 10 : null,
+      anilist_score: media.averageScore ? media.averageScore / 10 : null,
+      scored_by: null,
+      rank: null,
+      popularity: media.popularity || null,
+      members: media.favourites || null,
+      favorites: media.favourites || null,
+      synopsis: media.description ? media.description.replace(/<[^>]*>/g, '') : null,
+      image_url: this.getBestImage(media),
+      banner_image: media.bannerImage || null,
+      cover_image_large: media.coverImage.large || null,
+      cover_image_extra_large: media.coverImage.extraLarge || null,
+      color_theme: media.coverImage.color || null,
+      trailer_url: media.trailer ? `https://www.youtube.com/watch?v=${media.trailer.id}` : null,
+      trailer_id: media.trailer?.id || null,
+      trailer_site: media.trailer?.site || null,
+      genres: media.genres || [],
+      studios: media.studios?.edges
         .filter(edge => edge.isMain)
         .map(edge => edge.node.name) || [],
-      themes: anilistAnime.tags
+      authors: contentType === 'manga' ? [] : undefined, // Will be populated from staff data
+      themes: media.tags
         ?.filter(tag => !tag.isGeneralSpoiler && !tag.isMediaSpoiler && tag.rank >= 60)
         .map(tag => tag.name) || [],
-      demographics: [], // AniList doesn't have this concept
-      season: anilistAnime.season || null,
-      year: anilistAnime.seasonYear || anilistAnime.startDate?.year || null,
-      // AniList-specific fields
-      anilist_data: {
-        color: anilistAnime.coverImage.color,
-        characters: anilistAnime.characters,
-        staff: anilistAnime.staff,
-        relations: anilistAnime.relations,
-        recommendations: anilistAnime.recommendations,
-        externalLinks: anilistAnime.externalLinks,
-        streamingEpisodes: anilistAnime.streamingEpisodes,
-        tags: anilistAnime.tags,
-      },
+      demographics: [],
+      season: media.season || null,
+      year: media.seasonYear || media.startDate?.year || null,
+      
+      // Enhanced fields for countdown and streaming
+      next_episode_date: countdownInfo.nextEpisode ? new Date(countdownInfo.nextEpisode.airingAt * 1000).toISOString() : null,
+      next_episode_number: countdownInfo.nextEpisode?.episode || null,
+      next_chapter_date: contentType === 'manga' && countdownInfo.nextEpisode ? new Date(countdownInfo.nextEpisode.airingAt * 1000).toISOString() : null,
+      next_chapter_number: contentType === 'manga' ? countdownInfo.nextEpisode?.episode || null : null,
+      
+      // AniList-specific structured data
+      characters_data: media.characters || [],
+      staff_data: media.staff || [],
+      external_links: streamingLinks,
+      streaming_episodes: media.streamingEpisodes || [],
+      detailed_tags: media.tags || [],
+      relations_data: media.relations || [],
+      recommendations_data: media.recommendations || [],
+      studios_data: media.studios || [],
+      
+      // Airing schedule for countdown timers
+      airing_schedule: contentType === 'anime' ? countdownInfo.upcomingEpisodes : [],
+      release_schedule: contentType === 'manga' ? countdownInfo.upcomingEpisodes : [],
+      
+      last_sync_check: new Date().toISOString(),
     };
   }
 }
