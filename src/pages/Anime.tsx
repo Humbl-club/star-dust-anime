@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApiData } from "@/hooks/useApiData";
-import { useContentFilter } from "@/hooks/useContentFilter";
+import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Navigation } from "@/components/Navigation";
@@ -33,8 +33,8 @@ const Anime = () => {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Apple compliance - content filtering
-  const { filterAnimeContent, getContentRating, isVerified } = useContentFilter();
+  // Age verification
+  const { isVerified } = useAgeVerification();
 
   // Get anime data from API
   const { data: animeList, loading } = useApiData<Anime>({ 
@@ -58,14 +58,9 @@ const Anime = () => {
     setSearchParams(params);
   }, [searchQuery, selectedGenre, selectedStatus, sortBy, setSearchParams]);
 
-  // Filter and sort anime with Apple compliance
+  // Filter and sort anime
   useEffect(() => {
     let filtered = [...animeList];
-
-    // Apple Store compliance - Apply content filtering first
-    if (isVerified) {
-      filtered = filterAnimeContent(filtered);
-    }
 
     // Search filter
     if (searchQuery) {
@@ -108,7 +103,7 @@ const Anime = () => {
     });
 
     setFilteredAnime(filtered);
-  }, [animeList, searchQuery, selectedGenre, selectedStatus, sortBy, filterAnimeContent, isVerified]);
+  }, [animeList, searchQuery, selectedGenre, selectedStatus, sortBy]);
 
   const clearFilters = () => {
     setSearchQuery("");
