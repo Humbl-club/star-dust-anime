@@ -19,6 +19,7 @@ import Trending from "./pages/Trending";
 import Dashboard from "./pages/Dashboard";
 import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
+import Analytics from "./pages/Analytics";
 import Social from "./pages/Social";
 import DataSync from "./pages/DataSync";
 import SyncDashboard from "./pages/SyncDashboard";
@@ -82,6 +83,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-lists" element={<MyLists />} />
             <Route path="/recommendations" element={<Recommendations />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/social" element={<Social />} />
             <Route path="/data-sync" element={<DataSync />} />
             <Route path="/sync-dashboard" element={<SyncDashboard />} />

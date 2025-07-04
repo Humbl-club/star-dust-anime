@@ -18,6 +18,7 @@ import {
   Heart,
   Loader2, 
   Sparkles,
+  BarChart3,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -281,6 +282,17 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 >
                   <Database className="w-4 h-4 mr-3" />
                   Sync Dashboard
+                </Button>
+              </Link>
+
+              <Link to="/analytics">
+                <Button
+                  variant={window.location.pathname === "/analytics" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <BarChart3 className="w-4 h-4 mr-3" />
+                  Analytics
                 </Button>
               </Link>
 
