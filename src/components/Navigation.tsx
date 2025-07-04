@@ -28,7 +28,7 @@ import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
-import { SearchDropdown } from "@/components/SearchDropdown";
+import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -174,7 +174,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
           {/* Search Bar with Real-time Dropdown - Only on large screens */}
           <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6">
-            <SearchDropdown placeholder="Search anime instantly..." />
+            <WorkingSearchDropdown placeholder="Search anime instantly..." />
           </div>
 
           {/* Right Side Actions - Condensed */}
@@ -246,7 +246,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
-                <SearchDropdown placeholder="Search anime instantly..." />
+                <WorkingSearchDropdown 
+                  placeholder="Search anime instantly..." 
+                  onResultClick={() => setIsMobileMenuOpen(false)}
+                />
               </div>
 
               {/* Mobile Nav Items */}

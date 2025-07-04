@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
+import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import heroImage from "@/assets/anime-hero-bg.jpg";
 import { useStats } from "@/hooks/useStats";
 
@@ -72,28 +73,14 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           {/* Search Section */}
-            <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-300" />
-              <div className="relative flex gap-2 p-2 glass-card">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                  <Input
-                    placeholder="Discover your next favorite anime or manga..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="pl-10 border-none bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-0 focus:outline-none"
-                  />
-                </div>
-                <Button 
-                  variant="hero" 
-                  size="default"
-                  onClick={handleSearch}
-                  className="px-8"
-                >
-                  Search
-                </Button>
+              <div className="relative">
+                <WorkingSearchDropdown 
+                  placeholder="Discover your next favorite anime or manga..." 
+                  className="w-full"
+                />
               </div>
             </div>
 
