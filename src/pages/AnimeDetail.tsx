@@ -31,6 +31,8 @@ import { StreamingLinks } from "@/components/StreamingLinks";
 import { Navigation } from "@/components/Navigation";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { CastSection } from "@/components/CastSection";
+import { ShareButton } from "@/components/ShareButton";
+import { AnimeMetaTags } from "@/components/SEOMetaTags";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +96,9 @@ const AnimeDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
+      {/* SEO Meta Tags */}
+      <AnimeMetaTags anime={anime} />
+      
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
       
@@ -168,9 +173,16 @@ const AnimeDetail = () => {
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="flex gap-2">
-                      <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                        <Share2 className="w-4 h-4" />
-                      </Button>
+                      <ShareButton
+                        shareData={{
+                          title: `${getDisplayName(anime)} - AniVault`,
+                          text: `Check out ${getDisplayName(anime)} on AniVault!`,
+                          url: window.location.href,
+                          image: enhancedAnime?.image_url || anime.image_url
+                        }}
+                        variant="ghost"
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      />
                       <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
                         <Bookmark className="w-4 h-4" />
                       </Button>

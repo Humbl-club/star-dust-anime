@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { AgeVerificationModal } from "@/components/AgeVerificationModal";
+import { DeepLinkHandler } from "@/components/DeepLinkHandler";
+import { HelmetProvider } from "react-helmet-async";
 import useAutoSync from "@/hooks/useAutoSync";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -61,13 +63,15 @@ const App = () => {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AutoSyncProvider>
-        <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
+      <HelmetProvider>
+        <AuthProvider>
+          <AutoSyncProvider>
+          <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <DeepLinkHandler />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/anime" element={<Anime />} />
@@ -88,6 +92,7 @@ const App = () => {
         </TooltipProvider>
         </AutoSyncProvider>
       </AuthProvider>
+      </HelmetProvider>
     </QueryClientProvider>
   );
 };

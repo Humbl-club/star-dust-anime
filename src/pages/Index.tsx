@@ -14,6 +14,7 @@ import { NameToggle } from "@/components/NameToggle";
 import { LegalFooter } from "@/components/LegalFooter";
 import { StartMangaSync } from "@/components/StartMangaSync";
 import { TMDBEnhancementButton } from "@/components/TMDBEnhancementButton";
+import { DeepLinkTestComponent } from "@/components/DeepLinkTestComponent";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -171,10 +172,11 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
       
-      {/* Manga Sync & TMDB Enhancement */}
+      {/* Enhancement Components */}
       <div className="container mx-auto px-4 py-8 space-y-6">
         <StartMangaSync />
         <TMDBEnhancementButton />
+        <DeepLinkTestComponent />
       </div>
 
       {/* Search Results */}
