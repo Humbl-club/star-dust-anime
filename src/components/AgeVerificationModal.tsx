@@ -25,24 +25,31 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
+      
       const isAdult = ageRange === "18+" || ageRange === "25+";
       const contentRating = ageRange === "under13" ? "all" : 
                           ageRange === "13-17" ? "teen" : 
                           ageRange === "18+" ? "mature" : "adult";
 
-      const { error } = await supabase
-        .from('user_content_preferences')
-        .upsert({
-          user_id: user.id,
-          age_verified: true,
-          age_verification_date: new Date().toISOString(),
-          show_adult_content: isAdult,
-          content_rating_preference: contentRating
-        });
+      if (user) {
+        // For authenticated users, save to database
+        const { error } = await supabase
+          .from('user_content_preferences')
+          .upsert({
+            user_id: user.id,
+            age_verified: true,
+            age_verification_date: new Date().toISOString(),
+            show_adult_content: isAdult,
+            content_rating_preference: contentRating
+          });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // For non-authenticated users, save to localStorage
+        localStorage.setItem('age_verified', 'true');
+        localStorage.setItem('content_rating_preference', contentRating);
+        localStorage.setItem('show_adult_content', isAdult.toString());
+      }
 
       toast({
         title: "Age Verification Complete",

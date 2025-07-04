@@ -17,8 +17,9 @@ export const useAgeVerification = () => {
   useEffect(() => {
     const fetchPreferences = async () => {
       if (!user) {
-        // If no user, set verified to true to skip modal for logged out users
-        setIsVerified(true);
+        // For non-authenticated users, check if they've already verified age
+        const hasVerified = localStorage.getItem('age_verified');
+        setIsVerified(!!hasVerified);
         setLoading(false);
         return;
       }
@@ -28,11 +29,10 @@ export const useAgeVerification = () => {
           .from('user_content_preferences')
           .select('age_verified, show_adult_content, content_rating_preference')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (error) {
           console.error('Error fetching preferences:', error);
-          // On error, show verification modal to be safe
           setIsVerified(false);
           setLoading(false);
           return;
@@ -48,7 +48,6 @@ export const useAgeVerification = () => {
         }
       } catch (error) {
         console.error('Unexpected error:', error);
-        // On error, show verification modal to be safe
         setIsVerified(false);
       } finally {
         setLoading(false);
