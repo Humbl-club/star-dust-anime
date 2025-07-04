@@ -17,11 +17,14 @@ import {
   Star,
   Heart,
   Loader2, 
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useOptimizedSearch } from "@/hooks/useOptimizedSearch";
+import { useNativeSetup } from "@/hooks/useNativeSetup";
+import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 
@@ -37,6 +40,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { debouncedSearch, isSearching, searchResults, lastSearchInfo, clearSearch, recentSearches } = useOptimizedSearch();
+  const { isNative, keyboardVisible } = useNativeSetup();
+  const { triggerHaptic } = useNativeActions();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -106,7 +111,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
       "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
       isScrolled 
         ? "glass-nav" 
-        : "bg-transparent"
+        : "bg-transparent",
+      isNative && "pt-safe-area-inset-top",
+      keyboardVisible && isNative && "pb-0"
     )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -289,9 +296,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
               variant="ghost" 
               size="icon" 
               className="lg:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={async () => {
+                await triggerHaptic('light');
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
             >
-              <Menu className="w-4 h-4" />
+              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </Button>
           </div>
         </div>

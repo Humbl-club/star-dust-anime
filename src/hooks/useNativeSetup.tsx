@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor } from '@capacitor/core';
 
 export const useNativeSetup = () => {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
   useEffect(() => {
     const setupNative = async () => {
       if (!Capacitor.isNativePlatform()) return;
@@ -15,16 +18,34 @@ export const useNativeSetup = () => {
 
         // Hide splash screen after app loads
         await SplashScreen.hide();
+
+        // Keyboard event listeners
+        Keyboard.addListener('keyboardWillShow', () => {
+          setKeyboardVisible(true);
+        });
+
+        Keyboard.addListener('keyboardWillHide', () => {
+          setKeyboardVisible(false);
+        });
+
       } catch (error) {
         console.log('Native setup error:', error);
       }
     };
 
     setupNative();
+
+    // Cleanup
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        Keyboard.removeAllListeners();
+      }
+    };
   }, []);
 
   return {
     isNative: Capacitor.isNativePlatform(),
-    platform: Capacitor.getPlatform()
+    platform: Capacitor.getPlatform(),
+    keyboardVisible
   };
 };
