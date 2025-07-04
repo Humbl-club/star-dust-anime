@@ -32,8 +32,6 @@ import {
   X
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
-import { SyncStatus } from "@/components/SyncStatus";
-import { InitialSyncTrigger } from "@/components/InitialSyncTrigger";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -140,13 +138,6 @@ const Dashboard = () => {
                 <span className="text-sm text-primary ml-2">Processing in background...</span>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Sync Status Section - only show if there's data */}
-        {(animeStats.total > 0 || mangaStats.total > 0) && (
-          <div className="mb-8">
-            <SyncStatus />
           </div>
         )}
 

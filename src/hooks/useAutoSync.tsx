@@ -13,8 +13,8 @@ export const useAutoSync = () => {
       initialized = true;
 
       try {
-        console.log('🔄 RESTARTING SYNC AFTER DATABASE FIX...');
-        setSyncStatus('🔄 RESTARTING: Fixed database constraints, resuming sync...');
+      console.log('🚀 AUTOMATIC BACKGROUND SYNC RUNNING...');
+      setSyncStatus(''); // No UI display needed
 
         // Start comprehensive sync for both anime and manga - COMPLETE SYNC
         const syncPromises = [
@@ -54,17 +54,13 @@ export const useAutoSync = () => {
         // Start all syncs in parallel
         Promise.allSettled(syncPromises).then((results) => {
           const successful = results.filter(r => r.status === 'fulfilled').length;
-          console.log(`Auto-sync initiated: ${successful}/${results.length} operations started`);
-          setSyncStatus(`✅ AUTO-SYNC: ${successful} operations running - library building in progress...`);
-          
-          // Clear status after delay
-          setTimeout(() => setSyncStatus(''), 10000);
+          console.log(`Background sync: ${successful}/${results.length} operations running silently`);
+          setSyncStatus(''); // No UI needed
         });
 
       } catch (error) {
-        console.log('Auto-sync initiated in background:', error?.message || 'Processing...');
-        setSyncStatus('🔄 AUTO-SYNC: Complete library sync running in background...');
-        setTimeout(() => setSyncStatus(''), 8000);
+        console.log('Background sync running silently:', error?.message || 'Processing...');
+        setSyncStatus(''); // No UI needed
       }
     };
 
@@ -73,10 +69,9 @@ export const useAutoSync = () => {
 
     // Set up continuous background syncing every 30 minutes for complete coverage
     const backgroundInterval = setInterval(async () => {
-      console.log('🔄 Background sync check - AGGRESSIVE MODE...');
+      console.log('🔄 Silent background sync running...');
       
       try {
-        // Trigger more aggressive incremental updates
         await Promise.allSettled([
           supabase.functions.invoke('incremental-sync'),
           supabase.functions.invoke('complete-library-sync', {
@@ -89,7 +84,7 @@ export const useAutoSync = () => {
           supabase.functions.invoke('trigger-full-sync')
         ]);
         
-        console.log('Aggressive background sync completed');
+        console.log('Silent background sync completed');
       } catch (error) {
         console.log('Background sync running silently');
       }

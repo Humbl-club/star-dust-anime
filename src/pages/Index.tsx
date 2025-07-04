@@ -12,11 +12,6 @@ import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { NameToggle } from "@/components/NameToggle";
 import { LegalFooter } from "@/components/LegalFooter";
-import { StartMangaSync } from "@/components/StartMangaSync";
-import { TMDBEnhancementButton } from "@/components/TMDBEnhancementButton";
-import { DeepLinkTestComponent } from "@/components/DeepLinkTestComponent";
-import { CountdownTestComponent } from "@/components/CountdownTestComponent";
-import { SyncTestButton } from "@/components/SyncTestButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -174,15 +169,6 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
       
-      {/* Enhancement Components */}
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <SyncTestButton />
-        <StartMangaSync />
-        <TMDBEnhancementButton />
-        <DeepLinkTestComponent />
-        <CountdownTestComponent />
-      </div>
-
       {/* Search Results */}
       {isSearching && (
         <section className="py-16">

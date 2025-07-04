@@ -15,7 +15,6 @@ import {
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useApiData } from "@/hooks/useApiData";
 import { Navigation } from "@/components/Navigation";
-import { SyncTestComponent } from "@/components/SyncTestComponent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -201,26 +200,20 @@ const Manga = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Sync Test Component */}
-        <SyncTestComponent />
-
-        {/* Show loading message if no manga data yet */}
-        {mangaData.length === 0 && (
-          <div className="mb-8 text-center">
-            <div className="bg-muted/20 rounded-lg p-8">
-              <h3 className="text-lg font-semibold mb-2">Building Manga Database</h3>
-              <p className="text-muted-foreground mb-4">
-                Our system is automatically populating the manga database with trending titles from AniList and MyAnimeList. 
-                This process runs in the background and should complete within a few minutes.
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-75"></div>
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-150"></div>
-              </div>
-            </div>
+        {/* Results Summary */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-muted-foreground">
+            Showing {filteredManga.length} of {mangaData.length} manga
+          </p>
+          
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              <BookOpen className="w-3 h-3 mr-1" />
+              Manga
+            </Badge>
           </div>
-        )}
+        </div>
+
         {/* Search and Filters */}
         <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
@@ -293,20 +286,6 @@ const Manga = () => {
             </div>
           </CardHeader>
         </Card>
-
-        {/* Results Summary */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-muted-foreground">
-            Showing {filteredManga.length} of {mangaData.length} manga
-          </p>
-          
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              <BookOpen className="w-3 h-3 mr-1" />
-              Manga
-            </Badge>
-          </div>
-        </div>
 
         {/* Manga Grid */}
         {filteredManga.length > 0 ? (
