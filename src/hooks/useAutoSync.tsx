@@ -20,13 +20,17 @@ export const useAutoSync = () => {
         console.log('STARTING ULTRA-FAST COMPLETE LIBRARY SYNC FOR APPLE STORE...');
         setSyncStatus('🚀 ULTRA-FAST SYNC: Building complete anime & manga library (Apple Store ready)...');
 
-        // Use the new ultra-fast sync for complete coverage
-        console.log('Starting ultra-fast complete library sync...');
+        // Use the trigger-full-sync for complete coverage
+        console.log('Starting complete library sync...');
 
-        const ultraSync = supabase.functions.invoke('ultra-fast-complete-sync');
+        const { data, error } = await supabase.functions.invoke('trigger-full-sync');
         
-        // Wait for sync to complete
-        await ultraSync;
+        if (error) {
+          console.error('Sync error:', error);
+          throw error;
+        }
+        
+        console.log('Full sync response:', data);
         
         setSyncStatus('COMPLETE LIBRARY SYNC FINISHED! Database is ready with full anime & manga library.');
         

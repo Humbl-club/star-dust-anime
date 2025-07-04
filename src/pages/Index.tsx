@@ -16,6 +16,7 @@ import { StartMangaSync } from "@/components/StartMangaSync";
 import { TMDBEnhancementButton } from "@/components/TMDBEnhancementButton";
 import { DeepLinkTestComponent } from "@/components/DeepLinkTestComponent";
 import { CountdownTestComponent } from "@/components/CountdownTestComponent";
+import { SyncTestButton } from "@/components/SyncTestButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -175,6 +176,7 @@ const Index = () => {
       
       {/* Enhancement Components */}
       <div className="container mx-auto px-4 py-8 space-y-6">
+        <SyncTestButton />
         <StartMangaSync />
         <TMDBEnhancementButton />
         <DeepLinkTestComponent />
