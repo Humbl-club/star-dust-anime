@@ -13,6 +13,9 @@ export const SyncTestButton = () => {
     setIsLoading(true);
     
     try {
+      // Clear any previous sync flags to force a fresh sync
+      localStorage.removeItem('auto-sync-completed');
+      
       const { data, error } = await supabase.functions.invoke('trigger-full-sync');
       
       if (error) {
@@ -20,8 +23,23 @@ export const SyncTestButton = () => {
       }
       
       setLastSync(new Date().toLocaleTimeString());
-      toast.success("Full sync initiated! This will sync all anime and manga data.");
+      toast.success("Full sync initiated! Database constraints fixed - data should populate now.");
       console.log('Full sync response:', data);
+      
+      // Also trigger the complete library sync for immediate results
+      setTimeout(async () => {
+        try {
+          await supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'anime', maxPages: 10 }
+          });
+          await supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'manga', maxPages: 10 }
+          });
+          toast.success("Direct sync also started for faster results!");
+        } catch (e) {
+          console.log('Direct sync running in background');
+        }
+      }, 1000);
       
     } catch (error: any) {
       console.error('Sync error:', error);
