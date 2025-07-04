@@ -26,7 +26,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
   };
 
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -47,8 +47,8 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-20 text-center max-w-4xl mx-auto px-6">
-        <div className="space-y-8 animate-fade-in-up">
+      <div className="relative z-20 text-center max-w-5xl mx-auto mobile-safe-padding">
+        <div className="space-y-6 md:space-y-8 animate-fade-in-up">
           {/* Title Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
@@ -56,19 +56,19 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
               <Zap className="w-6 h-6 text-accent animate-bounce" />
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="text-gradient-primary">Ani</span>
-              <span className="text-foreground">Vault</span>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+              <span className="text-accent">Ani</span>
+              <span className="text-gradient-primary">thing</span>
             </h1>
             
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground/90">
-              Premium Discovery Platform
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground/90">
+              Discover Everything Anime
             </h2>
           </div>
 
           {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Discover, track, and dive deep into your favorite anime and manga series with the most advanced tracking platform ever created.
+          <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Track, discover, and explore your favorite anime and manga with the ultimate companion for every otaku journey.
           </p>
 
           {/* Search Section */}
@@ -97,30 +97,30 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Mobile Optimized */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button variant="accent" size="lg" className="px-8 py-4 text-lg">
+              <Button variant="accent" size="lg" className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly hover-scale">
                 Explore Trending
               </Button>
-              <Button variant="glassmorphism" size="lg" className="px-8 py-4 text-lg">
+              <Button variant="glassmorphism" size="lg" className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly hover-scale">
                 My Collection
               </Button>
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto pt-8">
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.animeCount)}</div>
-              <div className="text-sm text-muted-foreground">Anime Series</div>
+          {/* Stats Section - Mobile Optimized */}
+          <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto pt-6 md:pt-8">
+            <div className="text-center space-y-1 md:space-y-2">
+              <div className="text-2xl md:text-3xl font-bold text-gradient-primary">{formatCount(stats.animeCount)}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Anime Series</div>
             </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-secondary">{formatCount(stats.mangaCount)}</div>
-              <div className="text-sm text-muted-foreground">Manga Titles</div>
+            <div className="text-center space-y-1 md:space-y-2">
+              <div className="text-2xl md:text-3xl font-bold text-accent">{formatCount(stats.mangaCount)}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Manga Titles</div>
             </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.userCount)}</div>
-              <div className="text-sm text-muted-foreground">Community Members</div>
+            <div className="text-center space-y-1 md:space-y-2">
+              <div className="text-2xl md:text-3xl font-bold text-gradient-primary">{formatCount(stats.userCount)}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Community</div>
             </div>
           </div>
         </div>

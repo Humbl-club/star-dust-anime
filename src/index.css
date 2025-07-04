@@ -29,8 +29,8 @@
     --muted: 220 15% 15%;
     --muted-foreground: 215 16% 65%;
 
-    /* Accent - Neon Pink */
-    --accent: 315 100% 65%;
+    /* Accent - Vibrant Orange for "Ani" */
+    --accent: 25 95% 60%;
     --accent-foreground: 220 26% 6%;
 
     --destructive: 0 84% 60%;
@@ -224,6 +224,20 @@
 
   .transition-bounce {
     transition: var(--transition-bounce);
+  }
+
+  /* Mobile-friendly utilities */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105 active:scale-95;
+  }
+
+  .touch-friendly {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  .mobile-safe-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 
   /* Text Gradients */

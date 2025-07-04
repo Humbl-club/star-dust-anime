@@ -27,7 +27,7 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
 
   return (
     <Card 
-      className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale cursor-pointer"
+      className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale cursor-pointer touch-friendly"
       onClick={handleClick}
     >
       <CardContent className="p-0">
@@ -35,7 +35,7 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
         <img 
           src={manga.image_url} 
           alt={manga.title}
-          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
@@ -189,17 +189,17 @@ const Manga = () => {
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Discover Manga
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4">
+              Discover <span className="text-accent">Manga</span>
             </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Explore thousands of manga series and novels. Dive into incredible stories.
+            <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+              Explore thousands of manga series and novels with <span className="text-accent font-semibold">Anithing</span>.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto mobile-safe-padding py-6 md:py-8">
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
@@ -287,9 +287,9 @@ const Manga = () => {
           </CardHeader>
         </Card>
 
-        {/* Manga Grid */}
+        {/* Manga Grid - Mobile Optimized */}
         {filteredManga.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
             {filteredManga.map((manga) => (
               <MangaCard key={manga.id} manga={manga} />
             ))}

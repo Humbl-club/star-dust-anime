@@ -110,21 +110,21 @@ const Index = () => {
     animeList: Anime[]; 
     className?: string;
   }) => (
-    <section className={`py-16 ${className}`}>
-      <div className="container mx-auto px-4">
+    <section className={`py-12 md:py-16 ${className}`}>
+      <div className="container mx-auto mobile-safe-padding">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-primary rounded-lg">
               <Icon className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gradient-primary">{title}</h2>
-              <p className="text-muted-foreground">{subtitle}</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-gradient-primary">{title}</h2>
+              <p className="text-sm md:text-base text-muted-foreground">{subtitle}</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="group"
+            className="group hover-scale touch-friendly"
             onClick={() => navigate('/anime')}
           >
             View All
@@ -132,11 +132,11 @@ const Index = () => {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
           {animeList.map((anime, index) => (
             <div 
               key={anime.id} 
-              className="animate-fade-in"
+              className="animate-fade-in hover-scale"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <AnimeCard 
@@ -238,31 +238,31 @@ const Index = () => {
       )}
 
       {/* Stats Footer */}
-      <section className="py-20 bg-gradient-to-br from-primary/10 to-secondary/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-gradient-primary mb-8">
-            Join the Ultimate AniVault Community
+      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/10 to-accent/10">
+        <div className="container mx-auto mobile-safe-padding text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8">
+            Join the Ultimate <span className="text-accent">Ani</span><span className="text-gradient-primary">thing</span> Community
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl mx-auto">
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
-              <div className="text-muted-foreground">Anime Series</div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
+              <div className="text-sm md:text-base text-muted-foreground">Anime Series</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-secondary">{formatCount(stats.mangaCount)}</div>
-              <div className="text-muted-foreground">Manga Titles</div>
+              <div className="text-3xl md:text-4xl font-bold text-accent">{formatCount(stats.mangaCount)}</div>
+              <div className="text-sm md:text-base text-muted-foreground">Manga Titles</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-accent">{formatCount(stats.userCount)}</div>
-              <div className="text-muted-foreground">Users</div>
+              <div className="text-3xl md:text-4xl font-bold text-secondary">{formatCount(stats.userCount)}</div>
+              <div className="text-sm md:text-base text-muted-foreground">Users</div>
             </div>
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary-glow">24/7</div>
-              <div className="text-muted-foreground">Updates</div>
+              <div className="text-3xl md:text-4xl font-bold text-primary-glow">24/7</div>
+              <div className="text-sm md:text-base text-muted-foreground">Updates</div>
             </div>
           </div>
-          <div className="mt-12">
-            <Button variant="hero" size="lg" className="px-12 py-4 text-lg">
+          <div className="mt-8 md:mt-12">
+            <Button variant="hero" size="lg" className="px-8 md:px-12 py-4 text-base md:text-lg hover-scale touch-friendly">
               Get Started Today
             </Button>
           </div>

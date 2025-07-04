@@ -119,30 +119,31 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
       isNative && "pt-safe-area-inset-top",
       keyboardVisible && isNative && "pb-0"
     )}>
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto mobile-safe-padding">
+        <div className="flex items-center justify-between h-16 md:h-18">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link to="/" className="flex items-center space-x-3 group touch-friendly">
             <AnimatedLogo size="md" />
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-gradient-primary group-hover:opacity-80 transition-opacity">
-                AniVault
+              <span className="text-xl font-bold group-hover:opacity-80 transition-opacity">
+                <span className="text-accent">Ani</span>
+                <span className="text-gradient-primary">thing</span>
               </span>
               <span className="text-xs text-muted-foreground font-medium tracking-wide">
-                Premium Discovery
+                Discover Everything
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation - Condensed */}
-          <div className="hidden lg:flex items-center space-x-1">
+          {/* Desktop Navigation - Enhanced */}
+          <div className="hidden lg:flex items-center space-x-2">
             {navItems.map((item) => (
               <Link key={item.label} to={item.href}>
                 <Button
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "transition-all duration-200 hover:scale-105",
+                    "hover-scale touch-friendly",
                     item.active && "shadow-glow-primary bg-gradient-primary"
                   )}
                 >
@@ -154,14 +155,14 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           </div>
 
           {/* Compact Navigation for medium screens */}
-          <div className="hidden md:lg:hidden flex items-center space-x-1">
+          <div className="hidden md:lg:hidden flex items-center space-x-2">
             {navItems.slice(0, 3).map((item) => (
               <Link key={item.label} to={item.href}>
                 <Button
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "transition-all duration-200 hover:scale-105",
+                    "hover-scale touch-friendly",
                     item.active && "shadow-glow-primary bg-gradient-primary"
                   )}
                 >
@@ -228,21 +229,21 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="lg:hidden"
+              className="lg:hidden touch-friendly"
               onClick={async () => {
                 await triggerHaptic('light');
                 setIsMobileMenuOpen(!isMobileMenuOpen);
               }}
             >
-              {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Enhanced */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 glass-card">
-            <div className="py-4 space-y-2">
+          <div className="lg:hidden border-t border-border/50 glass-card animate-fade-in">
+            <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
                 <SearchDropdown placeholder="Search anime instantly..." />
@@ -253,10 +254,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 <Link key={item.label} to={item.href}>
                   <Button
                     variant={item.active ? "default" : "ghost"}
-                    className="w-full justify-start px-4"
+                    className="w-full justify-start px-6 py-3 touch-friendly text-base"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <item.icon className="w-4 h-4 mr-3" />
+                    <item.icon className="w-5 h-5 mr-4" />
                     {item.label}
                   </Button>
                 </Link>
