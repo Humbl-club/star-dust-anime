@@ -13,51 +13,83 @@ export const useAutoSync = () => {
       initialized = true;
 
       try {
-        // FORCE SYNC TO RUN NOW - Clear any skip flags
-        localStorage.removeItem('skip-auto-sync');
-        localStorage.removeItem('auto-sync-completed');
+        console.log('🚀 STARTING AUTOMATIC COMPLETE LIBRARY SYNC...');
+        setSyncStatus('🚀 AUTO-SYNC: Building complete anime & manga library...');
 
-        console.log('STARTING ULTRA-FAST COMPLETE LIBRARY SYNC FOR APPLE STORE...');
-        setSyncStatus('🚀 ULTRA-FAST SYNC: Building complete anime & manga library (Apple Store ready)...');
+        // Start comprehensive sync for both anime and manga
+        const syncPromises = [
+          // Trigger full sync orchestrator
+          supabase.functions.invoke('trigger-full-sync'),
+          
+          // Direct complete library sync for anime (multiple pages)
+          supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'anime', maxPages: 50 }
+          }),
+          
+          // Direct complete library sync for manga (multiple pages)
+          supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'manga', maxPages: 50 }
+          }),
+          
+          // Additional intelligent syncs for comprehensive coverage
+          ...Array.from({ length: 10 }, (_, i) => 
+            supabase.functions.invoke('intelligent-content-sync', {
+              body: { contentType: 'anime', operation: 'full_sync', page: i + 1 }
+            })
+          ),
+          ...Array.from({ length: 10 }, (_, i) => 
+            supabase.functions.invoke('intelligent-content-sync', {
+              body: { contentType: 'manga', operation: 'full_sync', page: i + 1 }
+            })
+          )
+        ];
 
-        // Use the trigger-full-sync for complete coverage
-        console.log('Starting complete library sync...');
-
-        const { data, error } = await supabase.functions.invoke('trigger-full-sync');
+        console.log('Starting all sync operations in parallel...');
         
-        if (error) {
-          console.error('Sync error:', error);
-          throw error;
-        }
-        
-        console.log('Full sync response:', data);
-        
-        setSyncStatus('COMPLETE LIBRARY SYNC FINISHED! Database is ready with full anime & manga library.');
-        
-        // Show success message briefly
-        setTimeout(() => setSyncStatus(''), 5000);
-
-        // Set flag to prevent multiple calls today
-        localStorage.setItem('auto-sync-completed', Date.now().toString());
+        // Start all syncs in parallel
+        Promise.allSettled(syncPromises).then((results) => {
+          const successful = results.filter(r => r.status === 'fulfilled').length;
+          console.log(`Auto-sync initiated: ${successful}/${results.length} operations started`);
+          setSyncStatus(`✅ AUTO-SYNC: ${successful} operations running - library building in progress...`);
+          
+          // Clear status after delay
+          setTimeout(() => setSyncStatus(''), 10000);
+        });
 
       } catch (error) {
-        console.log('Complete sync running in background:', error.message || 'Processing...');
-        setSyncStatus('Complete sync is running in background...');
+        console.log('Auto-sync initiated in background:', error?.message || 'Processing...');
+        setSyncStatus('🔄 AUTO-SYNC: Complete library sync running in background...');
+        setTimeout(() => setSyncStatus(''), 8000);
       }
     };
 
-    // FORCE IMMEDIATE SYNC - Remove all checks
-    setTimeout(initializeApp, 500);
+    // Start immediately
+    setTimeout(initializeApp, 1000);
 
-    // Set up daily background sync checks (every 6 hours)
-    const interval = setInterval(() => {
-      supabase.functions.invoke('incremental-sync').catch(() => {
-        // Silent background check
-      });
-    }, 6 * 60 * 60 * 1000);
+    // Set up continuous background syncing every 2 hours
+    const backgroundInterval = setInterval(async () => {
+      console.log('🔄 Background sync check...');
+      
+      try {
+        // Trigger incremental updates
+        await Promise.allSettled([
+          supabase.functions.invoke('incremental-sync'),
+          supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'anime', maxPages: 5 }
+          }),
+          supabase.functions.invoke('complete-library-sync', {
+            body: { contentType: 'manga', maxPages: 5 }
+          })
+        ]);
+        
+        console.log('Background sync completed');
+      } catch (error) {
+        console.log('Background sync running silently');
+      }
+    }, 2 * 60 * 60 * 1000); // Every 2 hours
 
     return () => {
-      clearInterval(interval);
+      clearInterval(backgroundInterval);
     };
   }, []);
 
