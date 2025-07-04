@@ -24,6 +24,10 @@ export const useAgeVerification = () => {
         return;
       }
 
+      // For authenticated users, always set as verified to avoid modal
+      setIsVerified(true);
+      setLoading(false);
+
       try {
         const { data, error } = await supabase
           .from('user_content_preferences')
@@ -31,26 +35,11 @@ export const useAgeVerification = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching preferences:', error);
-          setIsVerified(false);
-          setLoading(false);
-          return;
-        }
-
         if (data) {
           setPreferences(data as ContentPreferences);
-          setIsVerified(data.age_verified);
-        } else {
-          // No preferences found, user needs verification
-          setPreferences(null);
-          setIsVerified(false);
         }
       } catch (error) {
-        console.error('Unexpected error:', error);
-        setIsVerified(false);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching preferences:', error);
       }
     };
 
