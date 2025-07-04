@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useAISearch } from "@/hooks/useAISearch";
+import { useOptimizedSearch } from "@/hooks/useOptimizedSearch";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 
@@ -36,7 +36,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { aiSearch, isSearching, searchResults, lastSearchInfo, clearSearch } = useAISearch();
+  const { debouncedSearch, isSearching, searchResults, lastSearchInfo, clearSearch, recentSearches } = useOptimizedSearch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,7 +53,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
         onSearch(searchQuery.trim());
       } else {
         setShowResults(true);
-        await aiSearch(searchQuery.trim(), 'anime', 12);
+        await debouncedSearch(searchQuery.trim(), 'anime', 12, 100);
       }
     }
   };
@@ -61,6 +61,18 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const handleKeyPress = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       await handleSearch();
+    }
+  };
+
+  // Handle real-time search as user types
+  const handleInputChange = (value: string) => {
+    setSearchQuery(value);
+    if (value.trim().length > 2) {
+      setShowResults(true);
+      debouncedSearch(value.trim(), 'anime', 12);
+    } else if (value.trim().length === 0) {
+      setShowResults(false);
+      clearSearch();
     }
   };
 
@@ -153,11 +165,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search with AI assistance..."
+                placeholder="Search anime instantly..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 onKeyPress={handleKeyPress}
-                onFocus={() => searchQuery.trim() && setShowResults(true)}
+                onFocus={() => searchQuery.trim().length > 2 && setShowResults(true)}
                 className="pl-10 pr-4 glass-input group-hover:border-primary/50 transition-colors"
               />
               {isSearching && (
@@ -175,17 +187,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   </div>
                 ) : searchResults.length > 0 ? (
                   <div className="p-2">
-                    {lastSearchInfo?.searchType === 'ai-enhanced' && lastSearchInfo.aiSuggestion && (
-                      <div className="px-3 py-2 mb-2 bg-primary/10 rounded-md">
-                        <div className="flex items-center gap-2 text-xs text-primary">
-                          <Sparkles className="w-3 h-3" />
-                          <span>AI Enhanced: {lastSearchInfo.aiSuggestion.searchStrategy}</span>
+                    {lastSearchInfo?.totalResults && lastSearchInfo.totalResults > searchResults.length && (
+                      <div className="px-3 py-2 mb-2 bg-muted/50 rounded-md">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>Showing {searchResults.length} of {lastSearchInfo.totalResults} results</span>
                         </div>
-                        {lastSearchInfo.aiSuggestion.correctedQuery !== searchQuery && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Searched for: "{lastSearchInfo.aiSuggestion.correctedQuery}"
-                          </p>
-                        )}
                       </div>
                     )}
                     
@@ -299,9 +305,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
-                    placeholder="Search with AI assistance..."
+                    placeholder="Search anime instantly..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="pl-10 glass-input"
                   />

@@ -29,16 +29,8 @@ const Index = () => {
   });
 
   const handleSearch = (query: string) => {
-    setIsSearching(true);
-    setTimeout(() => {
-      const results = allAnime.filter(
-        anime => anime.title.toLowerCase().includes(query.toLowerCase()) ||
-        anime.title_english?.toLowerCase().includes(query.toLowerCase()) ||
-        anime.genres.some(genre => genre.toLowerCase().includes(query.toLowerCase()))
-      );
-      setSearchResults(results);
-      setIsSearching(false);
-    }, 500);
+    // Search will be handled by the Navigation component
+    // This is kept for compatibility but not used
   };
 
   // Helper functions for improved scoring and trending
