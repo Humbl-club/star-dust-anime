@@ -97,6 +97,18 @@ export type Database = {
           title: string
           title_english: string | null
           title_japanese: string | null
+          tmdb_backdrop_path: string | null
+          tmdb_cast_data: Json | null
+          tmdb_crew_data: Json | null
+          tmdb_details: Json | null
+          tmdb_genre_ids: number[] | null
+          tmdb_id: number | null
+          tmdb_overview: string | null
+          tmdb_popularity: number | null
+          tmdb_poster_path: string | null
+          tmdb_type: string | null
+          tmdb_vote_average: number | null
+          tmdb_vote_count: number | null
           trailer_id: string | null
           trailer_site: string | null
           trailer_url: string | null
@@ -146,6 +158,18 @@ export type Database = {
           title: string
           title_english?: string | null
           title_japanese?: string | null
+          tmdb_backdrop_path?: string | null
+          tmdb_cast_data?: Json | null
+          tmdb_crew_data?: Json | null
+          tmdb_details?: Json | null
+          tmdb_genre_ids?: number[] | null
+          tmdb_id?: number | null
+          tmdb_overview?: string | null
+          tmdb_popularity?: number | null
+          tmdb_poster_path?: string | null
+          tmdb_type?: string | null
+          tmdb_vote_average?: number | null
+          tmdb_vote_count?: number | null
           trailer_id?: string | null
           trailer_site?: string | null
           trailer_url?: string | null
@@ -195,6 +219,18 @@ export type Database = {
           title?: string
           title_english?: string | null
           title_japanese?: string | null
+          tmdb_backdrop_path?: string | null
+          tmdb_cast_data?: Json | null
+          tmdb_crew_data?: Json | null
+          tmdb_details?: Json | null
+          tmdb_genre_ids?: number[] | null
+          tmdb_id?: number | null
+          tmdb_overview?: string | null
+          tmdb_popularity?: number | null
+          tmdb_poster_path?: string | null
+          tmdb_type?: string | null
+          tmdb_vote_average?: number | null
+          tmdb_vote_count?: number | null
           trailer_id?: string | null
           trailer_site?: string | null
           trailer_url?: string | null

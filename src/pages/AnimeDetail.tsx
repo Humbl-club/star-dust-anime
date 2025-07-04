@@ -476,6 +476,14 @@ const AnimeDetail = () => {
                 colorTheme={enhancedAnime.color_theme}
               />
             )}
+
+            {/* TMDB Cast & Crew Section */}
+            {(anime as any).tmdb_cast_data && (anime as any).tmdb_cast_data.length > 0 && (
+              <CastSection 
+                cast={(anime as any).tmdb_cast_data || []}
+                crew={(anime as any).tmdb_crew_data || []}
+              />
+            )}
           </div>
         </div>
       </div>
