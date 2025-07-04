@@ -167,18 +167,23 @@ serve(async (req) => {
 });
 
 function processAnimeItem(item: any) {
+  // Validate and clean data to prevent constraint violations
+  const validTypes = ['TV', 'Movie', 'OVA', 'ONA', 'Special', 'Music'];
+  const validSeasons = ['spring', 'summer', 'fall', 'winter'];
+  const validStatuses = ['Currently Airing', 'Finished Airing', 'Not yet aired'];
+  
   return {
     mal_id: item.mal_id,
     title: item.title || item.titles?.[0]?.title || 'Unknown Title',
     title_english: item.title_english || item.titles?.find((t: any) => t.type === 'English')?.title,
     title_japanese: item.title_japanese || item.titles?.find((t: any) => t.type === 'Japanese')?.title,
     synopsis: item.synopsis,
-    type: item.type,
+    type: validTypes.includes(item.type) ? item.type : 'TV',
     episodes: item.episodes,
-    status: item.status,
+    status: validStatuses.includes(item.status) ? item.status : 'Finished Airing',
     aired_from: item.aired?.from?.split('T')[0] || null,
     aired_to: item.aired?.to?.split('T')[0] || null,
-    season: item.season,
+    season: item.season && validSeasons.includes(item.season.toLowerCase()) ? item.season.toLowerCase() : null,
     year: item.year,
     score: item.score,
     scored_by: item.scored_by,
@@ -199,16 +204,20 @@ function processAnimeItem(item: any) {
 }
 
 function processMangaItem(item: any) {
+  // Validate and clean data to prevent constraint violations
+  const validTypes = ['Manga', 'Novel', 'Light Novel', 'One-shot', 'Doujinshi', 'Manhwa', 'Manhua'];
+  const validStatuses = ['Finished', 'Publishing', 'On Hiatus', 'Discontinued'];
+  
   return {
     mal_id: item.mal_id,
     title: item.title || item.titles?.[0]?.title || 'Unknown Title',
     title_english: item.title_english || item.titles?.find((t: any) => t.type === 'English')?.title,
     title_japanese: item.title_japanese || item.titles?.find((t: any) => t.type === 'Japanese')?.title,
     synopsis: item.synopsis,
-    type: item.type,
+    type: validTypes.includes(item.type) ? item.type : 'Manga',
     chapters: item.chapters,
     volumes: item.volumes,
-    status: item.status,
+    status: validStatuses.includes(item.status) ? item.status : 'Finished',
     published_from: item.published?.from?.split('T')[0] || null,
     published_to: item.published?.to?.split('T')[0] || null,
     score: item.score,
