@@ -2,13 +2,25 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.7fc28aeda663475388771ca39b8ccf8c',
-  appName: 'star-dust-anime',
+  appName: 'AniVault - Anime Discovery',
   webDir: 'dist',
-  server: {
-    url: 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com?forceHideBadge=true',
-    cleartext: true
+  bundledWebRuntime: false,
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true,
+    backgroundColor: '#0a0a0b'
   },
-  bundledWebRuntime: false
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#0a0a0b',
+      showSpinner: false
+    },
+    StatusBar: {
+      style: 'dark',
+      backgroundColor: '#0a0a0b'
+    }
+  }
 };
 
 export default config;

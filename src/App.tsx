@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -55,10 +56,13 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <AutoSyncProvider>
+const App = () => {
+  const { isNative } = useNativeSetup();
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AutoSyncProvider>
         <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -82,9 +86,10 @@ const App = () => (
           </Routes>
         </BrowserRouter>
         </TooltipProvider>
-      </AutoSyncProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </AutoSyncProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
