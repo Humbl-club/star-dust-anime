@@ -11,6 +11,7 @@ import { useStats } from "@/hooks/useStats";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { NameToggle } from "@/components/NameToggle";
+import { LegalFooter } from "@/components/LegalFooter";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -275,6 +276,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <LegalFooter />
     </div>
   );
 };
