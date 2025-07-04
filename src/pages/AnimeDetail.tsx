@@ -29,6 +29,8 @@ import { NameToggle } from "@/components/NameToggle";
 import { CharacterSection } from "@/components/CharacterSection";
 import { StreamingLinks } from "@/components/StreamingLinks";
 import { Navigation } from "@/components/Navigation";
+import { TrailerPreview } from "@/components/TrailerPreview";
+import { CastSection } from "@/components/CastSection";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -186,10 +188,14 @@ const AnimeDetail = () => {
                 />
                 
                 {enhancedAnime?.trailer && (
-                  <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 group">
-                    <Play className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
-                    Watch Trailer
-                  </Button>
+                  <div className="w-full">
+                    <TrailerPreview
+                      videoId={enhancedAnime.trailer.id}
+                      title={`${getDisplayName(anime)} Trailer`}
+                      size="lg"
+                      className="w-full"
+                    />
+                  </div>
                 )}
                 
                 <Button variant="outline" className="w-full border-secondary/30 hover:bg-secondary/10">

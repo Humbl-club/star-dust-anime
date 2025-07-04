@@ -13,6 +13,7 @@ import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { NameToggle } from "@/components/NameToggle";
 import { LegalFooter } from "@/components/LegalFooter";
 import { StartMangaSync } from "@/components/StartMangaSync";
+import { TMDBEnhancementButton } from "@/components/TMDBEnhancementButton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -170,9 +171,10 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
       
-      {/* Manga Sync */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Manga Sync & TMDB Enhancement */}
+      <div className="container mx-auto px-4 py-8 space-y-6">
         <StartMangaSync />
+        <TMDBEnhancementButton />
       </div>
 
       {/* Search Results */}
