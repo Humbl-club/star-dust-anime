@@ -17,6 +17,8 @@ export const useAgeVerification = () => {
   useEffect(() => {
     const fetchPreferences = async () => {
       if (!user) {
+        // If no user, set verified to true to skip modal for logged out users
+        setIsVerified(true);
         setLoading(false);
         return;
       }
@@ -30,6 +32,8 @@ export const useAgeVerification = () => {
 
         if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
           console.error('Error fetching preferences:', error);
+          // On error, show verification modal to be safe
+          setIsVerified(false);
           setLoading(false);
           return;
         }
@@ -39,10 +43,13 @@ export const useAgeVerification = () => {
           setIsVerified(data.age_verified);
         } else {
           // No preferences found, user needs verification
+          setPreferences(null);
           setIsVerified(false);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
+        // On error, show verification modal to be safe
+        setIsVerified(false);
       } finally {
         setLoading(false);
       }
