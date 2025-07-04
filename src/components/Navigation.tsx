@@ -27,6 +27,7 @@ import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
+import { SearchDropdown } from "@/components/SearchDropdown";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -169,81 +170,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             ))}
           </div>
 
-          {/* Search Bar with AI - Only on large screens */}
-          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6 relative" onClick={(e) => e.stopPropagation()}>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search anime instantly..."
-                value={searchQuery}
-                onChange={(e) => handleInputChange(e.target.value)}
-                onKeyPress={handleKeyPress}
-                onFocus={() => searchQuery.trim().length > 2 && setShowResults(true)}
-                className="pl-10 pr-4 glass-input group-hover:border-primary/50 transition-colors"
-              />
-              {isSearching && (
-                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
-              )}
-            </div>
-
-            {/* AI Search Results Dropdown */}
-            {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
-                {isSearching ? (
-                  <div className="p-4 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">AI is searching...</p>
-                  </div>
-                ) : searchResults.length > 0 ? (
-                  <div className="p-2">
-                    {lastSearchInfo?.totalResults && lastSearchInfo.totalResults > searchResults.length && (
-                      <div className="px-3 py-2 mb-2 bg-muted/50 rounded-md">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>Showing {searchResults.length} of {lastSearchInfo.totalResults} results</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="grid gap-2">
-                      {searchResults.map((anime) => (
-                        <div 
-                          key={anime.id}
-                          className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-md cursor-pointer transition-colors"
-                          onClick={() => handleAnimeClick(anime)}
-                        >
-                          <img 
-                            src={anime.image_url} 
-                            alt={anime.title}
-                            className="w-12 h-16 object-cover rounded"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm line-clamp-1">{anime.title}</h4>
-                            {anime.title_english && anime.title_english !== anime.title && (
-                              <p className="text-xs text-muted-foreground line-clamp-1">{anime.title_english}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              {anime.score && (
-                                <Badge variant="secondary" className="text-xs">
-                                  ★ {anime.score}
-                                </Badge>
-                              )}
-                              <Badge variant="outline" className="text-xs">
-                                {anime.type}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : searchQuery.trim() && (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No results found for "{searchQuery}"
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Search Bar with Real-time Dropdown - Only on large screens */}
+          <SearchDropdown 
+            className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6" 
+            placeholder="Search anime instantly..."
+          />
 
           {/* Right Side Actions - Condensed */}
           <div className="flex items-center space-x-1">
@@ -314,16 +245,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="py-4 space-y-2">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder="Search anime instantly..."
-                    value={searchQuery}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="pl-10 glass-input"
-                  />
-                </div>
+                <SearchDropdown placeholder="Search anime instantly..." />
               </div>
 
               {/* Mobile Nav Items */}
