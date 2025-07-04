@@ -73,9 +73,30 @@ export const SyncTestButton = () => {
             {isLoading ? (
               <Zap className="w-4 h-4 mr-2 animate-spin" />
             ) : (
-              <CheckCircle className="w-4 h-4 mr-2" />
+            <CheckCircle className="w-4 h-4 mr-2" />
             )}
             {isLoading ? 'Syncing...' : 'Start Full Sync'}
+          </Button>
+          
+          <Button 
+            onClick={async () => {
+              setIsLoading(true);
+              try {
+                const { data, error } = await supabase.functions.invoke('test-direct-insert');
+                if (error) throw error;
+                toast.success(`Test successful! Inserted ${data.anime_inserted} anime, ${data.manga_inserted} manga`);
+                console.log('Direct insert test:', data);
+              } catch (error: any) {
+                toast.error(`Test failed: ${error.message}`);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={isLoading}
+            variant="outline"
+            size="sm"
+          >
+            Test Insert
           </Button>
         </div>
       </CardContent>
