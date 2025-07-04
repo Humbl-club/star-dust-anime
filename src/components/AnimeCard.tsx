@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AddToListButton } from "@/components/AddToListButton";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { ContentReportModal } from "@/components/ContentReportModal";
+import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";
 
 interface AnimeCardProps {
@@ -130,6 +131,18 @@ export const AnimeCard = ({
               className="w-full bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
             />
           </div>
+
+          {/* Trailer Preview */}
+          {(anime as any).trailer_id && (
+            <div className="mt-2">
+              <TrailerPreview
+                videoId={(anime as any).trailer_id}
+                title={`${anime.title} Trailer`}
+                size="sm"
+                className="rounded-md overflow-hidden"
+              />
+            </div>
+          )}
         </div>
       </CardContent>
       
