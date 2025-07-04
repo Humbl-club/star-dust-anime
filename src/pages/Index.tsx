@@ -15,6 +15,7 @@ import { LegalFooter } from "@/components/LegalFooter";
 import { StartMangaSync } from "@/components/StartMangaSync";
 import { TMDBEnhancementButton } from "@/components/TMDBEnhancementButton";
 import { DeepLinkTestComponent } from "@/components/DeepLinkTestComponent";
+import { CountdownTestComponent } from "@/components/CountdownTestComponent";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -177,6 +178,7 @@ const Index = () => {
         <StartMangaSync />
         <TMDBEnhancementButton />
         <DeepLinkTestComponent />
+        <CountdownTestComponent />
       </div>
 
       {/* Search Results */}
