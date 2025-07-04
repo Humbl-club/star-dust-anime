@@ -171,10 +171,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           </div>
 
           {/* Search Bar with Real-time Dropdown - Only on large screens */}
-          <SearchDropdown 
-            className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6" 
-            placeholder="Search anime instantly..."
-          />
+          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6">
+            <SearchDropdown placeholder="Search anime instantly..." />
+          </div>
 
           {/* Right Side Actions - Condensed */}
           <div className="flex items-center space-x-1">
