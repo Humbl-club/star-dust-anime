@@ -12,6 +12,7 @@ import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { NameToggle } from "@/components/NameToggle";
 import { LegalFooter } from "@/components/LegalFooter";
+import { StartMangaSync } from "@/components/StartMangaSync";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -168,6 +169,11 @@ const Index = () => {
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
+      
+      {/* Manga Sync */}
+      <div className="container mx-auto px-4 py-8">
+        <StartMangaSync />
+      </div>
 
       {/* Search Results */}
       {isSearching && (
