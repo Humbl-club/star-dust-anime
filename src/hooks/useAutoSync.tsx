@@ -17,24 +17,16 @@ export const useAutoSync = () => {
         localStorage.removeItem('skip-auto-sync');
         localStorage.removeItem('auto-sync-completed');
 
-        console.log('FORCING IMMEDIATE COMPLETE LIBRARY SYNC...');
-        setSyncStatus('STARTING IMMEDIATE COMPLETE SYNC - Building ENTIRE anime & manga library (this will take 15-30 minutes)...');
+        console.log('STARTING ULTRA-FAST COMPLETE LIBRARY SYNC FOR APPLE STORE...');
+        setSyncStatus('🚀 ULTRA-FAST SYNC: Building complete anime & manga library (Apple Store ready)...');
 
-        // ALWAYS do complete sync now - ignore existing data
-        console.log('Starting complete library sync...');
+        // Use the new ultra-fast sync for complete coverage
+        console.log('Starting ultra-fast complete library sync...');
 
-        // Start anime sync - NO LIMITS, get everything
-        const animeSync = supabase.functions.invoke('complete-library-sync', {
-          body: { contentType: 'anime', maxPages: 999999, itemsPerPage: 25 }
-        });
-
-        // Start manga sync - NO LIMITS, get everything  
-        const mangaSync = supabase.functions.invoke('complete-library-sync', {
-          body: { contentType: 'manga', maxPages: 999999, itemsPerPage: 25 }
-        });
-
-        // Wait for both to complete
-        await Promise.all([animeSync, mangaSync]);
+        const ultraSync = supabase.functions.invoke('ultra-fast-complete-sync');
+        
+        // Wait for sync to complete
+        await ultraSync;
         
         setSyncStatus('COMPLETE LIBRARY SYNC FINISHED! Database is ready with full anime & manga library.');
         

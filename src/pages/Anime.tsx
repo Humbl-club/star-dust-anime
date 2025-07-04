@@ -16,9 +16,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApiData } from "@/hooks/useApiData";
+import { useContentFilter } from "@/hooks/useContentFilter";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Navigation } from "@/components/Navigation";
+import { ContentRatingBadge } from "@/components/ContentRatingBadge";
+import { LegalFooter } from "@/components/LegalFooter";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -29,6 +32,9 @@ const Anime = () => {
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Apple compliance - content filtering
+  const { filterAnimeContent, getContentRating, isVerified } = useContentFilter();
 
   // Get anime data from API
   const { data: animeList, loading } = useApiData<Anime>({ 
@@ -52,9 +58,14 @@ const Anime = () => {
     setSearchParams(params);
   }, [searchQuery, selectedGenre, selectedStatus, sortBy, setSearchParams]);
 
-  // Filter and sort anime
+  // Filter and sort anime with Apple compliance
   useEffect(() => {
     let filtered = [...animeList];
+
+    // Apple Store compliance - Apply content filtering first
+    if (isVerified) {
+      filtered = filterAnimeContent(filtered);
+    }
 
     // Search filter
     if (searchQuery) {
@@ -65,7 +76,7 @@ const Anime = () => {
       );
     }
 
-    // Genre filter
+    // Genre filter (Apple compliant - excludes adult genres for restricted users)
     if (selectedGenre !== "all") {
       filtered = filtered.filter(anime =>
         anime.genres.some(genre => genre.toLowerCase() === selectedGenre.toLowerCase())
@@ -97,7 +108,7 @@ const Anime = () => {
     });
 
     setFilteredAnime(filtered);
-  }, [animeList, searchQuery, selectedGenre, selectedStatus, sortBy]);
+  }, [animeList, searchQuery, selectedGenre, selectedStatus, sortBy, filterAnimeContent, isVerified]);
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -251,6 +262,8 @@ const Anime = () => {
           </Card>
         )}
       </div>
+      
+      <LegalFooter />
     </div>
   );
 };
