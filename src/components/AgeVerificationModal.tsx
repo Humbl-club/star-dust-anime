@@ -44,6 +44,9 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
           });
 
         if (error) throw error;
+        
+        // Wait a moment for database to sync
+        await new Promise(resolve => setTimeout(resolve, 100));
       } else {
         // For non-authenticated users, save to localStorage
         localStorage.setItem('age_verified', 'true');
@@ -56,6 +59,7 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
         description: "Your content preferences have been set based on your age group.",
       });
 
+      // Call onComplete after successful save
       onComplete();
     } catch (error: any) {
       console.error('Age verification error:', error);

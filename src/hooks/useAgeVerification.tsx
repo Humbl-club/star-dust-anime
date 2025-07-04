@@ -15,12 +15,18 @@ export const useAgeVerification = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true; // Prevent state updates if component unmounted
+    
     const fetchPreferences = async () => {
+      if (!isMounted) return;
+      
       if (!user) {
         // For non-authenticated users, check if they've already verified age
         const hasVerified = localStorage.getItem('age_verified');
-        setIsVerified(!!hasVerified);
-        setLoading(false);
+        if (isMounted) {
+          setIsVerified(!!hasVerified);
+          setLoading(false);
+        }
         return;
       }
 
@@ -31,6 +37,8 @@ export const useAgeVerification = () => {
           .eq('user_id', user.id)
           .maybeSingle();
 
+        if (!isMounted) return; // Check again before updating state
+
         if (data) {
           setPreferences(data as ContentPreferences);
           setIsVerified(data.age_verified || false);
@@ -40,14 +48,22 @@ export const useAgeVerification = () => {
         }
       } catch (error) {
         console.error('Error fetching preferences:', error);
-        setIsVerified(false);
+        if (isMounted) {
+          setIsVerified(false);
+        }
       }
       
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     fetchPreferences();
-  }, [user]);
+    
+    return () => {
+      isMounted = false; // Cleanup function
+    };
+  }, [user?.id]); // Only depend on user ID, not full user object
 
   const shouldShowContent = (contentRating?: string) => {
     if (!preferences || !isVerified) return false;
