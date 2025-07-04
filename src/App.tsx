@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useAgeVerification } from "@/hooks/useAgeVerification";
+import { AgeVerificationModal } from "@/components/AgeVerificationModal";
 import useAutoSync from "@/hooks/useAutoSync";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -17,6 +19,7 @@ import Recommendations from "./pages/Recommendations";
 import Social from "./pages/Social";
 import DataSync from "./pages/DataSync";
 import SyncDashboard from "./pages/SyncDashboard";
+import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
 import AnimeDetail from "./pages/AnimeDetail";
 
@@ -24,6 +27,7 @@ const queryClient = new QueryClient();
 
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   const { syncStatus } = useAutoSync();
+  const { isVerified, loading } = useAgeVerification();
   
   return (
     <>
@@ -37,6 +41,12 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       )}
+      
+      <AgeVerificationModal 
+        isOpen={!loading && !isVerified} 
+        onComplete={() => window.location.reload()} 
+      />
+      
       {children}
     </>
   );
@@ -64,6 +74,7 @@ const App = () => (
             <Route path="/social" element={<Social />} />
             <Route path="/data-sync" element={<DataSync />} />
             <Route path="/sync-dashboard" element={<SyncDashboard />} />
+            <Route path="/legal/:pageType" element={<LegalPages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

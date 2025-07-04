@@ -307,6 +307,39 @@ export type Database = {
           },
         ]
       }
+      api_attributions: {
+        Row: {
+          attribution_text: string
+          created_at: string
+          id: string
+          is_active: boolean
+          license_url: string | null
+          privacy_url: string | null
+          service_name: string
+          terms_url: string | null
+        }
+        Insert: {
+          attribution_text: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          license_url?: string | null
+          privacy_url?: string | null
+          service_name: string
+          terms_url?: string | null
+        }
+        Update: {
+          attribution_text?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          license_url?: string | null
+          privacy_url?: string | null
+          service_name?: string
+          terms_url?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -448,6 +481,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          moderator_notes: string | null
+          report_reason: string
+          reported_content_id: string
+          reported_content_type: string
+          reporter_user_id: string
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          moderator_notes?: string | null
+          report_reason: string
+          reported_content_id: string
+          reported_content_type: string
+          reporter_user_id: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          moderator_notes?: string | null
+          report_reason?: string
+          reported_content_id?: string
+          reported_content_type?: string
+          reporter_user_id?: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: []
       }
       content_sync_status: {
         Row: {
@@ -777,6 +849,36 @@ export type Database = {
           user_id?: string
           verified?: boolean | null
           youtube_channel?: string | null
+        }
+        Relationships: []
+      }
+      legal_pages: {
+        Row: {
+          content: string
+          effective_date: string
+          id: string
+          last_updated: string
+          page_type: string
+          title: string
+          version: string
+        }
+        Insert: {
+          content: string
+          effective_date?: string
+          id?: string
+          last_updated?: string
+          page_type: string
+          title: string
+          version?: string
+        }
+        Update: {
+          content?: string
+          effective_date?: string
+          id?: string
+          last_updated?: string
+          page_type?: string
+          title?: string
+          version?: string
         }
         Relationships: []
       }
@@ -1253,6 +1355,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_content_preferences: {
+        Row: {
+          age_verification_date: string | null
+          age_verified: boolean
+          content_rating_preference: string
+          created_at: string
+          id: string
+          show_adult_content: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_verification_date?: string | null
+          age_verified?: boolean
+          content_rating_preference?: string
+          created_at?: string
+          id?: string
+          show_adult_content?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_verification_date?: string | null
+          age_verified?: boolean
+          content_rating_preference?: string
+          created_at?: string
+          id?: string
+          show_adult_content?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_follows: {
         Row: {

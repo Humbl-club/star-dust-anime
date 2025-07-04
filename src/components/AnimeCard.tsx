@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Play, BookOpen, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "@/components/AddToListButton";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { ContentReportModal } from "@/components/ContentReportModal";
 import { type Anime } from "@/data/animeData";
 
 interface AnimeCardProps {
@@ -16,11 +20,22 @@ export const AnimeCard = ({
   onClick,
   showCountdown = true
 }: AnimeCardProps) => {
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on the dropdown or report button
+    if ((e.target as HTMLElement).closest('.report-dropdown')) {
+      return;
+    }
+    onClick?.();
+  };
+
   return (
-    <Card 
-      className="anime-card cursor-pointer group relative h-[400px] overflow-hidden"
-      onClick={onClick}
-    >
+    <>
+      <Card 
+        className="anime-card cursor-pointer group relative h-[400px] overflow-hidden"
+        onClick={handleCardClick}
+      >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
       
       {/* Image Container */}
@@ -46,6 +61,27 @@ export const AnimeCard = ({
             <span className="text-xs font-semibold text-white">{anime.score}</span>
           </div>
         )}
+
+        {/* Report Button */}
+        <div className="absolute top-12 right-3 z-20 report-dropdown">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowReportModal(true)}>
+                <Flag className="w-4 h-4 mr-2" />
+                Report Content
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
       {/* Content Overlay */}
@@ -113,5 +149,14 @@ export const AnimeCard = ({
         </div>
       )}
     </Card>
+
+      <ContentReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        contentType="anime"
+        contentId={anime.id}
+        contentTitle={anime.title}
+      />
+    </>
   );
 };

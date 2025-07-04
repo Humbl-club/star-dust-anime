@@ -345,6 +345,43 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
 
+              {/* Legal Pages */}
+              <div className="border-t border-border/50 pt-2 space-y-1">
+                <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Legal
+                </div>
+                <Link to="/legal/privacy_policy">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Privacy Policy
+                  </Button>
+                </Link>
+                <Link to="/legal/terms_of_service">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Terms of Service
+                  </Button>
+                </Link>
+                <Link to="/legal/attributions">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-xs px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Data Sources
+                  </Button>
+                </Link>
+              </div>
+
               {/* Mobile Auth/Profile */}
               <div className="border-t border-border/50 pt-4 px-4">
                 {user ? (
