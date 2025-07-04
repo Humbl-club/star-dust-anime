@@ -71,8 +71,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
   // Handle real-time search as user types
   const handleInputChange = (value: string) => {
+    console.log('Input changed:', value);
     setSearchQuery(value);
     if (value.trim().length > 2) {
+      console.log('Triggering search for:', value.trim());
       setShowResults(true);
       debouncedSearch(value.trim(), 'anime', 12);
     } else if (value.trim().length === 0) {

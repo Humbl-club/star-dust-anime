@@ -59,6 +59,7 @@ export const useOptimizedSearch = () => {
     }
 
     setIsSearching(true);
+    console.log('Starting search for:', trimmedQuery, 'in', contentType);
     
     try {
       // Optimized database search with proper indexing
@@ -68,6 +69,8 @@ export const useOptimizedSearch = () => {
         .or(`title.ilike.%${trimmedQuery}%,title_english.ilike.%${trimmedQuery}%,title_japanese.ilike.%${trimmedQuery}%`)
         .order('popularity', { ascending: false })
         .limit(limit);
+
+      console.log('Search results:', results, 'Error:', error, 'Count:', count);
 
       if (error) {
         console.error('Search error:', error);
@@ -115,11 +118,14 @@ export const useOptimizedSearch = () => {
     limit = 20,
     delay = 300
   ) => {
+    console.log('Debounced search called with:', query);
+    
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
     debounceRef.current = setTimeout(() => {
+      console.log('Executing search after debounce:', query);
       optimizedSearch(query, contentType, limit);
     }, delay);
   };
