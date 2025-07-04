@@ -133,15 +133,16 @@ Format as JSON:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert anime and manga recommendation engine. Always respond with valid JSON.' 
+            content: 'You are an expert anime and manga recommendation engine. Be concise and respond with valid JSON only.' 
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: `Based on user profile: ${userProfile.totalEntries} entries, avg score ${userProfile.averageScore.toFixed(1)}, preferred genres: ${userProfile.preferredGenres.join(', ') || 'none'}, recommend ${count} ${contentType} titles from available options. Return JSON with recommendations array containing title, confidence (0-1), and reason (max 30 words).` }
         ],
-        temperature: 0.7,
+        temperature: 0.3,
+        max_tokens: 800,
       }),
     });
 
