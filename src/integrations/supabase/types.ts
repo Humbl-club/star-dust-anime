@@ -899,7 +899,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      safe_date_cast: {
+        Args: { date_string: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
