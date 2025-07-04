@@ -31,7 +31,7 @@ const queryClient = new QueryClient();
 
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   const { syncStatus } = useAutoSync();
-  const { isVerified, loading, setVerified } = useAgeVerification();
+  const { isVerified, loading, showModal, setVerified } = useAgeVerification();
   
   return (
     <>
@@ -47,7 +47,7 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
       )}
       
       <AgeVerificationModal 
-        isOpen={!loading && !isVerified} 
+        isOpen={showModal && !isVerified} 
         onComplete={setVerified}
       />
       
