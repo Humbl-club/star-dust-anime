@@ -13,8 +13,8 @@ export const useAutoSync = () => {
       initialized = true;
 
       try {
-        console.log('🚀 STARTING AUTOMATIC COMPLETE LIBRARY SYNC...');
-        setSyncStatus('🚀 AUTO-SYNC: Building complete anime & manga library...');
+        console.log('🔄 RESTARTING SYNC AFTER DATABASE FIX...');
+        setSyncStatus('🔄 RESTARTING: Fixed database constraints, resuming sync...');
 
         // Start comprehensive sync for both anime and manga - COMPLETE SYNC
         const syncPromises = [
