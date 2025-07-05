@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useApiData } from "@/hooks/useApiData";
 import { toast } from "sonner";
+import { CompleteAniListSync } from "@/components/CompleteAniListSync";
 
 const DataSync = () => {
   const [animePages, setAnimePages] = useState(1);
@@ -146,6 +147,9 @@ const DataSync = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Complete AniList Sync */}
+        <CompleteAniListSync />
 
         {/* Anime Data Sync */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
