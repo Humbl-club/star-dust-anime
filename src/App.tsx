@@ -33,6 +33,8 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   const { syncStatus } = useAutoSync();
   const { isVerified, loading, showModal, setVerified } = useAgeVerification();
   
+  console.log('🔍 AutoSyncProvider: showModal =', showModal, 'isVerified =', isVerified, 'loading =', loading);
+  
   return (
     <>
       <AgeVerificationModal 

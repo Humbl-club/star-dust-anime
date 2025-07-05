@@ -8,13 +8,31 @@ interface AgeVerificationModalProps {
 }
 
 export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModalProps) => {
+  console.log('🔍 AgeVerificationModal: isOpen =', isOpen);
+
   const handleAgeConfirmation = () => {
+    console.log('✅ AgeVerificationModal: Age confirmed');
     onComplete();
   };
 
+  const preventClose = (e: Event) => {
+    console.log('🚫 AgeVerificationModal: Preventing close');
+    e.preventDefault();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}} modal>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={() => {
+        console.log('🚫 AgeVerificationModal: onOpenChange blocked');
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-md [&>button]:hidden" 
+        onPointerDownOutside={preventClose}
+        onEscapeKeyDown={preventClose}
+        onInteractOutside={preventClose}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
@@ -35,7 +53,10 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
           
           <Button 
             variant="outline"
-            onClick={() => window.location.href = 'https://www.google.com'}
+            onClick={() => {
+              console.log('🚫 AgeVerificationModal: Redirecting to Google');
+              window.location.href = 'https://www.google.com';
+            }}
             className="w-full"
           >
             I am under 16
