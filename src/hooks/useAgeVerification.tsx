@@ -1,23 +1,11 @@
 import { useState, useEffect } from 'react';
 
 export const useAgeVerification = () => {
-  const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    console.log('🔍 Age verification: Checking localStorage...');
-    // Check if user has already verified their age
-    const hasVerified = localStorage.getItem('age_verified');
-    console.log('🔍 Age verification: hasVerified =', hasVerified);
-    
-    if (hasVerified) {
-      console.log('✅ Age verification: Already verified');
-      setIsVerified(true);
-    } else {
-      console.log('❌ Age verification: Not verified yet');
-    }
-    setLoading(false);
-  }, []);
+  const [isVerified, setIsVerified] = useState<boolean>(() => {
+    // Initialize state from localStorage immediately
+    return localStorage.getItem('age_verified') === 'true';
+  });
+  const [loading, setLoading] = useState(false);
 
   const setVerified = () => {
     console.log('✅ Age verification: Setting verified');
