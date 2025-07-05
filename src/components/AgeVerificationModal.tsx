@@ -15,38 +15,33 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
     onComplete();
   };
 
-  const preventClose = (e: Event) => {
-    console.log('🚫 AgeVerificationModal: Preventing close');
-    e.preventDefault();
-  };
+  if (!isOpen) {
+    console.log('🔍 AgeVerificationModal: Not rendering - isOpen is false');
+    return null;
+  }
+
+  console.log('🔍 AgeVerificationModal: Rendering modal');
 
   return (
-    <Dialog 
-      open={isOpen} 
-      onOpenChange={() => {
-        console.log('🚫 AgeVerificationModal: onOpenChange blocked');
-      }}
+    <div 
+      className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      style={{ zIndex: 99999 }}
     >
-      <DialogContent 
-        className="sm:max-w-md [&>button]:hidden" 
-        onPointerDownOutside={preventClose}
-        onEscapeKeyDown={preventClose}
-        onInteractOutside={preventClose}
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" />
-            Age Verification Required
-          </DialogTitle>
-          <DialogDescription>
-            This app contains anime and manga content. Please confirm you are 16 years or older to continue.
-          </DialogDescription>
-        </DialogHeader>
+      <div className="bg-background border border-border rounded-lg shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">Age Verification Required</h2>
+        </div>
         
-        <div className="flex flex-col gap-3 mt-4">
+        <p className="text-sm text-muted-foreground mb-6">
+          This app contains anime and manga content. Please confirm you are 16 years or older to continue.
+        </p>
+        
+        <div className="flex flex-col gap-3">
           <Button 
             onClick={handleAgeConfirmation}
             className="w-full"
+            size="lg"
           >
             I am 16 years or older
           </Button>
@@ -58,15 +53,16 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
               window.location.href = 'https://www.google.com';
             }}
             className="w-full"
+            size="lg"
           >
             I am under 16
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground mt-4">
-          <p>This verification helps us comply with content rating requirements and ensures appropriate content access.</p>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <p className="text-xs text-muted-foreground mt-4">
+          This verification helps us comply with content rating requirements and ensures appropriate content access.
+        </p>
+      </div>
+    </div>
   );
 };
