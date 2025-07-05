@@ -13,8 +13,8 @@ export const AgeVerificationModal = ({ isOpen, onComplete }: AgeVerificationModa
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={() => {}} modal>
+      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />

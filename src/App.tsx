@@ -36,7 +36,7 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <AgeVerificationModal 
-        isOpen={showModal && !isVerified} 
+        isOpen={showModal} 
         onComplete={setVerified}
       />
       
