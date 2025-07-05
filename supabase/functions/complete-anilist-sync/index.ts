@@ -307,17 +307,24 @@ async function logProgress(supabase: any, contentType: string, page: number, pro
 }
 
 Deno.serve(async (req) => {
+  console.log('🔥 Complete AniList Sync function called!', req.method)
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    console.log('🔧 Creating Supabase client...')
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { contentType } = await req.json()
+    console.log('📝 Parsing request body...')
+    const body = await req.text()
+    console.log('Raw body:', body)
+    
+    const { contentType } = JSON.parse(body)
 
     if (!contentType || !['anime', 'manga'].includes(contentType)) {
       return new Response(

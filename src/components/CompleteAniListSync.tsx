@@ -147,7 +147,7 @@ export const CompleteAniListSync = () => {
 
       <CardContent className="space-y-6">
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Button 
             onClick={() => startCompleteSync('anime')}
             disabled={syncing}
@@ -176,6 +176,25 @@ export const CompleteAniListSync = () => {
           >
             <Zap className="w-4 h-4" />
             Sync Everything
+          </Button>
+          
+          <Button 
+            onClick={async () => {
+              try {
+                console.log('🧪 Testing complete sync function...')
+                const { data, error } = await supabase.functions.invoke('test-complete-sync')
+                console.log('Test result:', { data, error })
+                toast.info('Test function called - check console logs')
+              } catch (err) {
+                console.error('Test error:', err)
+                toast.error('Test failed')
+              }
+            }}
+            disabled={syncing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            🧪 Test Function
           </Button>
         </div>
 
