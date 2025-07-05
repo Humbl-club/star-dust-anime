@@ -181,20 +181,24 @@ export const CompleteAniListSync = () => {
           <Button 
             onClick={async () => {
               try {
-                console.log('🧪 Testing complete sync function...')
-                const { data, error } = await supabase.functions.invoke('test-complete-sync')
-                console.log('Test result:', { data, error })
-                toast.info('Test function called - check console logs')
+                console.log('🧪 Testing database connection...')
+                const { data, error } = await supabase.from('anime').select('count').limit(1)
+                console.log('Database test result:', { data, error })
+                if (error) {
+                  toast.error('Database connection failed: ' + error.message)
+                } else {
+                  toast.success('Database connection working! Current anime count: ' + data?.length)
+                }
               } catch (err) {
-                console.error('Test error:', err)
-                toast.error('Test failed')
+                console.error('Database test error:', err)
+                toast.error('Database test failed')
               }
             }}
             disabled={syncing}
             variant="outline"
             className="flex items-center gap-2"
           >
-            🧪 Test Function
+            🧪 Test Database
           </Button>
         </div>
 
