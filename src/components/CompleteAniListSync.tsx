@@ -27,11 +27,13 @@ export const CompleteAniListSync = () => {
         duration: 5000
       });
 
+      console.log('🔥 Calling complete-anilist-sync function...');
       const { data, error } = await supabase.functions.invoke('complete-anilist-sync', {
         body: { 
           contentType
         }
       });
+      console.log('🔥 Function response:', { data, error });
 
       if (error) throw error;
 
