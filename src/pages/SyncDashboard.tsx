@@ -25,11 +25,13 @@ interface SyncProgress {
   processed: number;
   total: number;
   pages: number;
-  inserted?: number;
+  titlesProcessed?: number;
+  detailsProcessed?: number;
   genresCreated?: number;
   studiosCreated?: number;
   authorsCreated?: number;
   relationshipsCreated?: number;
+  errors?: string[];
 }
 
 interface SyncResults {
@@ -113,13 +115,15 @@ const SyncDashboard = () => {
       // Handle the new comprehensive response format
       const syncResults = results.results || {};
       const transformedResults = {
-        inserted: syncResults.titlesInserted || 0,
         processed: results.totalProcessed || 0,
+        titlesProcessed: syncResults.titlesInserted || 0,
+        detailsProcessed: syncResults.detailsInserted || 0,
         pages: results.pagesProcessed || 0,
         genresCreated: syncResults.genresCreated || 0,
         studiosCreated: syncResults.studiosCreated || 0,
         authorsCreated: syncResults.authorsCreated || 0,
-        relationshipsCreated: syncResults.relationshipsCreated || 0
+        relationshipsCreated: syncResults.relationshipsCreated || 0,
+        errors: syncResults.errors || []
       };
       
       setSyncResults(prev => ({ ...prev, [contentType]: transformedResults }));
@@ -127,7 +131,7 @@ const SyncDashboard = () => {
       setCurrentOperation('');
 
       // Show comprehensive results in toast
-      const resultSummary = `${transformedResults.inserted} ${contentType} titles, ${transformedResults.genresCreated} genres, ${transformedResults.relationshipsCreated} relationships`;
+      const resultSummary = `${transformedResults.titlesProcessed} ${contentType} titles processed, ${transformedResults.genresCreated} genres, ${transformedResults.relationshipsCreated} relationships`;
       
       toast({
         title: "Sync Completed Successfully!",
@@ -417,8 +421,8 @@ const SyncDashboard = () => {
                   <h5 className="font-medium text-green-800 dark:text-green-400 mb-2">Anime Sync Completed</h5>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <div className="font-semibold">{syncResults.anime.inserted}</div>
-                      <div className="text-green-600 dark:text-green-400">New Titles</div>
+                      <div className="font-semibold">{syncResults.anime.titlesProcessed}</div>
+                      <div className="text-green-600 dark:text-green-400">Titles Processed</div>
                     </div>
                     <div>
                       <div className="font-semibold">{syncResults.anime.genresCreated}</div>
@@ -433,6 +437,11 @@ const SyncDashboard = () => {
                       <div className="text-green-600 dark:text-green-400">Relationships</div>
                     </div>
                   </div>
+                  {syncResults.anime.errors && syncResults.anime.errors.length > 0 && (
+                    <div className="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                      {syncResults.anime.errors.length} errors occurred during sync
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -441,8 +450,8 @@ const SyncDashboard = () => {
                   <h5 className="font-medium text-blue-800 dark:text-blue-400 mb-2">Manga Sync Completed</h5>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <div className="font-semibold">{syncResults.manga.inserted}</div>
-                      <div className="text-blue-600 dark:text-blue-400">New Titles</div>
+                      <div className="font-semibold">{syncResults.manga.titlesProcessed}</div>
+                      <div className="text-blue-600 dark:text-blue-400">Titles Processed</div>
                     </div>
                     <div>
                       <div className="font-semibold">{syncResults.manga.genresCreated}</div>
@@ -457,6 +466,11 @@ const SyncDashboard = () => {
                       <div className="text-blue-600 dark:text-blue-400">Relationships</div>
                     </div>
                   </div>
+                  {syncResults.manga.errors && syncResults.manga.errors.length > 0 && (
+                    <div className="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                      {syncResults.manga.errors.length} errors occurred during sync
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

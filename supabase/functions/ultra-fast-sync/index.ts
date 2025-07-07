@@ -408,8 +408,8 @@ async function linkTitleAuthors(supabase: any, titleId: string, authorIds: strin
 // Process a single item with proper database operations
 async function processSingleItem(supabase: any, item: any, contentType: 'anime' | 'manga'): Promise<{
   success: boolean
-  titleInserted: boolean
-  detailInserted: boolean
+  titleProcessed: boolean
+  detailProcessed: boolean
   genresCreated: number
   studiosCreated: number
   authorsCreated: number
@@ -417,35 +417,82 @@ async function processSingleItem(supabase: any, item: any, contentType: 'anime' 
   error?: string
 }> {
   try {
-    // Step 1: Insert/update title
+    console.log(`🔄 Processing ${contentType} item: ${item.id} - ${item.title?.romaji || item.title?.english}`)
+    
+    // Step 1: Insert/update title - check if it exists first
     const titleData = transformToTitleData(item)
-    const { data: titleResult, error: titleError } = await supabase
+    console.log(`📊 Title data for ${item.id}:`, { 
+      anilist_id: titleData.anilist_id, 
+      title: titleData.title,
+      hasImage: !!titleData.image_url,
+      hasScore: !!titleData.score 
+    })
+    
+    // Check if title already exists
+    const { data: existingTitle } = await supabase
       .from('titles')
-      .upsert(titleData, { 
-        onConflict: 'anilist_id',
-        ignoreDuplicates: false 
-      })
       .select('id')
+      .eq('anilist_id', titleData.anilist_id)
       .single()
     
-    if (titleError || !titleResult) {
-      return {
-        success: false,
-        titleInserted: false,
-        detailInserted: false,
-        genresCreated: 0,
-        studiosCreated: 0,
-        authorsCreated: 0,
-        relationshipsCreated: 0,
-        error: `Title insertion failed: ${titleError?.message || 'Unknown error'}`
+    let titleId: string
+    let titleProcessed = false
+    
+    if (existingTitle) {
+      // Update existing title
+      console.log(`📝 Updating existing title ${item.id}`)
+      const { data: updatedTitle, error: updateError } = await supabase
+        .from('titles')
+        .update(titleData)
+        .eq('anilist_id', titleData.anilist_id)
+        .select('id')
+        .single()
+      
+      if (updateError) {
+        console.error(`❌ Title update failed for ${item.id}:`, updateError)
+        return {
+          success: false,
+          titleProcessed: false,
+          detailProcessed: false,
+          genresCreated: 0,
+          studiosCreated: 0,
+          authorsCreated: 0,
+          relationshipsCreated: 0,
+          error: `Title update failed: ${updateError.message}`
+        }
       }
+      titleId = updatedTitle.id
+      titleProcessed = true
+    } else {
+      // Insert new title
+      console.log(`➕ Inserting new title ${item.id}`)
+      const { data: newTitle, error: insertError } = await supabase
+        .from('titles')
+        .insert(titleData)
+        .select('id')
+        .single()
+      
+      if (insertError) {
+        console.error(`❌ Title insertion failed for ${item.id}:`, insertError)
+        return {
+          success: false,
+          titleProcessed: false,
+          detailProcessed: false,
+          genresCreated: 0,
+          studiosCreated: 0,
+          authorsCreated: 0,
+          relationshipsCreated: 0,
+          error: `Title insertion failed: ${insertError.message}`
+        }
+      }
+      titleId = newTitle.id
+      titleProcessed = true
     }
     
-    const titleId = titleResult.id
-    
     // Step 2: Insert/update details
-    let detailsInserted = false
+    let detailProcessed = false
     if (contentType === 'anime') {
+      console.log(`📝 Processing anime details for ${item.id}`)
       const animeDetails = transformToAnimeDetails(item, titleId)
       const { data: detailResult, error: detailError } = await supabase
         .from('anime_details')
@@ -453,8 +500,14 @@ async function processSingleItem(supabase: any, item: any, contentType: 'anime' 
         .select('id')
         .single()
       
-      detailsInserted = !detailError && !!detailResult
+      if (detailError) {
+        console.error(`❌ Anime details failed for ${item.id}:`, detailError)
+      } else {
+        console.log(`✅ Anime details processed for ${item.id}`)
+        detailProcessed = true
+      }
     } else {
+      console.log(`📝 Processing manga details for ${item.id}`)
       const mangaDetails = transformToMangaDetails(item, titleId)
       const { data: detailResult, error: detailError } = await supabase
         .from('manga_details')
@@ -462,7 +515,12 @@ async function processSingleItem(supabase: any, item: any, contentType: 'anime' 
         .select('id')
         .single()
       
-      detailsInserted = !detailError && !!detailResult
+      if (detailError) {
+        console.error(`❌ Manga details failed for ${item.id}:`, detailError)
+      } else {
+        console.log(`✅ Manga details processed for ${item.id}`)
+        detailProcessed = true
+      }
     }
     
     // Step 3: Handle relationships
@@ -489,8 +547,8 @@ async function processSingleItem(supabase: any, item: any, contentType: 'anime' 
     
     return {
       success: true,
-      titleInserted: true,
-      detailInserted: detailsInserted,
+      titleProcessed: titleProcessed,
+      detailProcessed: detailProcessed,
       genresCreated,
       studiosCreated,
       authorsCreated,
@@ -500,8 +558,8 @@ async function processSingleItem(supabase: any, item: any, contentType: 'anime' 
   } catch (error) {
     return {
       success: false,
-      titleInserted: false,
-      detailInserted: false,
+      titleProcessed: false,
+      detailProcessed: false,
       genresCreated: 0,
       studiosCreated: 0,
       authorsCreated: 0,
@@ -590,8 +648,8 @@ Deno.serve(async (req) => {
           const itemResult = await processSingleItem(supabase, item, contentType)
           
           if (itemResult.success) {
-            if (itemResult.titleInserted) results.titlesInserted++
-            if (itemResult.detailInserted) results.detailsInserted++
+            if (itemResult.titleProcessed) results.titlesInserted++
+            if (itemResult.detailProcessed) results.detailsInserted++
             results.genresCreated += itemResult.genresCreated
             results.studiosCreated += itemResult.studiosCreated
             results.authorsCreated += itemResult.authorsCreated
