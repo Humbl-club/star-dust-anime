@@ -107,16 +107,24 @@ const SyncDashboard = () => {
         throw new Error(`Sync failed: ${data.error || 'Unknown error'}`);
       }
 
-      const results = data.results;
+      const results = data;
       console.log('Sync results:', results);
       
-      setSyncResults(prev => ({ ...prev, [contentType]: results }));
+      // Transform ultra-fast-sync response to match expected format
+      const transformedResults = {
+        inserted: results.totalProcessed || 0,
+        processed: results.totalProcessed || 0,
+        pages: results.pagesProcessed || 0,
+        relationshipsCreated: 0 // ultra-fast-sync doesn't track relationships
+      };
+      
+      setSyncResults(prev => ({ ...prev, [contentType]: transformedResults }));
       setSyncStatus(`${syncType} ${contentType} sync completed!`);
       setCurrentOperation('');
 
       toast({
         title: "Sync Completed Successfully!",
-        description: `${results.inserted || 0} new ${contentType} titles synced with ${results.relationshipsCreated || 0} relationships created`,
+        description: `${transformedResults.inserted} new ${contentType} titles synced (${results.duration})`,
       });
 
     } catch (error: any) {
@@ -249,7 +257,7 @@ const SyncDashboard = () => {
                       } else {
                         toast({
                           title: "Function Test Successful!",
-                          description: `ultra-fast-sync is working: ${data?.results?.processed || 0} items processed`
+                          description: `ultra-fast-sync is working: ${data?.totalProcessed || 0} items processed (${data?.duration})`
                         });
                       }
                     } catch (err: any) {
@@ -336,7 +344,7 @@ const SyncDashboard = () => {
                       } else {
                         toast({
                           title: "Manga Function Test Successful!",
-                          description: `ultra-fast-sync is working: ${data?.results?.processed || 0} items processed`
+                          description: `ultra-fast-sync is working: ${data?.totalProcessed || 0} items processed (${data?.duration})`
                         });
                       }
                     } catch (err: any) {
