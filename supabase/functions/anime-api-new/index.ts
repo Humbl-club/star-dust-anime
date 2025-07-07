@@ -53,7 +53,7 @@ serve(async (req) => {
 
       console.log(`🔍 Building query for ${contentType} with filters:`, { search, genre, status, type, year, season });
 
-      // Stage 1: Basic query with proper joins
+      // Stage 1: Basic query with complete relationships
       let query;
       
       if (contentType === 'anime') {
@@ -68,6 +68,7 @@ serve(async (req) => {
             synopsis,
             image_url,
             score,
+            anilist_score,
             rank,
             popularity,
             members,
@@ -89,6 +90,18 @@ serve(async (req) => {
               next_episode_date,
               next_episode_number,
               last_sync_check
+            ),
+            title_genres(
+              genres(
+                id,
+                name
+              )
+            ),
+            title_studios(
+              studios(
+                id,
+                name
+              )
             )
           `, { count: 'exact' });
       } else {
@@ -103,6 +116,7 @@ serve(async (req) => {
             synopsis,
             image_url,
             score,
+            anilist_score,
             rank,
             popularity,
             members,
@@ -121,19 +135,31 @@ serve(async (req) => {
               next_chapter_date,
               next_chapter_number,
               last_sync_check
+            ),
+            title_genres(
+              genres(
+                id,
+                name
+              )
+            ),
+            title_authors(
+              authors(
+                id,
+                name
+              )
             )
           `, { count: 'exact' });
       }
 
-      console.log('📊 Base query created successfully');
+      console.log('📊 Complex query with relationships created');
 
-      // Stage 2: Apply filters with proper field mapping
+      // Stage 2: Apply comprehensive filters
       if (search) {
         console.log(`🔍 Applying search filter: ${search}`);
-        query = query.or(`title.ilike.%${search}%,title_english.ilike.%${search}%,synopsis.ilike.%${search}%`);
+        query = query.or(`title.ilike.%${search}%,title_english.ilike.%${search}%,title_japanese.ilike.%${search}%,synopsis.ilike.%${search}%`);
       }
       
-      // Fix: Apply status and type filters to the detail tables through the join
+      // Apply status and type filters to the detail tables
       if (status && contentType === 'anime') {
         console.log(`📊 Applying anime status filter: ${status}`);
         query = query.eq('anime_details.status', status);
@@ -160,7 +186,9 @@ serve(async (req) => {
         query = query.eq('anime_details.season', season);
       }
 
-      // Note: Genre filtering will be added in Stage 3 after we verify basic functionality
+      // Stage 3: Advanced genre filtering (simplified approach)
+      // Note: Genre filtering requires a more complex approach with the normalized structure
+      // For now, we'll handle this in the frontend filtering or add it later
 
       // Apply sorting
       let sortField = 'score';
@@ -207,21 +235,61 @@ serve(async (req) => {
         );
       }
 
-      // Transform the normalized data to the format expected by frontend
-      const transformedData = (data || []).map(item => {
-        const isAnime = contentType === 'anime';
-        const details = isAnime ? item.anime_details?.[0] : item.manga_details?.[0];
-        
-        // Flatten the structure to match the old format
-        return {
-          ...item,
-          // Include specific fields from details
-          ...(details || {}),
-          // Extract genres and studios from relationships
-          genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
-          studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
-          authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
-        };
+      console.log(`✅ Query executed successfully, processing ${data?.length || 0} items`);
+
+      // Stage 4: Enhanced data transformation with error handling
+      const transformedData = (data || []).map((item, index) => {
+        try {
+          const isAnime = contentType === 'anime';
+          const details = isAnime ? item.anime_details?.[0] : item.manga_details?.[0];
+          
+          if (!details) {
+            console.warn(`⚠️ Missing details for item ${index}:`, item.id);
+          }
+
+          // Stage 5: Comprehensive data flattening
+          const transformed = {
+            // Core title data
+            id: item.id,
+            anilist_id: item.anilist_id,
+            title: item.title,
+            title_english: item.title_english,
+            title_japanese: item.title_japanese,
+            synopsis: item.synopsis,
+            image_url: item.image_url,
+            score: item.score,
+            anilist_score: item.anilist_score,
+            rank: item.rank,
+            popularity: item.popularity,
+            members: item.members,
+            favorites: item.favorites,
+            year: item.year,
+            color_theme: item.color_theme,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+
+            // Flatten detail fields
+            ...(details || {}),
+
+            // Rich relationship data
+            genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+            studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
+            authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || [],
+
+            // Legacy compatibility fields
+            mal_id: item.anilist_id, // Use anilist_id as fallback
+            scored_by: item.members || 0
+          };
+
+          return transformed;
+        } catch (transformError) {
+          console.error(`❌ Transform error for item ${index}:`, transformError);
+          return {
+            id: item.id,
+            title: item.title || 'Unknown Title',
+            error: 'Transform failed'
+          };
+        }
       });
 
       const totalPages = count ? Math.ceil(count / limit) : 0;
