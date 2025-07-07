@@ -278,6 +278,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cleanup_audit_log: {
+        Row: {
+          action: string
+          details: Json | null
+          id: string
+          operation_phase: string
+          operation_timestamp: string | null
+          records_affected: number | null
+          records_after: number | null
+          records_before: number | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          details?: Json | null
+          id?: string
+          operation_phase: string
+          operation_timestamp?: string | null
+          records_affected?: number | null
+          records_after?: number | null
+          records_before?: number | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          details?: Json | null
+          id?: string
+          operation_phase?: string
+          operation_timestamp?: string | null
+          records_affected?: number | null
+          records_after?: number | null
+          records_before?: number | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       content_reports: {
         Row: {
           created_at: string | null
@@ -899,6 +935,36 @@ export type Database = {
           currently_publishing: number | null
           finished_manga: number | null
           total_manga: number | null
+        }
+        Relationships: []
+      }
+      phase_1_cleanup_summary: {
+        Row: {
+          action: string | null
+          details: Json | null
+          operation_timestamp: string | null
+          records_affected: number | null
+          records_after: number | null
+          records_before: number | null
+          table_name: string | null
+        }
+        Insert: {
+          action?: string | null
+          details?: Json | null
+          operation_timestamp?: string | null
+          records_affected?: number | null
+          records_after?: number | null
+          records_before?: number | null
+          table_name?: string | null
+        }
+        Update: {
+          action?: string | null
+          details?: Json | null
+          operation_timestamp?: string | null
+          records_affected?: number | null
+          records_after?: number | null
+          records_before?: number | null
+          table_name?: string | null
         }
         Relationships: []
       }
