@@ -68,17 +68,17 @@ export const ComprehensiveNormalizedSync = () => {
               className="flex items-center gap-2"
             >
               <PlayCircle className="w-4 h-4" />
-              Sync 25K Anime (500 pages)
+              🚀 FULL Sync 25K Anime (500 pages)
             </Button>
             
             <Button 
               onClick={() => startNormalizedSync('manga', 3000)}
               disabled={syncing}
-              variant="outline"
+              variant="destructive"
               className="flex items-center gap-2"
             >
               <PlayCircle className="w-4 h-4" />
-              Sync 150K Manga (3000 pages)
+              🚀 FULL Sync 150K Manga (3000 pages)
             </Button>
             
             <Button 
@@ -88,7 +88,7 @@ export const ComprehensiveNormalizedSync = () => {
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Incremental Anime (100 pages)
+              Test Anime (100 pages)
             </Button>
             
             <Button 
@@ -98,7 +98,7 @@ export const ComprehensiveNormalizedSync = () => {
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Incremental Manga (200 pages)
+              Test Manga (200 pages)
             </Button>
           </div>
 
