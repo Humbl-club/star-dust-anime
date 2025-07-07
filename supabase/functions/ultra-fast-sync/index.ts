@@ -139,7 +139,6 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
         }
         media(type: $type, sort: [POPULARITY_DESC, SCORE_DESC]) {
           id
-          idMal
           title {
             romaji
             english
@@ -158,7 +157,7 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
           }
           season
           seasonYear
-          type: format
+          format
           status
           episodes
           chapters
@@ -166,18 +165,12 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
           coverImage {
             large
             medium
-            extraLarge
             color
           }
-          bannerImage
           genres
           averageScore
-          meanScore
           popularity
           favourites
-          tags {
-            name
-          }
           studios {
             nodes {
               name
@@ -185,30 +178,14 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
           }
           staff {
             nodes {
-              name
-              role: primaryOccupations
-            }
-          }
-          characters {
-            nodes {
               name {
                 full
               }
             }
           }
-          externalLinks {
-            site
-            url
-          }
           trailer {
             id
             site
-          }
-          airingSchedule {
-            nodes {
-              episode
-              airingAt
-            }
           }
           nextAiringEpisode {
             episode
@@ -239,10 +216,20 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
     })
 
     if (!response.ok) {
-      throw new Error(`AniList API error: ${response.status}`)
+      const errorText = await response.text()
+      console.error(`AniList API error ${response.status}:`, errorText)
+      throw new Error(`AniList API error: ${response.status} - ${errorText}`)
     }
 
     const data: AniListResponse = await response.json()
+    
+    // Check for GraphQL errors in the response
+    if (data.errors) {
+      console.error('AniList GraphQL errors:', data.errors)
+      throw new Error(`AniList GraphQL error: ${data.errors[0]?.message || 'Unknown GraphQL error'}`)
+    }
+    
+    console.log(`✅ Successfully fetched ${data.data?.Page?.media?.length || 0} ${type} items from page ${page}`)
     return data
   } catch (error) {
     console.error(`Error fetching ${type} data from AniList:`, error)
