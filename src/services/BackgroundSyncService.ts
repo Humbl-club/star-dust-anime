@@ -328,16 +328,16 @@ class BackgroundSyncService {
 
       console.log(`📊 Starting sync with: ${initialAnimeCount} anime, ${initialMangaCount} manga`);
 
-      // Start from higher pages to find NEW titles (pages 1-33 likely already exist)
-      // We have 1673 anime (≈33 pages) and 1600 manga (≈32 pages) already
-      const animeStartPage = Math.ceil(1673 / 50) + 1; // Start after existing titles
-      const mangaStartPage = Math.ceil(1600 / 50) + 1; // Start after existing titles
+      // Smart sync: Calculate next page numbers based on current database counts
+      const animeStartPage = Math.ceil((initialAnimeCount || 0) / 50) + 1;
+      const mangaStartPage = Math.ceil((initialMangaCount || 0) / 50) + 1;
       
-      console.log(`🎯 SMART SYNC: Starting anime from page ${animeStartPage}, manga from page ${mangaStartPage}`);
+      console.log(`🎯 SMART DYNAMIC SYNC: Starting anime from page ${animeStartPage}, manga from page ${mangaStartPage}`);
+      console.log(`📈 Current: ${initialAnimeCount} anime, ${initialMangaCount} manga - will sync 200+ new titles`);
       
       const [animeResult, mangaResult] = await Promise.allSettled([
-        this.syncBatch('anime', animeStartPage, 4), // 4 pages from page ~34
-        this.syncBatch('manga', mangaStartPage, 4)  // 4 pages from page ~33
+        this.syncBatch('anime', animeStartPage, 4), // 4 pages = ~200 new anime
+        this.syncBatch('manga', mangaStartPage, 4)  // 4 pages = ~200 new manga
       ]);
 
       // Log results
@@ -369,22 +369,22 @@ class BackgroundSyncService {
   }
 
   startContinuousSync() {
-    console.log('🚀 STARTING CONTINUOUS SYNC SYSTEM...');
+    console.log('🚀 STARTING CONTINUOUS COMPREHENSIVE SYNC SYSTEM...');
     
-    // Start immediately
+    // Start immediately with smart sync
     this.startBackgroundSync();
 
-    // Schedule every 5 minutes
+    // Schedule aggressive sync every 2 minutes to process ALL titles quickly
     const syncInterval = setInterval(() => {
       if (!this.isRunning) {
-        console.log('⏰ Scheduled sync starting...');
+        console.log('⏰ Scheduled comprehensive sync starting...');
         this.startBackgroundSync();
       } else {
         console.log('⏳ Sync in progress - skipping scheduled run');
       }
-    }, 5 * 60 * 1000);
+    }, 2 * 60 * 1000); // Every 2 minutes for fast complete sync
 
-    console.log('✅ Continuous sync running every 5 minutes');
+    console.log('✅ Continuous comprehensive sync running every 2 minutes');
     return syncInterval;
   }
 
