@@ -8,6 +8,8 @@ import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useStats } from "@/hooks/useStats";
+import { AutoSyncMonitor } from "@/components/AutoSyncMonitor";
+import { AutonomousSync } from "@/components/AutonomousSync";
 import { 
   Database, 
   Download, 
@@ -172,8 +174,16 @@ const SyncDashboard = () => {
           </p>
         </div>
 
+        {/* Autonomous Sync - Active massive sync operations */}
+        <AutonomousSync />
+        
+        {/* Auto Sync Monitor - Secondary monitoring */}
+        <div className="mt-6">
+          <AutoSyncMonitor />
+        </div>
+
         {/* Database Statistics */}
-        <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="mt-8 mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
