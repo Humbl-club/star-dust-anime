@@ -1,87 +1,15 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Navigation } from "@/components/Navigation";
 import { 
   Database,
-  Download,
-  Image,
-  RefreshCw,
   Server,
   Check,
-  AlertCircle,
-  Play
+  Image
 } from "lucide-react";
-import { useApiData } from "@/hooks/useApiData";
-import { toast } from "sonner";
 import { CompleteAniListSync } from "@/components/CompleteAniListSync";
-import { ComprehensiveNormalizedSync } from "@/components/ComprehensiveNormalizedSync";
 
 const DataSync = () => {
-  const [animePages, setAnimePages] = useState(1);
-  const [mangaPages, setMangaPages] = useState(1);
-  const [imageLimit, setImageLimit] = useState(10);
-  const [syncing, setSyncing] = useState(false);
-
-  const { 
-    syncFromExternal: syncAnime, 
-    syncImages: syncAnimeImages 
-  } = useApiData<any>({ 
-    contentType: 'anime', 
-    autoFetch: false 
-  });
-
-  const { 
-    syncFromExternal: syncManga, 
-    syncImages: syncMangaImages 
-  } = useApiData<any>({ 
-    contentType: 'manga', 
-    autoFetch: false 
-  });
-
-  const handleSyncAnime = async () => {
-    setSyncing(true);
-    try {
-      await syncAnime(animePages);
-      toast.success('Anime data sync completed!');
-    } catch (error) {
-      toast.error('Failed to sync anime data');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSyncManga = async () => {
-    setSyncing(true);
-    try {
-      await syncManga(mangaPages);
-      toast.success('Manga data sync completed!');
-    } catch (error) {
-      toast.error('Failed to sync manga data');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSyncImages = async (type: 'anime' | 'manga') => {
-    setSyncing(true);
-    try {
-      if (type === 'anime') {
-        await syncAnimeImages(imageLimit);
-      } else {
-        await syncMangaImages(imageLimit);
-      }
-      toast.success(`${type} images sync completed!`);
-    } catch (error) {
-      toast.error(`Failed to sync ${type} images`);
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
@@ -149,185 +77,42 @@ const DataSync = () => {
           </Card>
         </div>
 
-        {/* Complete AniList Sync */}
+        {/* Complete AniList Sync - Main Sync Interface */}
         <CompleteAniListSync />
-        
-        {/* Comprehensive Normalized Sync */}
-        <ComprehensiveNormalizedSync />
 
-        {/* Anime Data Sync */}
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              Anime Data Sync
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Label htmlFor="anime-pages">Pages to Sync (25 items each)</Label>
-                <Input
-                  id="anime-pages"
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={animePages}
-                  onChange={(e) => setAnimePages(parseInt(e.target.value) || 1)}
-                  className="w-24"
-                />
-              </div>
-              <Button 
-                onClick={handleSyncAnime}
-                disabled={syncing}
-                className="flex items-center gap-2"
-              >
-                {syncing ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                Sync Anime Data
-              </Button>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <AlertCircle className="w-4 h-4 inline mr-1" />
-              Fetches top-rated anime from MyAnimeList. Rate limited to respect API guidelines.
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Manga Data Sync */}
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              Manga Data Sync
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Label htmlFor="manga-pages">Pages to Sync (25 items each)</Label>
-                <Input
-                  id="manga-pages"
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={mangaPages}
-                  onChange={(e) => setMangaPages(parseInt(e.target.value) || 1)}
-                  className="w-24"
-                />
-              </div>
-              <Button 
-                onClick={handleSyncManga}
-                disabled={syncing}
-                className="flex items-center gap-2"
-              >
-                {syncing ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                Sync Manga Data
-              </Button>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <AlertCircle className="w-4 h-4 inline mr-1" />
-              Fetches top-rated manga from MyAnimeList. Rate limited to respect API guidelines.
-            </div>
-          </CardContent>
-        </Card>
-
-        <Separator />
-
-        {/* Image Sync */}
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="w-5 h-5" />
-              Image Cache Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="image-limit">Images per batch</Label>
-                  <Input
-                    id="image-limit"
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={imageLimit}
-                    onChange={(e) => setImageLimit(parseInt(e.target.value) || 10)}
-                    className="w-24"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button 
-                  onClick={() => handleSyncImages('anime')}
-                  disabled={syncing}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  {syncing ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Image className="w-4 h-4" />
-                  )}
-                  Cache Anime Images
-                </Button>
-
-                <Button 
-                  onClick={() => handleSyncImages('manga')}
-                  disabled={syncing}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  {syncing ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Image className="w-4 h-4" />
-                  )}
-                  Cache Manga Images
-                </Button>
-              </div>
-
-              <div className="text-sm text-muted-foreground">
-                <AlertCircle className="w-4 h-4 inline mr-1" />
-                Downloads external images and stores them in Supabase Storage for faster loading.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Instructions */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>How It Works</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold mb-2">Data Sync Process</h4>
-                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                  <li>Fetch data from Jikan API (MyAnimeList)</li>
-                  <li>Process and validate the data</li>
-                  <li>Store unique entries in Supabase</li>
-                  <li>Update existing entries if needed</li>
-                </ol>
+          <CardContent className="p-6">
+            <h4 className="font-semibold mb-4">How The Comprehensive Sync Works</h4>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm font-medium">AniList GraphQL Integration</p>
+                  <p className="text-xs text-muted-foreground">Fetches data directly from AniList's comprehensive database with full metadata</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Image Caching</h4>
-                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                  <li>Download images from external URLs</li>
-                  <li>Upload to Supabase Storage buckets</li>
-                  <li>Update database with new image URLs</li>
-                  <li>Serve images faster to users</li>
-                </ol>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm font-medium">Normalized Database Structure</p>
+                  <p className="text-xs text-muted-foreground">Creates proper relationships between titles, genres, studios, and authors</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm font-medium">Duplicate Prevention</p>
+                  <p className="text-xs text-muted-foreground">Uses AniList IDs to prevent duplicate entries during large syncs</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div>
+                  <p className="text-sm font-medium">Rate Limiting & Error Handling</p>
+                  <p className="text-xs text-muted-foreground">Respects API limits (90 requests/minute) with proper error recovery</p>
+                </div>
               </div>
             </div>
           </CardContent>

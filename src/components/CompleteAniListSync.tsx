@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Database, Zap, PlayCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Database, Zap, PlayCircle, CheckCircle, AlertTriangle, RotateCcw } from "lucide-react";
 
 export const CompleteAniListSync = () => {
   const [syncing, setSyncing] = useState(false);
@@ -17,44 +17,45 @@ export const CompleteAniListSync = () => {
     manga?: any;
   }>({});
 
-  const startCompleteSync = async (contentType: 'anime' | 'manga') => {
+  const startNormalizedSync = async (contentType: 'anime' | 'manga', maxPages: number) => {
     setSyncing(true);
     setProgress(prev => ({ ...prev, [contentType]: { processed: 0, total: 0, pages: 0 } }));
     
     try {
-      console.log(`🚀 Starting COMPLETE ${contentType} sync...`);
-      toast.info(`Starting complete ${contentType} library sync - this will take several minutes!`, {
-        duration: 5000
+      console.log(`🚀 Starting comprehensive normalized ${contentType} sync (${maxPages} pages)...`);
+      toast.info(`Starting comprehensive normalized ${contentType} sync - this will take several hours!`, {
+        duration: 8000
       });
 
-      console.log('🔥 Calling complete-anilist-sync function...');
-      const { data, error } = await supabase.functions.invoke('complete-anilist-sync', {
+      const { data, error } = await supabase.functions.invoke('comprehensive-normalized-sync', {
         body: { 
-          contentType
+          contentType,
+          maxPages,
+          startFromId: null // Will automatically start from highest existing ID + 1
         }
       });
-      console.log('🔥 Function response:', { data, error });
 
       if (error) throw error;
 
-      setResults(prev => ({ ...prev, [contentType]: data }));
+      const results = data.results;
+      setResults(prev => ({ ...prev, [contentType]: results }));
       setProgress(prev => ({ 
         ...prev, 
         [contentType]: { 
-          processed: data.totalProcessed, 
-          total: data.totalAvailable || data.totalProcessed, 
-          pages: data.pagesProcessed 
+          processed: results.processed, 
+          total: results.processed, 
+          pages: results.pages 
         } 
       }));
       
-      toast.success(`✅ Complete ${contentType} sync finished!`, {
-        description: `${data.totalProcessed} titles retrieved from entire AniList database`,
-        duration: 10000
+      toast.success(`✅ ${contentType} normalized sync completed!`, {
+        description: `${results.inserted} new titles synced with full relationships`,
+        duration: 15000
       });
 
     } catch (error: any) {
-      console.error('Complete sync failed:', error);
-      toast.error(`❌ Complete ${contentType} sync failed`, {
+      console.error('Normalized sync failed:', error);
+      toast.error(`❌ ${contentType} normalized sync failed`, {
         description: error.message
       });
     } finally {
@@ -139,9 +140,9 @@ export const CompleteAniListSync = () => {
             <Zap className="w-3 h-3 text-yellow-500 absolute -top-1 -right-1 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Complete AniList Library Sync</h3>
+            <h3 className="text-xl font-bold">Comprehensive Normalized AniList Sync</h3>
             <p className="text-sm text-muted-foreground font-normal">
-              Fetches EVERY single title from the entire AniList database - doesn't stop until complete
+              Massive scale sync with normalized database structure, relationship mapping, and duplicate prevention
             </p>
           </div>
         </CardTitle>
@@ -151,33 +152,33 @@ export const CompleteAniListSync = () => {
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Button 
-            onClick={() => startCompleteSync('anime')}
+            onClick={() => startNormalizedSync('anime', 500)}
             disabled={syncing}
             variant="default"
             className="flex items-center gap-2"
           >
             <PlayCircle className="w-4 h-4" />
-            Complete Anime Sync
+            🚀 FULL Anime Sync (25K titles)
           </Button>
           
           <Button 
-            onClick={() => startCompleteSync('manga')}
+            onClick={() => startNormalizedSync('manga', 3000)}
             disabled={syncing}
-            variant="outline"
+            variant="destructive"
             className="flex items-center gap-2"
           >
             <PlayCircle className="w-4 h-4" />
-            Complete Manga Sync
+            🚀 FULL Manga Sync (150K titles)
           </Button>
 
           <Button 
-            onClick={startBothSyncs}
+            onClick={() => startNormalizedSync('anime', 100)}
             disabled={syncing}
             variant="secondary"
             className="flex items-center gap-2"
           >
-            <Zap className="w-4 h-4" />
-            Sync Everything
+            <RotateCcw className="w-4 h-4" />
+            Test Anime (5K titles)
           </Button>
           
           <Button 
