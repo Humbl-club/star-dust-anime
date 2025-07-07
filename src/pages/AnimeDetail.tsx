@@ -20,17 +20,13 @@ import {
   Award,
   Zap
 } from "lucide-react";
-import { useApiData } from "@/hooks/useApiData";
-import { useAniListData } from "@/hooks/useAniListData";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
 import { NameToggle } from "@/components/NameToggle";
-import { CharacterSection } from "@/components/CharacterSection";
-import { StreamingLinks } from "@/components/StreamingLinks";
 import { Navigation } from "@/components/Navigation";
 import { TrailerPreview } from "@/components/TrailerPreview";
-import { CastSection } from "@/components/CastSection";
 import { ShareButton } from "@/components/ShareButton";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
 
@@ -39,7 +35,7 @@ const AnimeDetail = () => {
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   
-  const { data: allAnime, loading } = useApiData<Anime>({ 
+  const { data: allAnime, loading } = useSimpleNewApiData({ 
     contentType: 'anime',
     limit: 1000,
     autoFetch: true
@@ -47,21 +43,12 @@ const AnimeDetail = () => {
 
   const anime = allAnime.find(a => a.id === id);
 
-  // Use local database data instead of fetching from AniList
+  // Use the new normalized database structure
   const enhancedAnime = anime ? {
     ...anime,
-    // Use stored AniList data
-    image_url: anime.cover_image_extra_large || anime.cover_image_large || anime.image_url,
-    banner_image: anime.banner_image,
-    anilist_score: anime.anilist_score,
+    // Use optimized image handling
+    image_url: anime.image_url,
     color_theme: anime.color_theme,
-    characters: anime.characters_data || [],
-    staff: anime.staff_data || [],
-    relations: anime.relations_data || [],
-    recommendations: anime.recommendations_data || [],
-    external_links: anime.external_links || [],
-    streaming_episodes: anime.streaming_episodes || [],
-    detailed_tags: anime.detailed_tags || [],
     trailer: anime.trailer_id ? {
       id: anime.trailer_id,
       site: anime.trailer_site || 'YouTube',
@@ -105,12 +92,12 @@ const AnimeDetail = () => {
       {/* Name Toggle */}
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       
-      {/* Hero Background with AniList banner or blurred cover */}
+      {/* Hero Background with blurred cover */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url(${enhancedAnime?.banner_image || enhancedAnime?.image_url || anime.image_url})`,
+            backgroundImage: `url(${anime.image_url})`,
             filter: 'blur(20px) brightness(0.3)',
             transform: 'scale(1.1)'
           }}
@@ -147,7 +134,7 @@ const AnimeDetail = () => {
               <Card className="overflow-hidden border-border/50 bg-card/90 backdrop-blur-sm shadow-2xl animate-scale-in">
                 <div className="aspect-[3/4] relative group">
                   <img 
-                    src={enhancedAnime?.image_url || anime.image_url} 
+                    src={anime.image_url} 
                     alt={getDisplayName(anime)}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
@@ -474,28 +461,7 @@ const AnimeDetail = () => {
               </Card>
             )}
 
-            {/* AniList Enhanced Sections */}
-            {enhancedAnime?.characters && enhancedAnime.characters.length > 0 && (
-              <CharacterSection 
-                characters={enhancedAnime.characters} 
-                colorTheme={enhancedAnime.color_theme}
-              />
-            )}
-
-            {enhancedAnime?.external_links && enhancedAnime.external_links.length > 0 && (
-              <StreamingLinks 
-                externalLinks={enhancedAnime.external_links}
-                colorTheme={enhancedAnime.color_theme}
-              />
-            )}
-
-            {/* TMDB Cast & Crew Section */}
-            {(anime as any).tmdb_cast_data && (anime as any).tmdb_cast_data.length > 0 && (
-              <CastSection 
-                cast={(anime as any).tmdb_cast_data || []}
-                crew={(anime as any).tmdb_crew_data || []}
-              />
-            )}
+            {/* Note: Character and cast data removed in lean database restructure */}
           </div>
         </div>
       </div>

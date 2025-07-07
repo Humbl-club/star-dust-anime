@@ -19,7 +19,7 @@ import {
   Book,
   FileText
 } from "lucide-react";
-import { useApiData } from "@/hooks/useApiData";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Manga } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
@@ -31,7 +31,7 @@ const MangaDetail = () => {
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   
-  const { data: allManga, loading } = useApiData<Manga>({ 
+  const { data: allManga, loading } = useSimpleNewApiData({ 
     contentType: 'manga',
     limit: 1000,
     autoFetch: true

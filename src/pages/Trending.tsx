@@ -21,7 +21,7 @@ import {
   Database,
   Loader2
 } from "lucide-react";
-import { useApiData } from "@/hooks/useApiData";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
@@ -132,7 +132,7 @@ const Trending = () => {
   const { stats, formatCount } = useStats();
 
   // Get real anime data from API
-  const { data: animeData, loading: animeLoading, syncFromExternal: syncAnime } = useApiData<Anime>({ 
+  const { data: animeData, loading: animeLoading, syncFromExternal: syncAnime } = useSimpleNewApiData({ 
     contentType: 'anime',
     limit: 50,
     sort_by: 'score',
@@ -140,7 +140,7 @@ const Trending = () => {
   });
 
   // Get real manga data from API  
-  const { data: mangaData, loading: mangaLoading, syncFromExternal: syncManga } = useApiData<Manga>({ 
+  const { data: mangaData, loading: mangaLoading, syncFromExternal: syncManga } = useSimpleNewApiData({ 
     contentType: 'manga',
     limit: 50,
     sort_by: 'score',

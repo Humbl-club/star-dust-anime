@@ -22,6 +22,7 @@ export type Database = {
           id: string
           manga_id: string | null
           metadata: Json | null
+          title_id: string | null
           user_id: string | null
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           manga_id?: string | null
           metadata?: Json | null
+          title_id?: string | null
           user_id?: string | null
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           id?: string
           manga_id?: string | null
           metadata?: Json | null
+          title_id?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -245,6 +248,71 @@ export type Database = {
         }
         Relationships: []
       }
+      anime_details: {
+        Row: {
+          aired_from: string | null
+          aired_to: string | null
+          created_at: string | null
+          episodes: number | null
+          id: string
+          last_sync_check: string | null
+          next_episode_date: string | null
+          next_episode_number: number | null
+          season: string | null
+          status: string | null
+          title_id: string | null
+          trailer_id: string | null
+          trailer_site: string | null
+          trailer_url: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          aired_from?: string | null
+          aired_to?: string | null
+          created_at?: string | null
+          episodes?: number | null
+          id?: string
+          last_sync_check?: string | null
+          next_episode_date?: string | null
+          next_episode_number?: number | null
+          season?: string | null
+          status?: string | null
+          title_id?: string | null
+          trailer_id?: string | null
+          trailer_site?: string | null
+          trailer_url?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          aired_from?: string | null
+          aired_to?: string | null
+          created_at?: string | null
+          episodes?: number | null
+          id?: string
+          last_sync_check?: string | null
+          next_episode_date?: string | null
+          next_episode_number?: number | null
+          season?: string | null
+          status?: string | null
+          title_id?: string | null
+          trailer_id?: string | null
+          trailer_site?: string | null
+          trailer_url?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anime_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_attributions: {
         Row: {
           attribution_text: string
@@ -275,6 +343,24 @@ export type Database = {
           privacy_url?: string | null
           service_name?: string
           terms_url?: string | null
+        }
+        Relationships: []
+      }
+      authors: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -422,6 +508,27 @@ export type Database = {
         }
         Relationships: []
       }
+      genres: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          type?: string | null
+        }
+        Relationships: []
+      }
       legal_pages: {
         Row: {
           content: string
@@ -554,6 +661,62 @@ export type Database = {
         }
         Relationships: []
       }
+      manga_details: {
+        Row: {
+          chapters: number | null
+          created_at: string | null
+          id: string
+          last_sync_check: string | null
+          next_chapter_date: string | null
+          next_chapter_number: number | null
+          published_from: string | null
+          published_to: string | null
+          status: string | null
+          title_id: string | null
+          type: string | null
+          updated_at: string | null
+          volumes: number | null
+        }
+        Insert: {
+          chapters?: number | null
+          created_at?: string | null
+          id?: string
+          last_sync_check?: string | null
+          next_chapter_date?: string | null
+          next_chapter_number?: number | null
+          published_from?: string | null
+          published_to?: string | null
+          status?: string | null
+          title_id?: string | null
+          type?: string | null
+          updated_at?: string | null
+          volumes?: number | null
+        }
+        Update: {
+          chapters?: number | null
+          created_at?: string | null
+          id?: string
+          last_sync_check?: string | null
+          next_chapter_date?: string | null
+          next_chapter_number?: number | null
+          published_from?: string | null
+          published_to?: string | null
+          status?: string | null
+          title_id?: string | null
+          type?: string | null
+          updated_at?: string | null
+          volumes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manga_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -636,6 +799,7 @@ export type Database = {
           rating: number | null
           spoiler_warning: boolean | null
           title: string | null
+          title_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -649,6 +813,7 @@ export type Database = {
           rating?: number | null
           spoiler_warning?: boolean | null
           title?: string | null
+          title_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -662,6 +827,7 @@ export type Database = {
           rating?: number | null
           spoiler_warning?: boolean | null
           title?: string | null
+          title_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -681,6 +847,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      studios: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       sync_logs: {
         Row: {
@@ -718,8 +902,159 @@ export type Database = {
         }
         Relationships: []
       }
+      title_authors: {
+        Row: {
+          author_id: string
+          title_id: string
+        }
+        Insert: {
+          author_id: string
+          title_id: string
+        }
+        Update: {
+          author_id?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_authors_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_authors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_genres: {
+        Row: {
+          genre_id: string
+          title_id: string
+        }
+        Insert: {
+          genre_id: string
+          title_id: string
+        }
+        Update: {
+          genre_id?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_genres_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_studios: {
+        Row: {
+          studio_id: string
+          title_id: string
+        }
+        Insert: {
+          studio_id: string
+          title_id: string
+        }
+        Update: {
+          studio_id?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_studios_studio_id_fkey"
+            columns: ["studio_id"]
+            isOneToOne: false
+            referencedRelation: "studios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      titles: {
+        Row: {
+          anilist_id: number
+          anilist_score: number | null
+          color_theme: string | null
+          created_at: string | null
+          favorites: number | null
+          id: string
+          image_url: string | null
+          members: number | null
+          popularity: number | null
+          rank: number | null
+          score: number | null
+          synopsis: string | null
+          title: string
+          title_english: string | null
+          title_japanese: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          anilist_id: number
+          anilist_score?: number | null
+          color_theme?: string | null
+          created_at?: string | null
+          favorites?: number | null
+          id?: string
+          image_url?: string | null
+          members?: number | null
+          popularity?: number | null
+          rank?: number | null
+          score?: number | null
+          synopsis?: string | null
+          title: string
+          title_english?: string | null
+          title_japanese?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          anilist_id?: number
+          anilist_score?: number | null
+          color_theme?: string | null
+          created_at?: string | null
+          favorites?: number | null
+          id?: string
+          image_url?: string | null
+          members?: number | null
+          popularity?: number | null
+          rank?: number | null
+          score?: number | null
+          synopsis?: string | null
+          title?: string
+          title_english?: string | null
+          title_japanese?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       user_anime_lists: {
         Row: {
+          anime_detail_id: string | null
           anime_id: string | null
           created_at: string | null
           episodes_watched: number | null
@@ -733,6 +1068,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          anime_detail_id?: string | null
           anime_id?: string | null
           created_at?: string | null
           episodes_watched?: number | null
@@ -746,6 +1082,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          anime_detail_id?: string | null
           anime_id?: string | null
           created_at?: string | null
           episodes_watched?: number | null
@@ -828,6 +1165,7 @@ export type Database = {
           created_at: string | null
           finish_date: string | null
           id: string
+          manga_detail_id: string | null
           manga_id: string | null
           notes: string | null
           score: number | null
@@ -842,6 +1180,7 @@ export type Database = {
           created_at?: string | null
           finish_date?: string | null
           id?: string
+          manga_detail_id?: string | null
           manga_id?: string | null
           notes?: string | null
           score?: number | null
@@ -856,6 +1195,7 @@ export type Database = {
           created_at?: string | null
           finish_date?: string | null
           id?: string
+          manga_detail_id?: string | null
           manga_id?: string | null
           notes?: string | null
           score?: number | null
@@ -929,12 +1269,82 @@ export type Database = {
         }
         Relationships: []
       }
+      anime_view: {
+        Row: {
+          aired_from: string | null
+          aired_to: string | null
+          anilist_id: number | null
+          anilist_score: number | null
+          color_theme: string | null
+          created_at: string | null
+          episodes: number | null
+          favorites: number | null
+          genres: string[] | null
+          id: string | null
+          image_url: string | null
+          last_sync_check: string | null
+          mal_id: number | null
+          members: number | null
+          next_episode_date: string | null
+          next_episode_number: number | null
+          popularity: number | null
+          rank: number | null
+          score: number | null
+          scored_by: number | null
+          season: string | null
+          status: string | null
+          studios: string[] | null
+          synopsis: string | null
+          title: string | null
+          title_english: string | null
+          title_japanese: string | null
+          trailer_id: string | null
+          trailer_site: string | null
+          trailer_url: string | null
+          type: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Relationships: []
+      }
       manga_stats: {
         Row: {
           average_score: number | null
           currently_publishing: number | null
           finished_manga: number | null
           total_manga: number | null
+        }
+        Relationships: []
+      }
+      manga_view: {
+        Row: {
+          anilist_id: number | null
+          authors: string[] | null
+          chapters: number | null
+          created_at: string | null
+          favorites: number | null
+          genres: string[] | null
+          id: string | null
+          image_url: string | null
+          last_sync_check: string | null
+          mal_id: number | null
+          members: number | null
+          next_chapter_date: string | null
+          next_chapter_number: number | null
+          popularity: number | null
+          published_from: string | null
+          published_to: string | null
+          rank: number | null
+          score: number | null
+          scored_by: number | null
+          status: string | null
+          synopsis: string | null
+          title: string | null
+          title_english: string | null
+          title_japanese: string | null
+          type: string | null
+          updated_at: string | null
+          volumes: number | null
         }
         Relationships: []
       }

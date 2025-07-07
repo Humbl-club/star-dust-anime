@@ -5,7 +5,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useApiData } from "@/hooks/useApiData";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { type Anime } from "@/data/animeData";
@@ -21,7 +21,7 @@ const Index = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   // Get anime data from API
-  const { data: allAnime, loading } = useApiData<Anime>({ 
+  const { data: allAnime, loading } = useSimpleNewApiData({ 
     contentType: 'anime',
     limit: 50,
     sort_by: 'score',

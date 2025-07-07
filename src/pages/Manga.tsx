@@ -13,7 +13,7 @@ import {
   Calendar
 } from "lucide-react";
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
-import { useApiData } from "@/hooks/useApiData";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -92,7 +92,7 @@ const Manga = () => {
   const { toast } = useToast();
 
   // Fetch manga data from database
-  const { data: mangaData, loading } = useApiData<Manga>({ 
+  const { data: mangaData, loading } = useSimpleNewApiData({ 
     contentType: 'manga',
     limit: 1000,
     search: searchQuery || undefined,

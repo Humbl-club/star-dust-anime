@@ -2,29 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface ApiResponse<T> {
-  data: T[];
-  pagination: {
-    current_page: number;
-    per_page: number;
-    total: number;
-    total_pages: number;
-    has_next_page: boolean;
-    has_prev_page: boolean;
-  };
-  filters: {
-    search?: string;
-    genre?: string;
-    status?: string;
-    type?: string;
-    year?: string;
-    season?: string;
-    sort_by: string;
-    order: string;
-  };
-}
-
-interface UseApiDataOptions {
+interface UseSimpleNewApiDataOptions {
   contentType: 'anime' | 'manga';
   page?: number;
   limit?: number;
@@ -39,9 +17,9 @@ interface UseApiDataOptions {
   autoFetch?: boolean;
 }
 
-export const useApiData = <T,>(options: UseApiDataOptions) => {
-  const [data, setData] = useState<T[]>([]);
-  const [pagination, setPagination] = useState<ApiResponse<T>['pagination'] | null>(null);
+export const useSimpleNewApiData = (options: UseSimpleNewApiDataOptions) => {
+  const [data, setData] = useState<any[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,6 +43,7 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
     setError(null);
 
     try {
+      // Use the new edge function instead of direct Supabase queries
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -135,30 +114,6 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
     }
   };
 
-  const syncImages = async (limit = 10) => {
-    setLoading(true);
-    try {
-      const { data: response, error } = await supabase.functions.invoke('sync-images', {
-        body: {
-          type: contentType,
-          limit
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success(`Cached ${response.processed} ${contentType} images`);
-      
-      // Refresh local data after image sync
-      await fetchData();
-    } catch (err: any) {
-      console.error(`Error syncing ${contentType} images:`, err);
-      toast.error(`Failed to sync ${contentType} images`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (autoFetch) {
       fetchData();
@@ -174,7 +129,6 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
     error,
     fetchData,
     syncFromExternal,
-    syncImages,
     refetch: fetchData
   };
 };
