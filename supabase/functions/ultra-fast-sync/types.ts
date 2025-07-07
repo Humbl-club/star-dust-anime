@@ -1,5 +1,5 @@
 export interface AniListResponse {
-  data: {
+  data?: {
     Page: {
       media: any[]
       pageInfo: {
@@ -8,6 +8,11 @@ export interface AniListResponse {
       }
     }
   }
+  errors?: Array<{
+    message: string
+    locations?: Array<{ line: number; column: number }>
+    path?: string[]
+  }>
 }
 
 export interface SyncResults {

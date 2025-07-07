@@ -32,8 +32,8 @@ export const WorkingSync = () => {
 
       console.log(`📊 Starting with ${initialCount} titles`);
 
-      // Use the test-sync-simple function for immediate testing
-      const { data, error } = await supabase.functions.invoke('test-sync-simple');
+      // Use the guaranteed bulk sync function  
+      const { data, error } = await supabase.functions.invoke('guaranteed-sync');
 
       if (error) {
         console.error('❌ Sync error:', error);
@@ -50,7 +50,7 @@ export const WorkingSync = () => {
         .from('titles')
         .select('id', { count: 'exact' });
 
-      const newTitles = (finalCount || 0) - (initialCount || 0);
+      const newTitles = data?.added || 0;
       console.log(`✅ Sync complete! Added ${newTitles} new titles`);
 
       setSyncState(prev => ({
