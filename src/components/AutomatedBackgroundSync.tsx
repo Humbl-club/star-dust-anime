@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Activity, Database, CheckCircle, AlertTriangle, Zap } from 'lucide-react';
+import { Activity, Database, CheckCircle, AlertTriangle, Zap, PlayCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useBackgroundSync } from '@/hooks/useBackgroundSync';
 
 export const AutomatedBackgroundSync = () => {
-  const { syncProgress, isActive } = useBackgroundSync();
+  const { syncProgress, isActive, manualSync } = useBackgroundSync();
 
   const formatNumber = (num: number) => {
     return num.toLocaleString();
@@ -152,6 +153,22 @@ export const AutomatedBackgroundSync = () => {
             <li>• <strong>Full Relationships:</strong> Processes genres, studios, authors automatically</li>
             <li>• <strong>Zero Maintenance:</strong> Runs continuously without any user intervention</li>
           </ul>
+        </div>
+
+        {/* Manual Sync Button */}
+        <div className="text-center">
+          <Button 
+            onClick={() => {
+              console.log('🎯 MANUAL SYNC: Triggering immediate sync for 100+ titles...');
+              manualSync();
+            }}
+            disabled={syncProgress.isRunning}
+            className="mb-4"
+            variant="default"
+          >
+            <PlayCircle className="w-4 h-4 mr-2" />
+            {syncProgress.isRunning ? 'Syncing...' : 'Manual Sync (Process 100+ Titles Now)'}
+          </Button>
         </div>
 
         {/* Live Status */}
