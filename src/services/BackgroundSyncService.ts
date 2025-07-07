@@ -328,10 +328,16 @@ class BackgroundSyncService {
 
       console.log(`📊 Starting sync with: ${initialAnimeCount} anime, ${initialMangaCount} manga`);
 
-      // Process 4 pages each for 200+ titles total to ensure we get 100+ new ones
+      // Start from higher pages to find NEW titles (pages 1-33 likely already exist)
+      // We have 1673 anime (≈33 pages) and 1600 manga (≈32 pages) already
+      const animeStartPage = Math.ceil(1673 / 50) + 1; // Start after existing titles
+      const mangaStartPage = Math.ceil(1600 / 50) + 1; // Start after existing titles
+      
+      console.log(`🎯 SMART SYNC: Starting anime from page ${animeStartPage}, manga from page ${mangaStartPage}`);
+      
       const [animeResult, mangaResult] = await Promise.allSettled([
-        this.syncBatch('anime', 1, 4), // 4 pages = ~200 anime
-        this.syncBatch('manga', 1, 4)  // 4 pages = ~200 manga
+        this.syncBatch('anime', animeStartPage, 4), // 4 pages from page ~34
+        this.syncBatch('manga', mangaStartPage, 4)  // 4 pages from page ~33
       ]);
 
       // Log results
