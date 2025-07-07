@@ -89,7 +89,6 @@ class BackgroundSyncService {
                 name {
                   full
                 }
-                role
               }
             }
             averageScore
@@ -309,16 +308,14 @@ class BackgroundSyncService {
           }
         }
 
-        // Update progress and notify listeners
+        // Get updated counts using proper joins
         const { count: animeCount } = await supabase
-          .from('titles')
-          .select('id', { count: 'exact' })
-          .not('anime_details', 'is', null);
+          .from('anime_details')
+          .select('id', { count: 'exact' });
         
         const { count: mangaCount } = await supabase
-          .from('titles')
-          .select('id', { count: 'exact' })
-          .not('manga_details', 'is', null);
+          .from('manga_details')
+          .select('id', { count: 'exact' });
 
         this.syncProgress.animeCount = animeCount || 0;
         this.syncProgress.mangaCount = mangaCount || 0;
@@ -351,16 +348,14 @@ class BackgroundSyncService {
     console.log('🌙 Starting automated background sync...');
     
     try {
-      // Get initial counts
+      // Get initial counts using proper table queries
       const { count: initialAnimeCount } = await supabase
-        .from('titles')
-        .select('id', { count: 'exact' })
-        .not('anime_details', 'is', null);
+        .from('anime_details')
+        .select('id', { count: 'exact' });
       
       const { count: initialMangaCount } = await supabase
-        .from('titles')
-        .select('id', { count: 'exact' })
-        .not('manga_details', 'is', null);
+        .from('manga_details')
+        .select('id', { count: 'exact' });
 
       this.syncProgress.animeCount = initialAnimeCount || 0;
       this.syncProgress.mangaCount = initialMangaCount || 0;

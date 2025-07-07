@@ -24,9 +24,11 @@ export const useBackgroundSync = () => {
       setSyncProgress(progress);
     });
 
-    // Start continuous background sync
+    // Start continuous background sync after a short delay to let the app initialize
     console.log('🌙 Initializing automated background sync system...');
-    backgroundSyncService.startContinuousSync();
+    setTimeout(() => {
+      backgroundSyncService.startContinuousSync();
+    }, 3000); // 3 second delay
 
     return unsubscribe;
   }, []);
