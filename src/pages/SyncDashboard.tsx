@@ -84,7 +84,8 @@ const SyncDashboard = () => {
     try {
       console.log(`🚀 Starting ${syncType} ${contentType} sync with maxPages: ${maxPages}`);
       
-      const { data, error } = await supabase.functions.invoke('comprehensive-normalized-sync', {
+      // Phase 1: Use existing working ultra-fast-sync function
+      const { data, error } = await supabase.functions.invoke('ultra-fast-sync', {
         body: { 
           contentType,
           maxPages
@@ -148,7 +149,7 @@ const SyncDashboard = () => {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive AniList database sync with normalized structure and full relationship mapping
+            Ultra-fast AniList sync using existing working infrastructure with realistic page estimates
           </p>
         </div>
 
@@ -232,35 +233,62 @@ const SyncDashboard = () => {
 
               <div className="space-y-2">
                 <Button 
-                  onClick={() => handleComprehensiveSync('anime', 5, 'Test')}
+                  onClick={async () => {
+                    try {
+                      console.log('🧪 Testing ultra-fast-sync function...')
+                      const { data, error } = await supabase.functions.invoke('ultra-fast-sync', {
+                        body: { contentType: 'anime', maxPages: 1 }
+                      });
+                      console.log('Test result:', { data, error });
+                      if (error) {
+                        toast({
+                          title: "Function Test Failed", 
+                          description: error.message,
+                          variant: "destructive"
+                        });
+                      } else {
+                        toast({
+                          title: "Function Test Successful!",
+                          description: `ultra-fast-sync is working: ${data?.results?.processed || 0} items processed`
+                        });
+                      }
+                    } catch (err: any) {
+                      console.error('Test error:', err);
+                      toast({
+                        title: "Test Failed",
+                        description: err.message,
+                        variant: "destructive"
+                      });
+                    }
+                  }}
                   disabled={syncing}
                   className="w-full"
                   variant="outline"
                   size="sm"
                 >
                   <TestTube className="w-4 h-4 mr-2" />
-                  Test Sync (250 titles, ~2 minutes)
+                  Test Function (1 page, ~30 seconds)
                 </Button>
                 
                 <Button 
-                  onClick={() => handleComprehensiveSync('anime', 100, 'Incremental')}
+                  onClick={() => handleComprehensiveSync('anime', 5, 'Small')}
                   disabled={syncing}
                   className="w-full"
                   variant="secondary"
                   size="sm"
                 >
                   <Activity className="w-4 h-4 mr-2" />
-                  Incremental Sync (5K titles, ~6 minutes)
+                  Small Sync (5 pages, ~2 minutes)
                 </Button>
                 
                 <Button 
-                  onClick={() => handleComprehensiveSync('anime', 500, 'Complete')}
+                  onClick={() => handleComprehensiveSync('anime', 25, 'Medium')}
                   disabled={syncing}
                   className="w-full"
                   size="lg"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Full Library Sync (25K titles, ~25 minutes)
+                  Medium Sync (25 pages, ~10 minutes)
                 </Button>
               </div>
             </CardContent>
@@ -292,36 +320,63 @@ const SyncDashboard = () => {
 
               <div className="space-y-2">
                 <Button 
-                  onClick={() => handleComprehensiveSync('manga', 5, 'Test')}
+                  onClick={async () => {
+                    try {
+                      console.log('🧪 Testing ultra-fast-sync function for manga...')
+                      const { data, error } = await supabase.functions.invoke('ultra-fast-sync', {
+                        body: { contentType: 'manga', maxPages: 1 }
+                      });
+                      console.log('Manga test result:', { data, error });
+                      if (error) {
+                        toast({
+                          title: "Manga Function Test Failed", 
+                          description: error.message,
+                          variant: "destructive"
+                        });
+                      } else {
+                        toast({
+                          title: "Manga Function Test Successful!",
+                          description: `ultra-fast-sync is working: ${data?.results?.processed || 0} items processed`
+                        });
+                      }
+                    } catch (err: any) {
+                      console.error('Manga test error:', err);
+                      toast({
+                        title: "Manga Test Failed",
+                        description: err.message,
+                        variant: "destructive"
+                      });
+                    }
+                  }}
                   disabled={syncing}
                   className="w-full"
                   variant="outline"
                   size="sm"
                 >
                   <TestTube className="w-4 h-4 mr-2" />
-                  Test Sync (250 titles, ~2 minutes)
+                  Test Function (1 page, ~30 seconds)
                 </Button>
                 
                 <Button 
-                  onClick={() => handleComprehensiveSync('manga', 200, 'Incremental')}
+                  onClick={() => handleComprehensiveSync('manga', 8, 'Small')}
                   disabled={syncing}
                   className="w-full"
                   variant="secondary"
                   size="sm"
                 >
                   <Activity className="w-4 h-4 mr-2" />
-                  Incremental Sync (10K titles, ~15 minutes)
+                  Small Sync (8 pages, ~3 minutes)
                 </Button>
                 
                 <Button 
-                  onClick={() => handleComprehensiveSync('manga', 3000, 'Complete')}
+                  onClick={() => handleComprehensiveSync('manga', 40, 'Medium')}
                   disabled={syncing}
                   className="w-full"
                   variant="secondary"
                   size="lg"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Full Library Sync (150K titles, ~3 hours)
+                  Medium Sync (40 pages, ~15 minutes)
                 </Button>
               </div>
             </CardContent>
