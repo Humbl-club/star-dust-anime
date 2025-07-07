@@ -123,7 +123,10 @@ class BackgroundSyncService {
       });
 
       if (!response.ok) {
-        throw new Error(`AniList API error: ${response.status}`);
+        // Log more detailed error information
+        const errorText = await response.text();
+        console.error(`AniList API error ${response.status} for ${mediaType} page ${page}:`, errorText);
+        throw new Error(`AniList API error: ${response.status} - ${errorText.slice(0, 100)}`);
       }
 
       const data = await response.json();
@@ -286,15 +289,17 @@ class BackgroundSyncService {
         const items = await this.fetchAniListData(mediaType, page);
         
         if (!items.length) {
-          console.log(`⚠️ No more ${contentType} data available at page ${page}`);
+          console.log(`⚠️ No more ${contentType} data available at page ${page} - stopping batch`);
           break;
         }
 
+        let successfulProcessedInPage = 0;
         for (const item of items) {
           try {
             const wasProcessed = await this.processTitle(item, contentType);
             if (wasProcessed) {
               processedCount++;
+              successfulProcessedInPage++;
               this.syncProgress.totalProcessed++;
             }
           } catch (error) {
@@ -361,17 +366,14 @@ class BackgroundSyncService {
       this.syncProgress.mangaCount = initialMangaCount || 0;
       this.notifyListeners();
 
-      // Start with small batches - 5 pages each (250 items total)
-      const animePage = Math.floor(Math.random() * 50) + 1; // Random starting point
-      const mangaPage = Math.floor(Math.random() * 100) + 1;
-      
-      console.log(`🎬 Processing anime starting from page ${animePage}`);
-      console.log(`📚 Processing manga starting from page ${mangaPage}`);
+      // Start from page 1 and go sequentially - safer approach
+      console.log('🎬 Processing anime starting from page 1');
+      console.log('📚 Processing manga starting from page 1');
 
-      // Process in parallel but with smaller batches
+      // Process in parallel but with smaller, safer batches starting from page 1
       const [animeResult, mangaResult] = await Promise.allSettled([
-        this.syncBatch('anime', animePage, 5),
-        this.syncBatch('manga', mangaPage, 5)
+        this.syncBatch('anime', 1, 3), // Start from page 1, do 3 pages
+        this.syncBatch('manga', 1, 3)  // Start from page 1, do 3 pages
       ]);
 
       console.log('🎉 Background sync batch completed!');
