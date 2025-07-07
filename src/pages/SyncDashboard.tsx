@@ -11,6 +11,7 @@ import { useStats } from "@/hooks/useStats";
 import { AutoSyncMonitor } from "@/components/AutoSyncMonitor";
 import { AutonomousSync } from "@/components/AutonomousSync";
 import { DirectSyncTest } from "@/components/DirectSyncTest";
+import { WorkingSync } from "@/components/WorkingSync";
 import { 
   Database, 
   Download, 
@@ -175,17 +176,12 @@ const SyncDashboard = () => {
           </p>
         </div>
 
+        {/* Working Sync Test - Use proven function */}
+        <WorkingSync />
+        
         {/* Direct Function Test - Debug the issue */}
-        <DirectSyncTest />
-        
-        {/* Autonomous Sync - Active massive sync operations */}
         <div className="mt-6">
-          <AutonomousSync />
-        </div>
-        
-        {/* Auto Sync Monitor - Secondary monitoring */}
-        <div className="mt-6">
-          <AutoSyncMonitor />
+          <DirectSyncTest />
         </div>
 
         {/* Database Statistics */}

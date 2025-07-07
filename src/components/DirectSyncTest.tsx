@@ -14,6 +14,14 @@ export const DirectSyncTest = () => {
     console.log('🧪 DIRECT TEST: Testing ultra-fast-sync with minimal params...');
     
     try {
+      // Get initial count
+      const { data: initialCount } = await supabase
+        .from('titles')
+        .select('id', { count: 'exact' });
+      
+      console.log(`🧪 Initial count: ${initialCount?.length || 0}`);
+      setResult(`Initial count: ${initialCount?.length || 0}\nTesting sync...`);
+
       const { data, error } = await supabase.functions.invoke('ultra-fast-sync', {
         body: { contentType: 'anime', maxPages: 1 }
       });
@@ -24,7 +32,13 @@ export const DirectSyncTest = () => {
         setResult(`❌ Error: ${error.message}`);
         console.error('❌ Direct test error:', error);
       } else if (data) {
-        setResult(`✅ Success: ${JSON.stringify(data, null, 2)}`);
+        // Check if count increased
+        const { data: finalCount } = await supabase
+          .from('titles')
+          .select('id', { count: 'exact' });
+        
+        const growth = (finalCount?.length || 0) - (initialCount?.length || 0);
+        setResult(`✅ Success! Added ${growth} titles\nResult: ${JSON.stringify(data, null, 2)}`);
         console.log('✅ Direct test success:', data);
       } else {
         setResult('⚠️ No data returned');
