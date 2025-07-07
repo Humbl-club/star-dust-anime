@@ -328,10 +328,10 @@ class BackgroundSyncService {
 
       console.log(`📊 Starting sync with: ${initialAnimeCount} anime, ${initialMangaCount} manga`);
 
-      // Process in parallel - 3 pages each (~150 items total)
+      // Process 4 pages each for 200+ titles total to ensure we get 100+ new ones
       const [animeResult, mangaResult] = await Promise.allSettled([
-        this.syncBatch('anime', 1, 3),
-        this.syncBatch('manga', 1, 3)
+        this.syncBatch('anime', 1, 4), // 4 pages = ~200 anime
+        this.syncBatch('manga', 1, 4)  // 4 pages = ~200 manga
       ]);
 
       // Log results

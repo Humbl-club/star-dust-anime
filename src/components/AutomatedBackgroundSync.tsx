@@ -23,10 +23,26 @@ export const AutomatedBackgroundSync = () => {
   });
 
   useEffect(() => {
+    console.log('🎯 COMPONENT MOUNTED - TRIGGERING IMMEDIATE SYNC FOR 100+ TITLES...');
+    
     // Subscribe to sync progress updates
     const unsubscribe = backgroundSyncService.subscribe((progress) => {
       setSyncProgress(progress);
+      console.log('📊 Sync progress update:', progress);
     });
+
+    // Trigger immediate sync right now - no delays, no buttons
+    console.log('🚀 STARTING SYNC IMMEDIATELY FOR 100+ TITLES...');
+    backgroundSyncService.startBackgroundSync().then(() => {
+      console.log('🎉 Initial sync completed!');
+    }).catch((error) => {
+      console.error('❌ Initial sync failed:', error);
+    });
+
+    // Also start continuous sync for future runs
+    setTimeout(() => {
+      backgroundSyncService.startContinuousSync();
+    }, 10000); // Start continuous after 10 seconds
 
     return unsubscribe;
   }, []);

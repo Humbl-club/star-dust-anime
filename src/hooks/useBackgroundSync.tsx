@@ -19,14 +19,12 @@ export const useBackgroundSync = () => {
   });
 
   useEffect(() => {
-    // Subscribe to sync progress updates
+    console.log('🎯 HOOK INITIALIZED - BACKGROUND SYNC READY');
+    
+    // Subscribe to sync progress updates only
     const unsubscribe = backgroundSyncService.subscribe((progress) => {
       setSyncProgress(progress);
     });
-
-    // Start continuous background sync immediately - no delay
-    console.log('🌙 Initializing automated background sync system - STARTING NOW...');
-    backgroundSyncService.startContinuousSync();
 
     return unsubscribe;
   }, []);
