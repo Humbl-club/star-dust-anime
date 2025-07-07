@@ -32,14 +32,8 @@ export const WorkingSync = () => {
 
       console.log(`📊 Starting with ${initialCount} titles`);
 
-      // Use the working comprehensive-normalized-sync function instead
-      const { data, error } = await supabase.functions.invoke('comprehensive-normalized-sync', {
-        body: { 
-          contentType: 'anime', 
-          maxPages: 2,
-          startFromId: null
-        }
-      });
+      // Use the test-sync-simple function for immediate testing
+      const { data, error } = await supabase.functions.invoke('test-sync-simple');
 
       if (error) {
         console.error('❌ Sync error:', error);

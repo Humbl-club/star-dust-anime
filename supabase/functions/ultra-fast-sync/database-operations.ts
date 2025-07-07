@@ -106,6 +106,13 @@ export async function ensureAuthors(supabase: any, authors: string[]): Promise<{
 export async function linkTitleGenres(supabase: any, titleId: string, genreIds: string[]): Promise<number> {
   if (!genreIds.length) return 0
   
+  // First remove existing relationships to avoid conflicts
+  await supabase
+    .from('title_genres')
+    .delete()
+    .eq('title_id', titleId)
+  
+  // Then insert new relationships
   const relationships = genreIds.map(genreId => ({
     title_id: titleId,
     genre_id: genreId
@@ -113,7 +120,7 @@ export async function linkTitleGenres(supabase: any, titleId: string, genreIds: 
   
   const { data, error } = await supabase
     .from('title_genres')
-    .upsert(relationships, { onConflict: 'title_id,genre_id' })
+    .insert(relationships)
     .select()
   
   return error ? 0 : (data?.length || 0)
@@ -123,6 +130,13 @@ export async function linkTitleGenres(supabase: any, titleId: string, genreIds: 
 export async function linkTitleStudios(supabase: any, titleId: string, studioIds: string[]): Promise<number> {
   if (!studioIds.length) return 0
   
+  // First remove existing relationships to avoid conflicts
+  await supabase
+    .from('title_studios')
+    .delete()
+    .eq('title_id', titleId)
+  
+  // Then insert new relationships
   const relationships = studioIds.map(studioId => ({
     title_id: titleId,
     studio_id: studioId
@@ -130,7 +144,7 @@ export async function linkTitleStudios(supabase: any, titleId: string, studioIds
   
   const { data, error } = await supabase
     .from('title_studios')
-    .upsert(relationships, { onConflict: 'title_id,studio_id' })
+    .insert(relationships)
     .select()
   
   return error ? 0 : (data?.length || 0)
@@ -140,6 +154,13 @@ export async function linkTitleStudios(supabase: any, titleId: string, studioIds
 export async function linkTitleAuthors(supabase: any, titleId: string, authorIds: string[]): Promise<number> {
   if (!authorIds.length) return 0
   
+  // First remove existing relationships to avoid conflicts
+  await supabase
+    .from('title_authors')
+    .delete()
+    .eq('title_id', titleId)
+  
+  // Then insert new relationships
   const relationships = authorIds.map(authorId => ({
     title_id: titleId,
     author_id: authorId
@@ -147,7 +168,7 @@ export async function linkTitleAuthors(supabase: any, titleId: string, authorIds
   
   const { data, error } = await supabase
     .from('title_authors')
-    .upsert(relationships, { onConflict: 'title_id,author_id' })
+    .insert(relationships)
     .select()
   
   return error ? 0 : (data?.length || 0)
