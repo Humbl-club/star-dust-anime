@@ -29,10 +29,19 @@ export const useSimpleSearch = () => {
     console.log('🔍 Searching for:', searchQuery);
 
     try {
-      // Direct database search with proper ILIKE queries
+      // Direct database search with proper ILIKE queries using normalized tables
       const { data: results, error } = await supabase
-        .from('anime')
-        .select('id, title, title_english, title_japanese, image_url, score, type, popularity')
+        .from('titles')
+        .select(`
+          id, 
+          title, 
+          title_english, 
+          title_japanese, 
+          image_url, 
+          score, 
+          popularity,
+          anime_details!inner(type)
+        `)
         .or(`title.ilike.%${searchQuery.trim()}%,title_english.ilike.%${searchQuery.trim()}%,title_japanese.ilike.%${searchQuery.trim()}%`)
         .order('popularity', { ascending: false })
         .limit(10);
@@ -45,7 +54,13 @@ export const useSimpleSearch = () => {
         return;
       }
 
-      setSearchResults(results || []);
+      // Flatten the results to match expected interface
+      const flattenedResults = (results || []).map(result => ({
+        ...result,
+        type: (result.anime_details as any)?.type || 'TV'
+      }));
+
+      setSearchResults(flattenedResults);
     } catch (error) {
       console.error('❌ Search failed:', error);
       setSearchResults([]);

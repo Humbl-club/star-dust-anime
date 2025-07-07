@@ -29,8 +29,17 @@ export const useRealTimeSearch = () => {
 
     try {
       const { data: results, error } = await supabase
-        .from('anime')
-        .select('id, title, title_english, title_japanese, image_url, score, type, popularity')
+        .from('titles')
+        .select(`
+          id, 
+          title, 
+          title_english, 
+          title_japanese, 
+          image_url, 
+          score, 
+          popularity,
+          anime_details!inner(type)
+        `)
         .or(`title.ilike.%${searchQuery}%,title_english.ilike.%${searchQuery}%,title_japanese.ilike.%${searchQuery}%`)
         .order('popularity', { ascending: false })
         .limit(8);
@@ -43,7 +52,13 @@ export const useRealTimeSearch = () => {
         return;
       }
 
-      setSearchResults(results || []);
+      // Flatten the results to match expected interface
+      const flattenedResults = (results || []).map(result => ({
+        ...result,
+        type: (result.anime_details as any)?.type || 'TV'
+      }));
+
+      setSearchResults(flattenedResults);
     } catch (error) {
       console.error('Search failed:', error);
       setSearchResults([]);

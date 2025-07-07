@@ -57,11 +57,14 @@ export const useHybridRecommendations = () => {
       return [];
     }
 
-    // Find similar content by genre
+    // Find similar content by genre using normalized tables
+    const joinCondition = contentType === 'anime' 
+      ? 'anime_details!inner(*)'
+      : 'manga_details!inner(*)';
+    
     const { data: similar } = await supabase
-      .from(contentType)
-      .select('*')
-      .overlaps('genres', genreArray)
+      .from('titles')
+      .select(`*, ${joinCondition}`)
       .not('id', 'in', `(${consumedIds.join(',')})`)
       .gte('score', 7)
       .order('score', { ascending: false })
@@ -76,9 +79,13 @@ export const useHybridRecommendations = () => {
 
   // Trending recommendations
   const getTrendingRecs = useCallback(async (contentType: 'anime' | 'manga', limit: number) => {
+    const joinCondition = contentType === 'anime' 
+      ? 'anime_details!inner(*)'
+      : 'manga_details!inner(*)';
+    
     const { data: trending } = await supabase
-      .from(contentType)
-      .select('*')
+      .from('titles')
+      .select(`*, ${joinCondition}`)
       .order('popularity', { ascending: false })
       .gte('score', 7.5)
       .limit(limit);

@@ -38,14 +38,19 @@ export const useEnhancedSearch = () => {
     return limits.aiSearchCount < 10; // Max 10 AI searches per day
   }, []);
 
-  // Enhanced database search with fuzzy matching
+  // Enhanced database search with fuzzy matching using normalized tables
   const performDatabaseSearch = useCallback(async (query: string, contentType: 'anime' | 'manga' = 'anime') => {
     const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
     
+    // Build the join condition based on content type
+    const joinCondition = contentType === 'anime' 
+      ? 'anime_details!inner(*)'
+      : 'manga_details!inner(*)';
+    
     // Try exact matches first
     const { data: exactResults } = await supabase
-      .from(contentType)
-      .select('*')
+      .from('titles')
+      .select(`*, ${joinCondition}`)
       .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
       .limit(20);
 
@@ -59,8 +64,8 @@ export const useEnhancedSearch = () => {
     );
 
     const { data: fuzzyResults } = await supabase
-      .from(contentType)
-      .select('*')
+      .from('titles')
+      .select(`*, ${joinCondition}`)
       .or(fuzzyQueries.join(','))
       .limit(20);
 

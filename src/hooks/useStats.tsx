@@ -18,15 +18,17 @@ export const useStats = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Get anime count
+        // Get anime count from normalized tables
         const { count: animeCount } = await supabase
-          .from('anime')
-          .select('*', { count: 'exact', head: true });
+          .from('titles')
+          .select('*', { count: 'exact', head: true })
+          .not('anime_details', 'is', null);
 
-        // Get manga count
+        // Get manga count from normalized tables
         const { count: mangaCount } = await supabase
-          .from('manga')
-          .select('*', { count: 'exact', head: true });
+          .from('titles')
+          .select('*', { count: 'exact', head: true })
+          .not('manga_details', 'is', null);
 
         // Get user count
         const { count: userCount } = await supabase

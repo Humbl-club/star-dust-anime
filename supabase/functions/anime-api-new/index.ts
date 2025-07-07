@@ -51,11 +51,61 @@ serve(async (req) => {
       const sort_by = url.searchParams.get('sort_by') || 'score';
       const order = (url.searchParams.get('order') || 'desc') as 'asc' | 'desc';
 
-      // Build query using the new view
-      const viewName = contentType === 'anime' ? 'anime_view' : 'manga_view';
-      let query = supabase
-        .from(viewName)
-        .select('*', { count: 'exact' });
+      // Build query using the normalized tables with JOINs
+      let query;
+      
+      if (contentType === 'anime') {
+        query = supabase
+          .from('titles')
+          .select(`
+            *,
+            anime_details(
+              episodes,
+              aired_from,
+              aired_to,
+              season,
+              status,
+              type,
+              trailer_url,
+              trailer_site,
+              trailer_id,
+              next_episode_date,
+              next_episode_number,
+              last_sync_check
+            ),
+            title_genres(
+              genres(name)
+            ),
+            title_studios(
+              studios(name)
+            )
+          `, { count: 'exact' })
+          .not('anime_details', 'is', null);
+      } else {
+        query = supabase
+          .from('titles')
+          .select(`
+            *,
+            manga_details(
+              chapters,
+              volumes,
+              published_from,
+              published_to,
+              status,
+              type,
+              next_chapter_date,
+              next_chapter_number,
+              last_sync_check
+            ),
+            title_genres(
+              genres(name)
+            ),
+            title_authors(
+              authors(name)
+            )
+          `, { count: 'exact' })
+          .not('manga_details', 'is', null);
+      }
 
       // Apply filters
       if (search) {
@@ -127,10 +177,27 @@ serve(async (req) => {
         );
       }
 
+      // Transform the normalized data to the format expected by frontend
+      const transformedData = (data || []).map(item => {
+        const isAnime = contentType === 'anime';
+        const details = isAnime ? item.anime_details?.[0] : item.manga_details?.[0];
+        
+        // Flatten the structure to match the old format
+        return {
+          ...item,
+          // Include specific fields from details
+          ...(details || {}),
+          // Extract genres and studios from relationships
+          genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+          studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
+          authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+        };
+      });
+
       const totalPages = count ? Math.ceil(count / limit) : 0;
 
       const response = {
-        data: data || [],
+        data: transformedData,
         pagination: {
           current_page: page,
           per_page: limit,

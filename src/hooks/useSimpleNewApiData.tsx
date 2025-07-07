@@ -58,6 +58,8 @@ export const useSimpleNewApiData = (options: UseSimpleNewApiDataOptions) => {
       if (year) params.append('year', year);
       if (season && contentType === 'anime') params.append('season', season);
 
+      console.log('Calling anime-api-new with params:', params.toString());
+      
       const { data: response, error } = await supabase.functions.invoke('anime-api-new', {
         body: {
           method: 'GET',
@@ -65,12 +67,19 @@ export const useSimpleNewApiData = (options: UseSimpleNewApiDataOptions) => {
         }
       });
 
-      if (error) throw error;
+      console.log('API Response:', { response, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       if (response?.data) {
+        console.log('Setting data:', response.data.length, 'items');
         setData(response.data);
         setPagination(response.pagination);
       } else {
+        console.error('Invalid response format:', response);
         throw new Error('Invalid response format');
       }
     } catch (err: any) {

@@ -184,12 +184,16 @@ export const CompleteAniListSync = () => {
             onClick={async () => {
               try {
                 console.log('🧪 Testing database connection...')
-                const { data, error } = await supabase.from('anime').select('count').limit(1)
-                console.log('Database test result:', { data, error })
+                const { data, error, count } = await supabase
+                  .from('titles')
+                  .select('id', { count: 'exact' })
+                  .not('anime_details', 'is', null)
+                  .limit(1)
+                console.log('Database test result:', { data, error, count })
                 if (error) {
                   toast.error('Database connection failed: ' + error.message)
                 } else {
-                  toast.success('Database connection working! Current anime count: ' + data?.length)
+                  toast.success(`Database connection working! Current anime count: ${count || 0}`)
                 }
               } catch (err) {
                 console.error('Database test error:', err)

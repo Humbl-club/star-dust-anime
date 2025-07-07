@@ -62,10 +62,14 @@ export const useOptimizedSearch = () => {
     console.log('Starting search for:', trimmedQuery, 'in', contentType);
     
     try {
-      // Optimized database search with proper indexing
+      // Optimized database search with proper indexing using normalized tables
+      const joinCondition = contentType === 'anime' 
+        ? 'anime_details!inner(*)'
+        : 'manga_details!inner(*)';
+      
       const { data: results, error, count } = await supabase
-        .from(contentType)
-        .select('*', { count: 'exact' })
+        .from('titles')
+        .select(`*, ${joinCondition}`, { count: 'exact' })
         .or(`title.ilike.%${trimmedQuery}%,title_english.ilike.%${trimmedQuery}%,title_japanese.ilike.%${trimmedQuery}%`)
         .order('popularity', { ascending: false })
         .limit(limit);

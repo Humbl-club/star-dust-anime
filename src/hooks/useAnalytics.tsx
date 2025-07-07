@@ -60,24 +60,37 @@ export const useAnalytics = () => {
   }, []);
 
   const fetchContentStats = useCallback(async () => {
-    const [animeStats, mangaStats, popularAnime] = await Promise.all([
-      supabase.from('anime_stats').select('*').single(),
-      supabase.from('manga_stats').select('*').single(),
-      supabase.from('anime')
-        .select('title, popularity, score, image_url')
+    // Get counts from normalized tables
+    const [animeCount, mangaCount, popularAnime] = await Promise.all([
+      supabase.from('titles').select('id', { count: 'exact' }).not('anime_details', 'is', null),
+      supabase.from('titles').select('id', { count: 'exact' }).not('manga_details', 'is', null),
+      supabase.from('titles')
+        .select(`
+          title, 
+          popularity, 
+          score, 
+          image_url,
+          anime_details!inner(*)
+        `)
         .order('popularity', { ascending: false })
         .limit(10)
     ]);
 
     const { data: recentAnime } = await supabase
-      .from('anime')
-      .select('title, created_at, score, image_url')
+      .from('titles')
+      .select(`
+        title, 
+        created_at, 
+        score, 
+        image_url,
+        anime_details!inner(*)
+      `)
       .order('created_at', { ascending: false })
       .limit(10);
 
     return {
-      totalAnime: animeStats.data?.total_anime || 0,
-      totalManga: mangaStats.data?.total_manga || 0,
+      totalAnime: animeCount.count || 0,
+      totalManga: mangaCount.count || 0,
       mostPopular: popularAnime.data || [],
       recentlyAdded: recentAnime || []
     };
