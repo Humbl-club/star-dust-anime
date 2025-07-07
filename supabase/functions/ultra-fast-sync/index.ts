@@ -17,82 +17,64 @@ interface AniListResponse {
   }
 }
 
-// Utility function to clean and validate data
-function cleanAnimeData(item: any) {
+interface SyncResults {
+  titlesInserted: number
+  detailsInserted: number
+  genresCreated: number
+  studiosCreated: number
+  authorsCreated: number
+  relationshipsCreated: number
+  errors: string[]
+}
+
+// Transform AniList data to match our normalized database schema
+function transformToTitleData(item: any) {
   return {
-    mal_id: item.idMal || null,
-    anilist_id: item.id || null,
+    anilist_id: item.id,
     title: item.title?.romaji || item.title?.english || 'Unknown Title',
     title_english: item.title?.english || null,
     title_japanese: item.title?.native || null,
     synopsis: item.description?.replace(/<[^>]*>/g, '') || null,
     image_url: item.coverImage?.large || item.coverImage?.medium || null,
-    banner_image: item.bannerImage || null,
-    cover_image_large: item.coverImage?.large || null,
-    cover_image_extra_large: item.coverImage?.extraLarge || null,
-    // Fix status mapping
-    status: mapStatus(item.status),
-    type: item.format || 'TV',
-    episodes: item.episodes || null,
     score: item.averageScore || null,
     anilist_score: item.averageScore || null,
     popularity: item.popularity || 0,
     favorites: item.favourites || 0,
     members: item.popularity || 0,
     rank: item.meanScore ? Math.floor(item.meanScore * 10) : null,
-    // Use safe date casting
-    aired_from: item.startDate ? formatDate(item.startDate) : null,
-    aired_to: item.endDate ? formatDate(item.endDate) : null,
     year: item.seasonYear || (item.startDate ? item.startDate.year : null),
-    season: item.season || null,
-    genres: item.genres || [],
-    studios: item.studios?.nodes?.map((s: any) => s.name) || [],
-    themes: item.tags?.map((t: any) => t.name) || [],
-    demographics: [],
     color_theme: item.coverImage?.color || null,
-    trailer_url: item.trailer?.site === 'youtube' ? `https://www.youtube.com/watch?v=${item.trailer.id}` : null,
-    trailer_id: item.trailer?.site === 'youtube' ? item.trailer.id : null,
-    trailer_site: item.trailer?.site || null,
-    characters_data: item.characters?.nodes || [],
-    staff_data: item.staff?.nodes || [],
-    external_links: item.externalLinks || [],
-    airing_schedule: item.airingSchedule?.nodes || [],
-    next_episode_date: item.nextAiringEpisode ? new Date(item.nextAiringEpisode.airingAt * 1000).toISOString() : null,
-    next_episode_number: item.nextAiringEpisode?.episode || null,
-    last_sync_check: new Date().toISOString(),
-    updated_at: new Date().toISOString()
   }
 }
 
-function cleanMangaData(item: any) {
+function transformToAnimeDetails(item: any, titleId: string) {
   return {
-    mal_id: item.idMal || null,
-    anilist_id: item.id || null,
-    title: item.title?.romaji || item.title?.english || 'Unknown Title',
-    title_english: item.title?.english || null,
-    title_japanese: item.title?.native || null,
-    synopsis: item.description?.replace(/<[^>]*>/g, '') || null,
-    image_url: item.coverImage?.large || item.coverImage?.medium || null,
-    // Fix status mapping
-    status: mapMangaStatus(item.status),
-    type: item.format || 'Manga',
+    title_id: titleId,
+    episodes: item.episodes || null,
+    aired_from: item.startDate ? formatDate(item.startDate) : null,
+    aired_to: item.endDate ? formatDate(item.endDate) : null,
+    season: item.season || null,
+    status: mapStatus(item.status),
+    type: item.format || 'TV',
+    trailer_url: item.trailer?.site === 'youtube' ? `https://www.youtube.com/watch?v=${item.trailer.id}` : null,
+    trailer_id: item.trailer?.site === 'youtube' ? item.trailer.id : null,
+    trailer_site: item.trailer?.site || null,
+    next_episode_date: item.nextAiringEpisode ? new Date(item.nextAiringEpisode.airingAt * 1000).toISOString() : null,
+    next_episode_number: item.nextAiringEpisode?.episode || null,
+    last_sync_check: new Date().toISOString(),
+  }
+}
+
+function transformToMangaDetails(item: any, titleId: string) {
+  return {
+    title_id: titleId,
     chapters: item.chapters || null,
     volumes: item.volumes || null,
-    score: item.averageScore || null,
-    popularity: item.popularity || 0,
-    favorites: item.favourites || 0,
-    members: item.popularity || 0,
-    rank: item.meanScore ? Math.floor(item.meanScore * 10) : null,
-    // Use safe date casting
     published_from: item.startDate ? formatDate(item.startDate) : null,
     published_to: item.endDate ? formatDate(item.endDate) : null,
-    genres: item.genres || [],
-    authors: item.staff?.nodes?.filter((s: any) => s.role === 'Story & Art' || s.role === 'Story').map((s: any) => s.name) || [],
-    themes: item.tags?.map((t: any) => t.name) || [],
-    demographics: [],
-    serializations: [],
+    status: mapMangaStatus(item.status),
+    type: item.format || 'Manga',
     last_sync_check: new Date().toISOString(),
-    updated_at: new Date().toISOString()
   }
 }
 
@@ -268,35 +250,265 @@ async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1) {
   }
 }
 
-async function batchUpsert(supabase: any, table: string, data: any[], batchSize: number = 25) {
-  const results = []
+// Create or get genre IDs for relationship linking
+async function ensureGenres(supabase: any, genres: string[], contentType: 'anime' | 'manga'): Promise<{ ids: string[], created: number }> {
+  if (!genres.length) return { ids: [], created: 0 }
   
-  for (let i = 0; i < data.length; i += batchSize) {
-    const batch = data.slice(i, i + batchSize)
+  let created = 0
+  const genreIds: string[] = []
+  
+  for (const genreName of genres) {
+    // Check if genre exists
+    const { data: existing } = await supabase
+      .from('genres')
+      .select('id')
+      .eq('name', genreName)
+      .single()
     
-    try {
-      const { data: result, error } = await supabase
-        .from(table)
-        .upsert(batch, { 
-          onConflict: table === 'anime' ? 'anilist_id' : 'anilist_id',
-          ignoreDuplicates: false 
+    if (existing) {
+      genreIds.push(existing.id)
+    } else {
+      // Create new genre
+      const { data: newGenre, error } = await supabase
+        .from('genres')
+        .insert({ 
+          name: genreName, 
+          type: contentType === 'anime' ? 'anime' : 'manga' 
         })
         .select('id')
+        .single()
       
-      if (error) {
-        console.error(`Batch upsert error for ${table}:`, error)
-        // Continue with other batches even if one fails
-        continue
+      if (newGenre && !error) {
+        genreIds.push(newGenre.id)
+        created++
       }
-      
-      results.push(...(result || []))
-    } catch (err) {
-      console.error(`Batch processing error for ${table}:`, err)
-      continue
     }
   }
   
-  return results
+  return { ids: genreIds, created }
+}
+
+// Create or get studio IDs for anime
+async function ensureStudios(supabase: any, studios: string[]): Promise<{ ids: string[], created: number }> {
+  if (!studios.length) return { ids: [], created: 0 }
+  
+  let created = 0
+  const studioIds: string[] = []
+  
+  for (const studioName of studios) {
+    const { data: existing } = await supabase
+      .from('studios')
+      .select('id')
+      .eq('name', studioName)
+      .single()
+    
+    if (existing) {
+      studioIds.push(existing.id)
+    } else {
+      const { data: newStudio, error } = await supabase
+        .from('studios')
+        .insert({ name: studioName })
+        .select('id')
+        .single()
+      
+      if (newStudio && !error) {
+        studioIds.push(newStudio.id)
+        created++
+      }
+    }
+  }
+  
+  return { ids: studioIds, created }
+}
+
+// Create or get author IDs for manga
+async function ensureAuthors(supabase: any, authors: string[]): Promise<{ ids: string[], created: number }> {
+  if (!authors.length) return { ids: [], created: 0 }
+  
+  let created = 0
+  const authorIds: string[] = []
+  
+  for (const authorName of authors) {
+    const { data: existing } = await supabase
+      .from('authors')
+      .select('id')
+      .eq('name', authorName)
+      .single()
+    
+    if (existing) {
+      authorIds.push(existing.id)
+    } else {
+      const { data: newAuthor, error } = await supabase
+        .from('authors')
+        .insert({ name: authorName })
+        .select('id')
+        .single()
+      
+      if (newAuthor && !error) {
+        authorIds.push(newAuthor.id)
+        created++
+      }
+    }
+  }
+  
+  return { ids: authorIds, created }
+}
+
+// Link title to genres through junction table
+async function linkTitleGenres(supabase: any, titleId: string, genreIds: string[]): Promise<number> {
+  if (!genreIds.length) return 0
+  
+  const relationships = genreIds.map(genreId => ({
+    title_id: titleId,
+    genre_id: genreId
+  }))
+  
+  const { data, error } = await supabase
+    .from('title_genres')
+    .upsert(relationships, { onConflict: 'title_id,genre_id' })
+    .select()
+  
+  return error ? 0 : (data?.length || 0)
+}
+
+// Link title to studios through junction table
+async function linkTitleStudios(supabase: any, titleId: string, studioIds: string[]): Promise<number> {
+  if (!studioIds.length) return 0
+  
+  const relationships = studioIds.map(studioId => ({
+    title_id: titleId,
+    studio_id: studioId
+  }))
+  
+  const { data, error } = await supabase
+    .from('title_studios')
+    .upsert(relationships, { onConflict: 'title_id,studio_id' })
+    .select()
+  
+  return error ? 0 : (data?.length || 0)
+}
+
+// Link title to authors through junction table
+async function linkTitleAuthors(supabase: any, titleId: string, authorIds: string[]): Promise<number> {
+  if (!authorIds.length) return 0
+  
+  const relationships = authorIds.map(authorId => ({
+    title_id: titleId,
+    author_id: authorId
+  }))
+  
+  const { data, error } = await supabase
+    .from('title_authors')
+    .upsert(relationships, { onConflict: 'title_id,author_id' })
+    .select()
+  
+  return error ? 0 : (data?.length || 0)
+}
+
+// Process a single item with proper database operations
+async function processSingleItem(supabase: any, item: any, contentType: 'anime' | 'manga'): Promise<{
+  success: boolean
+  titleInserted: boolean
+  detailInserted: boolean
+  genresCreated: number
+  studiosCreated: number
+  authorsCreated: number
+  relationshipsCreated: number
+  error?: string
+}> {
+  try {
+    // Step 1: Insert/update title
+    const titleData = transformToTitleData(item)
+    const { data: titleResult, error: titleError } = await supabase
+      .from('titles')
+      .upsert(titleData, { 
+        onConflict: 'anilist_id',
+        ignoreDuplicates: false 
+      })
+      .select('id')
+      .single()
+    
+    if (titleError || !titleResult) {
+      return {
+        success: false,
+        titleInserted: false,
+        detailInserted: false,
+        genresCreated: 0,
+        studiosCreated: 0,
+        authorsCreated: 0,
+        relationshipsCreated: 0,
+        error: `Title insertion failed: ${titleError?.message || 'Unknown error'}`
+      }
+    }
+    
+    const titleId = titleResult.id
+    
+    // Step 2: Insert/update details
+    let detailsInserted = false
+    if (contentType === 'anime') {
+      const animeDetails = transformToAnimeDetails(item, titleId)
+      const { data: detailResult, error: detailError } = await supabase
+        .from('anime_details')
+        .upsert(animeDetails, { onConflict: 'title_id' })
+        .select('id')
+        .single()
+      
+      detailsInserted = !detailError && !!detailResult
+    } else {
+      const mangaDetails = transformToMangaDetails(item, titleId)
+      const { data: detailResult, error: detailError } = await supabase
+        .from('manga_details')
+        .upsert(mangaDetails, { onConflict: 'title_id' })
+        .select('id')
+        .single()
+      
+      detailsInserted = !detailError && !!detailResult
+    }
+    
+    // Step 3: Handle relationships
+    const genres = item.genres || []
+    const studios = contentType === 'anime' ? (item.studios?.nodes?.map((s: any) => s.name) || []) : []
+    const authors = contentType === 'manga' ? (item.staff?.nodes?.filter((s: any) => 
+      s.primaryOccupations?.includes('Story & Art') || s.primaryOccupations?.includes('Story')
+    ).map((s: any) => s.name) || []) : []
+    
+    const { ids: genreIds, created: genresCreated } = await ensureGenres(supabase, genres, contentType)
+    const { ids: studioIds, created: studiosCreated } = contentType === 'anime' ? 
+      await ensureStudios(supabase, studios) : { ids: [], created: 0 }
+    const { ids: authorIds, created: authorsCreated } = contentType === 'manga' ? 
+      await ensureAuthors(supabase, authors) : { ids: [], created: 0 }
+    
+    // Link relationships
+    let relationshipsCreated = 0
+    relationshipsCreated += await linkTitleGenres(supabase, titleId, genreIds)
+    if (contentType === 'anime') {
+      relationshipsCreated += await linkTitleStudios(supabase, titleId, studioIds)
+    } else {
+      relationshipsCreated += await linkTitleAuthors(supabase, titleId, authorIds)
+    }
+    
+    return {
+      success: true,
+      titleInserted: true,
+      detailInserted: detailsInserted,
+      genresCreated,
+      studiosCreated,
+      authorsCreated,
+      relationshipsCreated
+    }
+    
+  } catch (error) {
+    return {
+      success: false,
+      titleInserted: false,
+      detailInserted: false,
+      genresCreated: 0,
+      studiosCreated: 0,
+      authorsCreated: 0,
+      relationshipsCreated: 0,
+      error: error.message
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -313,11 +525,14 @@ Deno.serve(async (req) => {
 
     const { contentType, maxPages = 10 } = await req.json()
 
-    console.log(`Starting ultra-fast sync for ${contentType}, max pages: ${maxPages}`)
+    console.log(`🚀 Starting comprehensive ${contentType} sync with normalized database schema`)
 
     if (!contentType || !['anime', 'manga'].includes(contentType)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid contentType. Must be "anime" or "manga"' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Invalid contentType. Must be "anime" or "manga"' 
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -326,75 +541,118 @@ Deno.serve(async (req) => {
     }
 
     const mediaType = contentType.toUpperCase() as 'ANIME' | 'MANGA'
-    let totalProcessed = 0
-    let currentPage = 1
     const startTime = Date.now()
-
-    // Process pages in parallel batches
-    const parallelBatches = 3 // Process 3 pages simultaneously
     
-    while (currentPage <= maxPages) {
-      const pagePromises = []
-      
-      // Create batch of parallel requests
-      for (let i = 0; i < parallelBatches && currentPage + i <= maxPages; i++) {
-        pagePromises.push(
-          fetchAniListData(mediaType, currentPage + i)
-            .then(async (response) => {
-              if (!response.data?.Page?.media?.length) {
-                return { processed: 0, page: currentPage + i }
-              }
+    // Initialize comprehensive results tracking
+    const results: SyncResults = {
+      titlesInserted: 0,
+      detailsInserted: 0,
+      genresCreated: 0,
+      studiosCreated: 0,
+      authorsCreated: 0,
+      relationshipsCreated: 0,
+      errors: []
+    }
 
-              const items = response.data.Page.media
-              const cleanedData = items.map(item => 
-                contentType === 'anime' ? cleanAnimeData(item) : cleanMangaData(item)
-              ).filter(item => item.title !== 'Unknown Title') // Filter out invalid entries
+    let currentPage = 1
+    let totalProcessed = 0
+    let consecutiveEmptyPages = 0
 
-              if (cleanedData.length > 0) {
-                const results = await batchUpsert(supabase, contentType, cleanedData)
-                console.log(`Page ${currentPage + i}: Processed ${cleanedData.length} ${contentType} items`)
-                return { processed: cleanedData.length, page: currentPage + i }
-              }
-              
-              return { processed: 0, page: currentPage + i }
-            })
-            .catch(error => {
-              console.error(`Error processing page ${currentPage + i}:`, error)
-              return { processed: 0, page: currentPage + i, error: error.message }
-            })
-        )
+    console.log(`Processing up to ${maxPages} pages of ${contentType} data...`)
+
+    // Process pages sequentially to avoid overwhelming the database
+    while (currentPage <= maxPages && consecutiveEmptyPages < 3) {
+      try {
+        console.log(`📄 Processing page ${currentPage}/${maxPages}...`)
+        
+        const response = await fetchAniListData(mediaType, currentPage)
+        
+        if (!response.data?.Page?.media?.length) {
+          console.log(`⚠️ No data found on page ${currentPage}`)
+          consecutiveEmptyPages++
+          currentPage++
+          continue
+        }
+
+        const items = response.data.Page.media
+        console.log(`📊 Found ${items.length} items on page ${currentPage}`)
+        
+        let pageProcessed = 0
+        consecutiveEmptyPages = 0
+
+        // Process each item individually for better error handling and tracking
+        for (const item of items) {
+          if (!item.id || !item.title?.romaji && !item.title?.english) {
+            console.log(`⚠️ Skipping invalid item: ${item.id}`)
+            continue
+          }
+
+          const itemResult = await processSingleItem(supabase, item, contentType)
+          
+          if (itemResult.success) {
+            if (itemResult.titleInserted) results.titlesInserted++
+            if (itemResult.detailInserted) results.detailsInserted++
+            results.genresCreated += itemResult.genresCreated
+            results.studiosCreated += itemResult.studiosCreated
+            results.authorsCreated += itemResult.authorsCreated
+            results.relationshipsCreated += itemResult.relationshipsCreated
+            pageProcessed++
+            totalProcessed++
+          } else {
+            results.errors.push(`Page ${currentPage}, Item ${item.id}: ${itemResult.error}`)
+            console.error(`❌ Failed to process item ${item.id}:`, itemResult.error)
+          }
+
+          // Add small delay to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+
+        console.log(`✅ Page ${currentPage} completed: ${pageProcessed}/${items.length} items processed successfully`)
+        
+        // Add delay between pages to respect AniList rate limits
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+      } catch (error) {
+        console.error(`❌ Error processing page ${currentPage}:`, error)
+        results.errors.push(`Page ${currentPage}: ${error.message}`)
+        consecutiveEmptyPages++
       }
 
-      // Wait for all parallel requests to complete
-      const batchResults = await Promise.all(pagePromises)
-      const batchProcessed = batchResults.reduce((sum, result) => sum + result.processed, 0)
-      totalProcessed += batchProcessed
-      
-      console.log(`Completed batch starting at page ${currentPage}, processed ${batchProcessed} items`)
-      
-      // Check if we should continue
-      if (batchProcessed === 0) {
-        console.log('No more data to process, stopping')
-        break
-      }
-      
-      currentPage += parallelBatches
+      currentPage++
     }
 
     const duration = Date.now() - startTime
-    const avgPerSecond = Math.round((totalProcessed / duration) * 1000)
+    const avgPerSecond = duration > 0 ? Math.round((totalProcessed / duration) * 1000) : 0
 
-    console.log(`Ultra-fast sync completed: ${totalProcessed} ${contentType} items in ${duration}ms (${avgPerSecond}/sec)`)
+    console.log(`🎉 Sync completed in ${duration}ms:`)
+    console.log(`   📊 Total processed: ${totalProcessed}`)
+    console.log(`   📖 Titles: ${results.titlesInserted}`)
+    console.log(`   📝 Details: ${results.detailsInserted}`)
+    console.log(`   🎭 Genres: ${results.genresCreated}`)
+    console.log(`   🏢 Studios: ${results.studiosCreated}`)
+    console.log(`   ✍️ Authors: ${results.authorsCreated}`)
+    console.log(`   🔗 Relationships: ${results.relationshipsCreated}`)
+    console.log(`   ❌ Errors: ${results.errors.length}`)
 
+    // Return comprehensive results
     return new Response(
       JSON.stringify({
         success: true,
         contentType,
         totalProcessed,
-        pagesProcessed: Math.min(currentPage - 1, maxPages),
+        pagesProcessed: currentPage - 1,
         duration: `${duration}ms`,
         averagePerSecond: avgPerSecond,
-        message: `Successfully synced ${totalProcessed} ${contentType} items at high speed`
+        results: {
+          titlesInserted: results.titlesInserted,
+          detailsInserted: results.detailsInserted,
+          genresCreated: results.genresCreated,
+          studiosCreated: results.studiosCreated,
+          authorsCreated: results.authorsCreated,
+          relationshipsCreated: results.relationshipsCreated,
+          errors: results.errors.slice(0, 10) // Limit error details
+        },
+        message: `Successfully synced ${totalProcessed} ${contentType} items with ${results.relationshipsCreated} relationships`
       }),
       { 
         status: 200, 
@@ -403,9 +661,10 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Ultra-fast sync error:', error)
+    console.error('❌ Ultra-fast sync critical error:', error)
     return new Response(
       JSON.stringify({
+        success: false,
         error: 'Ultra-fast sync failed',
         details: error.message
       }),

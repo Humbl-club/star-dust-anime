@@ -110,21 +110,28 @@ const SyncDashboard = () => {
       const results = data;
       console.log('Sync results:', results);
       
-      // Transform ultra-fast-sync response to match expected format
+      // Handle the new comprehensive response format
+      const syncResults = results.results || {};
       const transformedResults = {
-        inserted: results.totalProcessed || 0,
+        inserted: syncResults.titlesInserted || 0,
         processed: results.totalProcessed || 0,
         pages: results.pagesProcessed || 0,
-        relationshipsCreated: 0 // ultra-fast-sync doesn't track relationships
+        genresCreated: syncResults.genresCreated || 0,
+        studiosCreated: syncResults.studiosCreated || 0,
+        authorsCreated: syncResults.authorsCreated || 0,
+        relationshipsCreated: syncResults.relationshipsCreated || 0
       };
       
       setSyncResults(prev => ({ ...prev, [contentType]: transformedResults }));
       setSyncStatus(`${syncType} ${contentType} sync completed!`);
       setCurrentOperation('');
 
+      // Show comprehensive results in toast
+      const resultSummary = `${transformedResults.inserted} ${contentType} titles, ${transformedResults.genresCreated} genres, ${transformedResults.relationshipsCreated} relationships`;
+      
       toast({
         title: "Sync Completed Successfully!",
-        description: `${transformedResults.inserted} new ${contentType} titles synced (${results.duration})`,
+        description: `${resultSummary} synced in ${results.duration}`,
       });
 
     } catch (error: any) {
@@ -255,9 +262,11 @@ const SyncDashboard = () => {
                           variant: "destructive"
                         });
                       } else {
+                        const syncResults = data.results || {};
+                        const testSummary = `${syncResults.titlesInserted || 0} titles, ${syncResults.genresCreated || 0} genres, ${syncResults.relationshipsCreated || 0} relationships`;
                         toast({
                           title: "Function Test Successful!",
-                          description: `ultra-fast-sync is working: ${data?.totalProcessed || 0} items processed (${data?.duration})`
+                          description: `ultra-fast-sync working: ${testSummary} created (${data?.duration})`
                         });
                       }
                     } catch (err: any) {
@@ -342,9 +351,11 @@ const SyncDashboard = () => {
                           variant: "destructive"
                         });
                       } else {
+                        const syncResults = data.results || {};
+                        const testSummary = `${syncResults.titlesInserted || 0} titles, ${syncResults.genresCreated || 0} genres, ${syncResults.relationshipsCreated || 0} relationships`;
                         toast({
                           title: "Manga Function Test Successful!",
-                          description: `ultra-fast-sync is working: ${data?.totalProcessed || 0} items processed (${data?.duration})`
+                          description: `ultra-fast-sync working: ${testSummary} created (${data?.duration})`
                         });
                       }
                     } catch (err: any) {
