@@ -19,6 +19,7 @@ import {
 import { useApiData } from "@/hooks/useApiData";
 import { toast } from "sonner";
 import { CompleteAniListSync } from "@/components/CompleteAniListSync";
+import { ComprehensiveNormalizedSync } from "@/components/ComprehensiveNormalizedSync";
 
 const DataSync = () => {
   const [animePages, setAnimePages] = useState(1);
@@ -150,6 +151,9 @@ const DataSync = () => {
 
         {/* Complete AniList Sync */}
         <CompleteAniListSync />
+        
+        {/* Comprehensive Normalized Sync */}
+        <ComprehensiveNormalizedSync />
 
         {/* Anime Data Sync */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
