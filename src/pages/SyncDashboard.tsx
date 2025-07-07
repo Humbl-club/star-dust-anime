@@ -12,6 +12,7 @@ import { AutoSyncMonitor } from "@/components/AutoSyncMonitor";
 import { AutonomousSync } from "@/components/AutonomousSync";
 import { DirectSyncTest } from "@/components/DirectSyncTest";
 import { WorkingSync } from "@/components/WorkingSync";
+import { DirectDatabaseAdd } from "@/components/DirectDatabaseAdd";
 import { 
   Database, 
   Download, 
@@ -176,8 +177,13 @@ const SyncDashboard = () => {
           </p>
         </div>
 
+        {/* Direct Database Add Test - Bypass edge functions completely */}
+        <DirectDatabaseAdd />
+        
         {/* Working Sync Test - Use proven function */}
-        <WorkingSync />
+        <div className="mt-6">
+          <WorkingSync />
+        </div>
         
         {/* Direct Function Test - Debug the issue */}
         <div className="mt-6">

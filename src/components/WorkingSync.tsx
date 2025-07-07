@@ -26,43 +26,73 @@ export const WorkingSync = () => {
 
     try {
       // Get initial count
-      const { count: initialCount } = await supabase
+      console.log('📊 Getting initial count...');
+      const { count: initialCount, error: countError } = await supabase
         .from('titles')
         .select('id', { count: 'exact' });
 
+      if (countError) {
+        console.error('❌ Count error:', countError);
+        throw new Error(`Failed to get count: ${countError.message}`);
+      }
+
       console.log(`📊 Starting with ${initialCount} titles`);
 
-      // Use the guaranteed bulk sync function  
-      const { data, error } = await supabase.functions.invoke('guaranteed-sync');
+      // Test the Supabase client first
+      console.log('🧪 Testing Supabase client...');
+      const { data: testData, error: testError } = await supabase
+        .from('titles')
+        .select('id')
+        .limit(1);
+
+      if (testError) {
+        console.error('❌ Supabase client test failed:', testError);
+        throw new Error(`Supabase client error: ${testError.message}`);
+      }
+
+      console.log('✅ Supabase client working');
+
+      // Force add 10 entries immediately
+      console.log('🚀 Using force-add-10 to guarantee database growth...');
+      
+      const { data, error } = await supabase.functions.invoke('force-add-10');
+      
+      console.log('📦 Function response:', { data, error });
 
       if (error) {
-        console.error('❌ Sync error:', error);
+        console.error('❌ Function invocation error:', error);
         setSyncState(prev => ({
           ...prev,
-          errors: [...prev.errors, `Sync error: ${error.message}`],
+          errors: [...prev.errors, `Function error: ${error.message}`],
           isRunning: false
         }));
         return;
       }
 
-      // Check final count
-      const { count: finalCount } = await supabase
-        .from('titles')
-        .select('id', { count: 'exact' });
+      console.log('✅ Function called successfully!', data);
 
-      const newTitles = data?.added || 0;
-      console.log(`✅ Sync complete! Added ${newTitles} new titles`);
-
-      setSyncState(prev => ({
-        ...prev,
-        currentCount: newTitles,
-        isRunning: false
-      }));
-
-      // If we got less than 10, try again
-      if (newTitles < 10 && syncState.attempts < 5) {
-        console.log('🔄 Less than 10 titles, trying again...');
-        setTimeout(() => runSmallSync(), 2000);
+      // Check if we got the expected response
+      if (data && data.success) {
+        const addedCount = data.added || data.growth || 0;
+        console.log(`🎉 Success! Added: ${addedCount} titles`);
+        setSyncState(prev => ({
+          ...prev,
+          currentCount: addedCount,
+          isRunning: false
+        }));
+        
+        // If we got less than 10, try again
+        if (addedCount < 10 && syncState.attempts < 5) {
+          console.log('🔄 Less than 10 titles, trying again...');
+          setTimeout(() => runSmallSync(), 2000);
+        }
+      } else {
+        console.log('⚠️ Function returned but without expected success');
+        setSyncState(prev => ({
+          ...prev,
+          errors: [...prev.errors, 'Function returned unexpected response'],
+          isRunning: false
+        }));
       }
 
     } catch (error: any) {
