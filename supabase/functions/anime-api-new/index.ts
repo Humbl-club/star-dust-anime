@@ -12,23 +12,51 @@ interface ApiRequest {
 }
 
 serve(async (req) => {
+  console.log('🚀 anime-api-new function called with method:', req.method);
+  console.log('🌐 Request URL:', req.url);
+  console.log('📍 Headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling CORS preflight');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('❌ Missing Supabase environment variables');
+      throw new Error('Missing Supabase configuration');
+    }
 
-    const { method, path }: ApiRequest = await req.json();
+    console.log('✅ Supabase config found');
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Parse request body
+    const requestBody = await req.json();
+    console.log('📦 Request body:', requestBody);
+    
+    const { method, path }: ApiRequest = requestBody;
+    
+    if (!method || !path) {
+      console.error('❌ Missing method or path in request');
+      throw new Error('Invalid request format');
+    }
+
+    // Parse the path to extract content type and query parameters
     const url = new URL(`http://localhost${path}`);
     const pathSegments = url.pathname.split('/').filter(Boolean);
-    const contentType = pathSegments[0]; // 'anime' or 'manga'
+    const contentType = pathSegments[0];
+    
+    console.log('🎯 Content type:', contentType);
+    console.log('🔍 Query params:', Object.fromEntries(url.searchParams));
 
     if (!['anime', 'manga'].includes(contentType)) {
+      console.error('❌ Invalid content type:', contentType);
       return new Response(
         JSON.stringify({ error: 'Invalid content type' }),
         { 
@@ -51,12 +79,30 @@ serve(async (req) => {
       const sort_by = url.searchParams.get('sort_by') || 'score';
       const order = (url.searchParams.get('order') || 'desc') as 'asc' | 'desc';
 
-      console.log(`🔍 Building query for ${contentType} with filters:`, { search, genre, status, type, year, season });
+      console.log('📊 Query params:', { page, limit, search, sort_by, order });
 
-      // Stage 1: Basic query with complete relationships
+      // **STEP 1: Test basic title query first**
+      console.log('🔍 Testing basic titles query...');
+      
+      let basicQuery = supabase
+        .from('titles')
+        .select('id, title, image_url, score, popularity, anilist_id', { count: 'exact' });
+
+      // Test if basic query works
+      const { data: basicTest, error: basicError } = await basicQuery.limit(5);
+      
+      if (basicError) {
+        console.error('❌ Basic query failed:', basicError);
+        throw new Error(`Basic query failed: ${basicError.message}`);
+      }
+      
+      console.log('✅ Basic query works, found', basicTest?.length, 'titles');
+
+      // **STEP 2: Add content type filtering**
       let query;
       
       if (contentType === 'anime') {
+        console.log('🎬 Building anime query with relationships...');
         query = supabase
           .from('titles')
           .select(`
@@ -86,10 +132,7 @@ serve(async (req) => {
               type,
               trailer_url,
               trailer_site,
-              trailer_id,
-              next_episode_date,
-              next_episode_number,
-              last_sync_check
+              trailer_id
             ),
             title_genres(
               genres(
@@ -105,6 +148,7 @@ serve(async (req) => {
             )
           `, { count: 'exact' });
       } else {
+        console.log('📚 Building manga query with relationships...');
         query = supabase
           .from('titles')
           .select(`
@@ -131,10 +175,7 @@ serve(async (req) => {
               published_from,
               published_to,
               status,
-              type,
-              next_chapter_date,
-              next_chapter_number,
-              last_sync_check
+              type
             ),
             title_genres(
               genres(
@@ -151,46 +192,42 @@ serve(async (req) => {
           `, { count: 'exact' });
       }
 
-      console.log('📊 Complex query with relationships created');
+      console.log('🔍 Testing content-specific query...');
 
-      // Stage 2: Apply comprehensive filters
+      // **STEP 3: Add filters step by step**
       if (search) {
-        console.log(`🔍 Applying search filter: ${search}`);
-        query = query.or(`title.ilike.%${search}%,title_english.ilike.%${search}%,title_japanese.ilike.%${search}%,synopsis.ilike.%${search}%`);
+        console.log('🔍 Adding search filter:', search);
+        query = query.or(`title.ilike.%${search}%,title_english.ilike.%${search}%,title_japanese.ilike.%${search}%`);
       }
       
-      // Apply status and type filters to the detail tables
+      // Apply detail table filters
       if (status && contentType === 'anime') {
-        console.log(`📊 Applying anime status filter: ${status}`);
+        console.log('📊 Adding anime status filter:', status);
         query = query.eq('anime_details.status', status);
       } else if (status && contentType === 'manga') {
-        console.log(`📊 Applying manga status filter: ${status}`);
+        console.log('📊 Adding manga status filter:', status);
         query = query.eq('manga_details.status', status);
       }
       
       if (type && contentType === 'anime') {
-        console.log(`📊 Applying anime type filter: ${type}`);
+        console.log('📊 Adding anime type filter:', type);
         query = query.eq('anime_details.type', type);
       } else if (type && contentType === 'manga') {
-        console.log(`📊 Applying manga type filter: ${type}`);
+        console.log('📊 Adding manga type filter:', type);
         query = query.eq('manga_details.type', type);
       }
       
       if (year) {
-        console.log(`📊 Applying year filter: ${year}`);
+        console.log('📊 Adding year filter:', year);
         query = query.eq('year', parseInt(year));
       }
       
       if (season && contentType === 'anime') {
-        console.log(`📊 Applying season filter: ${season}`);
+        console.log('📊 Adding season filter:', season);
         query = query.eq('anime_details.season', season);
       }
 
-      // Stage 3: Advanced genre filtering (simplified approach)
-      // Note: Genre filtering requires a more complex approach with the normalized structure
-      // For now, we'll handle this in the frontend filtering or add it later
-
-      // Apply sorting
+      // **STEP 4: Apply sorting**
       let sortField = 'score';
       switch (sort_by) {
         case 'title':
@@ -215,17 +252,21 @@ serve(async (req) => {
           sortField = 'score';
       }
 
+      console.log('📊 Applying sort:', sortField, order);
       query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false });
 
-      // Apply pagination
+      // **STEP 5: Apply pagination**
       const from = (page - 1) * limit;
       const to = from + limit - 1;
+      console.log('📄 Applying pagination:', { from, to });
       query = query.range(from, to);
 
+      // **STEP 6: Execute the query**
+      console.log('🚀 Executing final query...');
       const { data, error, count } = await query;
 
       if (error) {
-        console.error('Database error:', error);
+        console.error('❌ Query execution failed:', error);
         return new Response(
           JSON.stringify({ error: 'Database query failed', details: error.message }),
           { 
@@ -235,20 +276,27 @@ serve(async (req) => {
         );
       }
 
-      console.log(`✅ Query executed successfully, processing ${data?.length || 0} items`);
+      console.log('✅ Query executed successfully!');
+      console.log('📊 Results:', { count: data?.length, total: count });
 
-      // Stage 4: Enhanced data transformation with error handling
+      // **STEP 7: Transform data with relationships**
       const transformedData = (data || []).map((item, index) => {
         try {
           const isAnime = contentType === 'anime';
           const details = isAnime ? item.anime_details?.[0] : item.manga_details?.[0];
           
-          if (!details) {
-            console.warn(`⚠️ Missing details for item ${index}:`, item.id);
-          }
-
-          // Stage 5: Comprehensive data flattening
-          const transformed = {
+          // Extract relationship data
+          const genres = item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [];
+          const studios = item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [];
+          const authors = item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || [];
+          
+          console.log(`🔗 Item ${index} relationships:`, { 
+            genres: genres.length, 
+            studios: studios.length, 
+            authors: authors.length 
+          });
+          
+          return {
             // Core title data
             id: item.id,
             anilist_id: item.anilist_id,
@@ -272,16 +320,14 @@ serve(async (req) => {
             ...(details || {}),
 
             // Rich relationship data
-            genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
-            studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
-            authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || [],
+            genres,
+            studios,
+            authors,
 
             // Legacy compatibility fields
-            mal_id: item.anilist_id, // Use anilist_id as fallback
+            mal_id: item.anilist_id,
             scored_by: item.members || 0
           };
-
-          return transformed;
         } catch (transformError) {
           console.error(`❌ Transform error for item ${index}:`, transformError);
           return {
@@ -316,6 +362,8 @@ serve(async (req) => {
         }
       };
 
+      console.log('✅ Sending response with', transformedData.length, 'items');
+
       return new Response(
         JSON.stringify(response),
         { 
@@ -325,6 +373,7 @@ serve(async (req) => {
       );
     }
 
+    console.log('❌ Method not allowed:', method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { 
@@ -334,7 +383,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('💥 Edge function error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
