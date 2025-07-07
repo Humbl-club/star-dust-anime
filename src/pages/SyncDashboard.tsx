@@ -8,10 +8,8 @@ import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useStats } from "@/hooks/useStats";
-import { AutoSyncMonitor } from "@/components/AutoSyncMonitor";
-import { AutonomousSync } from "@/components/AutonomousSync";
+import { AutomatedBackgroundSync } from "@/components/AutomatedBackgroundSync";
 import { DirectSyncTest } from "@/components/DirectSyncTest";
-import { WorkingSync } from "@/components/WorkingSync";
 import { DirectDatabaseAdd } from "@/components/DirectDatabaseAdd";
 import { 
   Database, 
@@ -177,12 +175,12 @@ const SyncDashboard = () => {
           </p>
         </div>
 
-        {/* Direct Database Add Test - Bypass edge functions completely */}
-        <DirectDatabaseAdd />
+        {/* Automated Background Sync - Real AniList data syncing automatically */}
+        <AutomatedBackgroundSync />
         
-        {/* Working Sync Test - Use proven function */}
+        {/* Direct Database Add Test - Bypass edge functions completely */}
         <div className="mt-6">
-          <WorkingSync />
+          <DirectDatabaseAdd />
         </div>
         
         {/* Direct Function Test - Debug the issue */}

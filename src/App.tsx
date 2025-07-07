@@ -10,7 +10,7 @@ import { AgeVerificationModal } from "@/components/AgeVerificationModal";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { HelmetProvider } from "react-helmet-async";
 import { Shield } from "lucide-react";
-import useAutoSync from "@/hooks/useAutoSync";
+
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Anime from "./pages/Anime";
@@ -31,7 +31,6 @@ import AnimeDetail from "./pages/AnimeDetail";
 const queryClient = new QueryClient();
 
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
-  const { syncStatus } = useAutoSync();
   const { isVerified, loading, showModal, setVerified } = useAgeVerification();
   
   console.log('🔍 AutoSyncProvider: showModal =', showModal, 'isVerified =', isVerified, 'loading =', loading);
