@@ -158,9 +158,18 @@ export const AutomatedBackgroundSync = () => {
         {/* Manual Sync Button */}
         <div className="text-center">
           <Button 
-            onClick={() => {
-              console.log('🎯 MANUAL SYNC: Triggering immediate sync for 100+ titles...');
-              manualSync();
+            onClick={async () => {
+              console.log('🎯 MANUAL SYNC BUTTON CLICKED!');
+              console.log('🔍 Current sync state:', syncProgress);
+              console.log('🔍 Is active:', isActive);
+              
+              try {
+                console.log('🚀 Calling manualSync()...');
+                const result = await manualSync();
+                console.log('✅ Manual sync result:', result);
+              } catch (error) {
+                console.error('❌ Manual sync error:', error);
+              }
             }}
             disabled={syncProgress.isRunning}
             className="mb-4"
