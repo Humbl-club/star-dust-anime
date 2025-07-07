@@ -622,11 +622,24 @@ Deno.serve(async (req) => {
         const items = response.data.Page.media
         console.log(`📊 Found ${items.length} items on page ${currentPage}`)
         
+        // Deduplicate items by anilist_id to prevent "cannot affect row a second time" errors
+        const seenIds = new Set<number>()
+        const deduplicatedItems = items.filter(item => {
+          if (!item.id || seenIds.has(item.id)) {
+            console.log(`⚠️ Skipping duplicate or invalid item: ${item.id}`)
+            return false
+          }
+          seenIds.add(item.id)
+          return true
+        })
+        
+        console.log(`📊 After deduplication: ${deduplicatedItems.length}/${items.length} items (removed ${items.length - deduplicatedItems.length} duplicates)`)
+        
         let pageProcessed = 0
         consecutiveEmptyPages = 0
 
-        // Process each item individually for better error handling and tracking
-        for (const item of items) {
+        // Process each deduplicated item individually for better error handling and tracking
+        for (const item of deduplicatedItems) {
           if (!item.id || !item.title?.romaji && !item.title?.english) {
             console.log(`⚠️ Skipping invalid item: ${item.id}`)
             continue
