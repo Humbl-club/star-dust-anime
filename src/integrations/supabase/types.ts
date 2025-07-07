@@ -106,7 +106,7 @@ export type Database = {
           {
             foreignKeyName: "anime_details_title_id_fkey"
             columns: ["title_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -408,7 +408,7 @@ export type Database = {
           {
             foreignKeyName: "manga_details_title_id_fkey"
             columns: ["title_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
