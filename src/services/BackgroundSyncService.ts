@@ -16,7 +16,7 @@ interface AniListTitle {
     nodes: Array<{ name: string }>;
   };
   staff?: {
-    nodes: Array<{ name: { full: string }; role?: string }>;
+    nodes: Array<{ name: { full: string } }>;
   };
   averageScore?: number;
   popularity?: number;
@@ -110,6 +110,7 @@ class BackgroundSyncService {
     `;
 
     try {
+      console.log(`🌐 Fetching ${mediaType} page ${page} from AniList...`);
       const response = await fetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: {
@@ -122,34 +123,44 @@ class BackgroundSyncService {
       });
 
       if (!response.ok) {
-        // Log more detailed error information
         const errorText = await response.text();
-        console.error(`AniList API error ${response.status} for ${mediaType} page ${page}:`, errorText);
-        throw new Error(`AniList API error: ${response.status} - ${errorText.slice(0, 100)}`);
+        console.error(`❌ AniList API error ${response.status} for ${mediaType} page ${page}:`, errorText);
+        throw new Error(`AniList API error: ${response.status}`);
       }
 
       const data = await response.json();
-      return data.data?.Page?.media || [];
+      const items = data.data?.Page?.media || [];
+      console.log(`✅ Received ${items.length} ${mediaType} items from page ${page}`);
+      return items;
     } catch (error) {
-      console.error(`Failed to fetch ${mediaType} data from AniList:`, error);
+      console.error(`💥 Failed to fetch ${mediaType} data from AniList:`, error);
       throw error;
     }
   }
 
   private async processTitle(item: AniListTitle, contentType: 'anime' | 'manga') {
     try {
+      console.log(`🔍 Processing ${contentType}: ${item.title?.romaji} (ID: ${item.id})`);
+      
       // Check if title already exists
-      const { data: existingTitle } = await supabase
+      const { data: existingTitle, error: checkError } = await supabase
         .from('titles')
         .select('id')
         .eq('anilist_id', item.id)
         .single();
 
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error(`❌ Database check error for ${item.id}:`, checkError);
+        throw new Error(`Database check failed: ${checkError.message}`);
+      }
+
       if (existingTitle) {
-        console.log(`⏭️ Title ${item.id} already exists, skipping`);
+        console.log(`⏭️ ${item.title?.romaji} (${item.id}) already exists - skipping`);
         return false;
       }
 
+      console.log(`➕ ADDING NEW ${contentType}: ${item.title?.romaji} (ID: ${item.id})`);
+      
       // Insert title
       const { data: newTitle, error: titleError } = await supabase
         .from('titles')
@@ -158,7 +169,7 @@ class BackgroundSyncService {
           title: item.title?.romaji || item.title?.english || 'Unknown Title',
           title_english: item.title?.english,
           title_japanese: item.title?.native,
-          synopsis: item.description?.replace(/<[^>]*>/g, ''), // Remove HTML tags
+          synopsis: item.description?.replace(/<[^>]*>/g, ''),
           score: item.averageScore,
           popularity: item.popularity,
           favorites: item.favourites,
@@ -171,12 +182,15 @@ class BackgroundSyncService {
         .single();
 
       if (titleError) {
-        throw new Error(`Failed to insert title: ${titleError.message}`);
+        console.error(`❌ Failed to insert title ${item.id}:`, titleError);
+        throw new Error(`Title insert failed: ${titleError.message}`);
       }
 
-      // Insert anime/manga details
+      console.log(`✅ Inserted title: ${newTitle.id}`);
+      
+      // Insert specific details
       if (contentType === 'anime') {
-        await supabase
+        const { error: detailsError } = await supabase
           .from('anime_details')
           .insert({
             title_id: newTitle.id,
@@ -188,8 +202,14 @@ class BackgroundSyncService {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
+        
+        if (detailsError) {
+          console.error(`❌ Anime details error for ${item.id}:`, detailsError);
+        } else {
+          console.log(`✅ Added anime details for: ${item.title?.romaji}`);
+        }
       } else {
-        await supabase
+        const { error: detailsError } = await supabase
           .from('manga_details')
           .insert({
             title_id: newTitle.id,
@@ -200,78 +220,18 @@ class BackgroundSyncService {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
-      }
-
-      // Process genres
-      if (item.genres?.length) {
-        for (const genreName of item.genres) {
-          // Find or create genre
-          let { data: genre } = await supabase
-            .from('genres')
-            .select('id')
-            .eq('name', genreName)
-            .single();
-
-          if (!genre) {
-            const { data: newGenre } = await supabase
-              .from('genres')
-              .insert({ name: genreName, type: 'both' })
-              .select('id')
-              .single();
-            genre = newGenre;
-          }
-
-          if (genre) {
-            await supabase
-              .from('title_genres')
-              .insert({
-                title_id: newTitle.id,
-                genre_id: genre.id
-              })
-              .select()
-              .single();
-          }
+        
+        if (detailsError) {
+          console.error(`❌ Manga details error for ${item.id}:`, detailsError);
+        } else {
+          console.log(`✅ Added manga details for: ${item.title?.romaji}`);
         }
       }
 
-      // Process studios (for anime)
-      if (contentType === 'anime' && item.studios?.nodes?.length) {
-        for (const studioNode of item.studios.nodes) {
-          if (!studioNode.name) continue;
-
-          // Find or create studio
-          let { data: studio } = await supabase
-            .from('studios')
-            .select('id')
-            .eq('name', studioNode.name)
-            .single();
-
-          if (!studio) {
-            const { data: newStudio } = await supabase
-              .from('studios')
-              .insert({ name: studioNode.name })
-              .select('id')
-              .single();
-            studio = newStudio;
-          }
-
-          if (studio) {
-            await supabase
-              .from('title_studios')
-              .insert({
-                title_id: newTitle.id,
-                studio_id: studio.id
-              })
-              .select()
-              .single();
-          }
-        }
-      }
-
-      console.log(`✅ Successfully processed: ${item.title?.romaji} (ID: ${item.id})`);
+      console.log(`🎉 SUCCESSFULLY PROCESSED: ${item.title?.romaji} (ID: ${item.id})`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to process title ${item.id}:`, error);
+      console.error(`💥 Processing failed for ${item.id}:`, error);
       throw error;
     }
   }
@@ -281,34 +241,37 @@ class BackgroundSyncService {
     let processedCount = 0;
     const errors: string[] = [];
 
+    console.log(`🚀 Starting ${contentType} batch: pages ${startPage}-${startPage + batchSize - 1}`);
+
     for (let page = startPage; page < startPage + batchSize; page++) {
       try {
-        console.log(`📄 Fetching ${contentType} page ${page}...`);
-        
         const items = await this.fetchAniListData(mediaType, page);
         
         if (!items.length) {
-          console.log(`⚠️ No more ${contentType} data available at page ${page} - stopping batch`);
+          console.log(`⚠️ No ${contentType} data on page ${page} - stopping batch`);
           break;
         }
 
-        let successfulProcessedInPage = 0;
+        let successInPage = 0;
         for (const item of items) {
           try {
             const wasProcessed = await this.processTitle(item, contentType);
             if (wasProcessed) {
               processedCount++;
-              successfulProcessedInPage++;
+              successInPage++;
               this.syncProgress.totalProcessed++;
             }
           } catch (error) {
-            const errorMsg = `Failed to process ${contentType} ${item.id}: ${error.message}`;
+            const errorMsg = `${contentType} ${item.id}: ${error.message}`;
             errors.push(errorMsg);
             this.syncProgress.errors.push(errorMsg);
+            console.error(`❌ ${errorMsg}`);
           }
         }
 
-        // Get updated counts using proper joins
+        console.log(`📄 Page ${page} complete: ${successInPage}/${items.length} new ${contentType} titles`);
+
+        // Update counts and notify
         const { count: animeCount } = await supabase
           .from('anime_details')
           .select('id', { count: 'exact' });
@@ -321,23 +284,24 @@ class BackgroundSyncService {
         this.syncProgress.mangaCount = mangaCount || 0;
         this.notifyListeners();
 
-        // Rate limiting - small delay between pages
+        // Rate limiting
         await new Promise(resolve => setTimeout(resolve, 1000));
         
       } catch (error) {
-        const errorMsg = `Failed to sync ${contentType} page ${page}: ${error.message}`;
+        const errorMsg = `${contentType} page ${page}: ${error.message}`;
         errors.push(errorMsg);
         this.syncProgress.errors.push(errorMsg);
         console.error(`❌ ${errorMsg}`);
       }
     }
 
+    console.log(`🏁 ${contentType} batch complete: ${processedCount} new titles processed`);
     return { processedCount, errors };
   }
 
   async startBackgroundSync() {
     if (this.isRunning) {
-      console.log('🔄 Background sync already running');
+      console.log('🔄 Sync already running - skipping');
       return;
     }
 
@@ -345,10 +309,11 @@ class BackgroundSyncService {
     this.syncProgress.isRunning = true;
     this.syncProgress.errors = [];
     
-    console.log('🌙 Starting automated background sync...');
+    console.log('🌙 STARTING AUTOMATED BACKGROUND SYNC...');
+    this.notifyListeners();
     
     try {
-      // Get initial counts using proper table queries
+      // Get initial counts
       const { count: initialAnimeCount } = await supabase
         .from('anime_details')
         .select('id', { count: 'exact' });
@@ -361,29 +326,31 @@ class BackgroundSyncService {
       this.syncProgress.mangaCount = initialMangaCount || 0;
       this.notifyListeners();
 
-      // Start from page 1 and go sequentially - safer approach
-      console.log('🎬 Processing anime starting from page 1');
-      console.log('📚 Processing manga starting from page 1');
+      console.log(`📊 Starting sync with: ${initialAnimeCount} anime, ${initialMangaCount} manga`);
 
-      // Process in parallel but with smaller, safer batches starting from page 1
+      // Process in parallel - 3 pages each (~150 items total)
       const [animeResult, mangaResult] = await Promise.allSettled([
-        this.syncBatch('anime', 1, 3), // Start from page 1, do 3 pages
-        this.syncBatch('manga', 1, 3)  // Start from page 1, do 3 pages
+        this.syncBatch('anime', 1, 3),
+        this.syncBatch('manga', 1, 3)
       ]);
 
-      console.log('🎉 Background sync batch completed!');
-      
+      // Log results
       if (animeResult.status === 'fulfilled') {
-        console.log(`✅ Anime: ${animeResult.value.processedCount} new titles`);
+        console.log(`✅ Anime sync: ${animeResult.value.processedCount} new titles added`);
       } else {
         console.error('❌ Anime sync failed:', animeResult.reason);
       }
       
       if (mangaResult.status === 'fulfilled') {
-        console.log(`✅ Manga: ${mangaResult.value.processedCount} new titles`);
+        console.log(`✅ Manga sync: ${mangaResult.value.processedCount} new titles added`);
       } else {
         console.error('❌ Manga sync failed:', mangaResult.reason);
       }
+
+      const totalProcessed = (animeResult.status === 'fulfilled' ? animeResult.value.processedCount : 0) +
+                           (mangaResult.status === 'fulfilled' ? mangaResult.value.processedCount : 0);
+
+      console.log(`🎉 BACKGROUND SYNC COMPLETE! Total new titles: ${totalProcessed}`);
 
     } catch (error) {
       console.error('💥 Background sync critical error:', error);
@@ -395,27 +362,24 @@ class BackgroundSyncService {
     }
   }
 
-  // Start continuous background sync with intelligent scheduling
   startContinuousSync() {
-    // Initial sync
+    console.log('🚀 STARTING CONTINUOUS SYNC SYSTEM...');
+    
+    // Start immediately
     this.startBackgroundSync();
 
-    // Schedule regular syncs - every 10 minutes for small batches
-    setInterval(() => {
+    // Schedule every 5 minutes
+    const syncInterval = setInterval(() => {
       if (!this.isRunning) {
-        console.log('⏰ Scheduled background sync starting...');
+        console.log('⏰ Scheduled sync starting...');
         this.startBackgroundSync();
+      } else {
+        console.log('⏳ Sync in progress - skipping scheduled run');
       }
-    }, 10 * 60 * 1000); // 10 minutes
+    }, 5 * 60 * 1000);
 
-    // Larger sync every hour during off-peak times
-    setInterval(() => {
-      if (!this.isRunning) {
-        console.log('🌙 Large background sync starting...');
-        // This could sync larger batches during off-peak hours
-        this.startBackgroundSync();
-      }
-    }, 60 * 60 * 1000); // 1 hour
+    console.log('✅ Continuous sync running every 5 minutes');
+    return syncInterval;
   }
 
   getProgress(): SyncProgress {

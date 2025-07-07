@@ -67,27 +67,6 @@ export const AutomatedBackgroundSync = () => {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* IMMEDIATE TEST BUTTON */}
-        <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg">
-          <div className="text-center space-y-3">
-            <h4 className="font-medium text-yellow-800 dark:text-yellow-400">
-              🧪 Test Sync - Process 150+ Titles Now
-            </h4>
-            <Button 
-              onClick={triggerManualSync}
-              disabled={syncProgress.isRunning}
-              className="w-full bg-yellow-600 hover:bg-yellow-700"
-              size="lg"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              {syncProgress.isRunning ? '🔄 SYNCING...' : '🚀 START MANUAL SYNC (150+ Titles)'}
-            </Button>
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
-              This will process 3 pages of anime + 3 pages of manga (~150 titles total)
-            </p>
-          </div>
-        </div>
-
         {/* Status Indicator */}
         <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center gap-1">
