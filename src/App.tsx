@@ -22,7 +22,7 @@ import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
 import Social from "./pages/Social";
-import DataSync from "./pages/DataSync";
+
 import SyncDashboard from "./pages/SyncDashboard";
 import LegalPages from "./pages/LegalPages";
 import NotFound from "./pages/NotFound";
@@ -122,7 +122,7 @@ const App = () => {
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/social" element={<Social />} />
-            <Route path="/data-sync" element={<DataSync />} />
+            
             <Route path="/sync-dashboard" element={<SyncDashboard />} />
             <Route path="/legal/:pageType" element={<LegalPages />} />
             <Route path="*" element={<NotFound />} />
