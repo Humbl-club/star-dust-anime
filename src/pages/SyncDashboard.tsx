@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStats } from "@/hooks/useStats";
 import { AutoSyncMonitor } from "@/components/AutoSyncMonitor";
 import { AutonomousSync } from "@/components/AutonomousSync";
+import { DirectSyncTest } from "@/components/DirectSyncTest";
 import { 
   Database, 
   Download, 
@@ -174,8 +175,13 @@ const SyncDashboard = () => {
           </p>
         </div>
 
+        {/* Direct Function Test - Debug the issue */}
+        <DirectSyncTest />
+        
         {/* Autonomous Sync - Active massive sync operations */}
-        <AutonomousSync />
+        <div className="mt-6">
+          <AutonomousSync />
+        </div>
         
         {/* Auto Sync Monitor - Secondary monitoring */}
         <div className="mt-6">
