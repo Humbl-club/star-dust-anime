@@ -82,6 +82,8 @@ const SyncDashboard = () => {
     setCurrentOperation('Initializing...');
 
     try {
+      console.log(`🚀 Starting ${syncType} ${contentType} sync with maxPages: ${maxPages}`);
+      
       const { data, error } = await supabase.functions.invoke('comprehensive-normalized-sync', {
         body: { 
           contentType,
@@ -89,27 +91,42 @@ const SyncDashboard = () => {
         }
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
-        throw error;
+        console.error('Function invocation error:', error);
+        throw new Error(`Function error: ${error.message || error}`);
+      }
+
+      if (!data) {
+        throw new Error('No response data received from sync function');
+      }
+
+      if (!data.success) {
+        throw new Error(`Sync failed: ${data.error || 'Unknown error'}`);
       }
 
       const results = data.results;
+      console.log('Sync results:', results);
+      
       setSyncResults(prev => ({ ...prev, [contentType]: results }));
       setSyncStatus(`${syncType} ${contentType} sync completed!`);
       setCurrentOperation('');
 
       toast({
         title: "Sync Completed Successfully!",
-        description: `${results.inserted} new ${contentType} titles synced with ${results.relationshipsCreated} relationships created`,
+        description: `${results.inserted || 0} new ${contentType} titles synced with ${results.relationshipsCreated || 0} relationships created`,
       });
 
     } catch (error: any) {
       console.error('Comprehensive sync error:', error);
-      setSyncStatus(`${syncType} ${contentType} sync failed: ${error.message}`);
+      const errorMessage = error.message || error.toString() || 'Unknown error occurred';
+      setSyncStatus(`${syncType} ${contentType} sync failed: ${errorMessage}`);
       setCurrentOperation('');
+      
       toast({
         title: "Sync Failed",
-        description: error.message || `An error occurred during ${contentType} sync`,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
