@@ -51,15 +51,32 @@ serve(async (req) => {
       const sort_by = url.searchParams.get('sort_by') || 'score';
       const order = (url.searchParams.get('order') || 'desc') as 'asc' | 'desc';
 
-      // Build query using the normalized tables with JOINs
+      console.log(`🔍 Building query for ${contentType} with filters:`, { search, genre, status, type, year, season });
+
+      // Stage 1: Basic query with proper joins
       let query;
       
       if (contentType === 'anime') {
         query = supabase
           .from('titles')
           .select(`
-            *,
-            anime_details(
+            id,
+            anilist_id,
+            title,
+            title_english,
+            title_japanese,
+            synopsis,
+            image_url,
+            score,
+            rank,
+            popularity,
+            members,
+            favorites,
+            year,
+            color_theme,
+            created_at,
+            updated_at,
+            anime_details!inner(
               episodes,
               aired_from,
               aired_to,
@@ -72,21 +89,29 @@ serve(async (req) => {
               next_episode_date,
               next_episode_number,
               last_sync_check
-            ),
-            title_genres(
-              genres(name)
-            ),
-            title_studios(
-              studios(name)
             )
-          `, { count: 'exact' })
-          .not('anime_details', 'is', null);
+          `, { count: 'exact' });
       } else {
         query = supabase
           .from('titles')
           .select(`
-            *,
-            manga_details(
+            id,
+            anilist_id,
+            title,
+            title_english,
+            title_japanese,
+            synopsis,
+            image_url,
+            score,
+            rank,
+            popularity,
+            members,
+            favorites,
+            year,
+            color_theme,
+            created_at,
+            updated_at,
+            manga_details!inner(
               chapters,
               volumes,
               published_from,
@@ -96,41 +121,46 @@ serve(async (req) => {
               next_chapter_date,
               next_chapter_number,
               last_sync_check
-            ),
-            title_genres(
-              genres(name)
-            ),
-            title_authors(
-              authors(name)
             )
-          `, { count: 'exact' })
-          .not('manga_details', 'is', null);
+          `, { count: 'exact' });
       }
 
-      // Apply filters
+      console.log('📊 Base query created successfully');
+
+      // Stage 2: Apply filters with proper field mapping
       if (search) {
+        console.log(`🔍 Applying search filter: ${search}`);
         query = query.or(`title.ilike.%${search}%,title_english.ilike.%${search}%,synopsis.ilike.%${search}%`);
       }
       
-      if (genre) {
-        query = query.contains('genres', [genre]);
+      // Fix: Apply status and type filters to the detail tables through the join
+      if (status && contentType === 'anime') {
+        console.log(`📊 Applying anime status filter: ${status}`);
+        query = query.eq('anime_details.status', status);
+      } else if (status && contentType === 'manga') {
+        console.log(`📊 Applying manga status filter: ${status}`);
+        query = query.eq('manga_details.status', status);
       }
       
-      if (status) {
-        query = query.eq('status', status);
-      }
-      
-      if (type) {
-        query = query.eq('type', type);
+      if (type && contentType === 'anime') {
+        console.log(`📊 Applying anime type filter: ${type}`);
+        query = query.eq('anime_details.type', type);
+      } else if (type && contentType === 'manga') {
+        console.log(`📊 Applying manga type filter: ${type}`);
+        query = query.eq('manga_details.type', type);
       }
       
       if (year) {
+        console.log(`📊 Applying year filter: ${year}`);
         query = query.eq('year', parseInt(year));
       }
       
       if (season && contentType === 'anime') {
-        query = query.eq('season', season);
+        console.log(`📊 Applying season filter: ${season}`);
+        query = query.eq('anime_details.season', season);
       }
+
+      // Note: Genre filtering will be added in Stage 3 after we verify basic functionality
 
       // Apply sorting
       let sortField = 'score';
