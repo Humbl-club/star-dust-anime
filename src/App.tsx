@@ -22,6 +22,7 @@ import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
 import Social from "./pages/Social";
+import Gamification from "./pages/Gamification";
 
 import SyncDashboard from "./pages/SyncDashboard";
 import LegalPages from "./pages/LegalPages";
@@ -121,6 +122,7 @@ const App = () => {
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/social" element={<Social />} />
+            <Route path="/gamification" element={<Gamification />} />
             
             <Route path="/sync-dashboard" element={<SyncDashboard />} />
             <Route path="/legal/:pageType" element={<LegalPages />} />

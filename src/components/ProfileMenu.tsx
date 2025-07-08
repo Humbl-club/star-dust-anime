@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useGameification } from "@/hooks/useGameification";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Settings, LogOut, Star, BookOpen } from "lucide-react";
+import { User, Settings, LogOut, Star, BookOpen, Coins, Crown, Gift } from "lucide-react";
 import { toast } from "sonner";
 
 interface Profile {
@@ -25,6 +27,7 @@ interface Profile {
 
 export const ProfileMenu = () => {
   const { user, signOut } = useAuth();
+  const { stats } = useGameification();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -97,6 +100,27 @@ export const ProfileMenu = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
+            {stats?.currentUsername && (
+              <div className="flex items-center gap-1 mt-1">
+                <Crown className="w-3 h-3 text-yellow-500" />
+                <span className="text-xs font-semibold text-primary">{stats.currentUsername}</span>
+                <Badge variant="outline" className="text-[10px] px-1 py-0">
+                  {stats.usernameTier}
+                </Badge>
+              </div>
+            )}
+            {stats && (
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-1">
+                  <Coins className="w-3 h-3 text-yellow-500" />
+                  <span className="text-xs text-muted-foreground">{stats.totalPoints}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Gift className="w-3 h-3 text-purple-500" />
+                  <span className="text-xs text-muted-foreground">{stats.loginStreak}d</span>
+                </div>
+              </div>
+            )}
           </div>
         </DropdownMenuLabel>
         
@@ -120,6 +144,13 @@ export const ProfileMenu = () => {
           <DropdownMenuItem className="cursor-pointer">
             <Star className="mr-2 h-4 w-4" />
             <span>Recommendations</span>
+          </DropdownMenuItem>
+        </Link>
+        
+        <Link to="/gamification">
+          <DropdownMenuItem className="cursor-pointer">
+            <Crown className="mr-2 h-4 w-4" />
+            <span>Gamification</span>
           </DropdownMenuItem>
         </Link>
         

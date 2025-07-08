@@ -1225,12 +1225,27 @@ export type Database = {
       }
     }
     Functions: {
+      add_user_points: {
+        Args: { user_id_param: string; points_to_add: number }
+        Returns: undefined
+      }
       assign_random_username: {
         Args: { user_id_param: string }
         Returns: {
           username: string
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
+      }
+      process_daily_login: {
+        Args: { user_id_param: string }
+        Returns: {
+          points: number
+          streak: number
+        }[]
+      }
+      reset_daily_points: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       safe_date_cast: {
         Args: { date_string: string }

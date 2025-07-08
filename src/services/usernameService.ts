@@ -15,7 +15,7 @@ export interface UserStats {
 
 export interface LootBox {
   id: string;
-  boxType: 'standard' | 'premium' | 'ultra';
+  box_type: 'standard' | 'premium' | 'ultra';
   quantity: number;
 }
 
@@ -117,7 +117,11 @@ class UsernameService {
         .gt('quantity', 0);
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(item => ({
+        id: item.id,
+        box_type: item.box_type as 'standard' | 'premium' | 'ultra',
+        quantity: item.quantity
+      }));
     } catch (error) {
       console.error('Error fetching loot boxes:', error);
       return [];
@@ -173,7 +177,7 @@ class UsernameService {
       const { data: usernameData, error: usernameError } = await supabase
         .from('username_pool')
         .select('name, tier')
-        .eq('tier', targetTier)
+        .eq('tier', targetTier as 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON')
         .order('random()')
         .limit(1)
         .single();
@@ -287,7 +291,13 @@ class UsernameService {
       });
 
       if (error) throw error;
-      return data || { points: 0, streak: 0 };
+      
+      // The function returns an array with one row
+      if (Array.isArray(data) && data.length > 0) {
+        return data[0] as { points: number; streak: number };
+      }
+      
+      return { points: 0, streak: 0 };
     } catch (error) {
       console.error('Error processing daily login:', error);
       return { points: 0, streak: 0 };
