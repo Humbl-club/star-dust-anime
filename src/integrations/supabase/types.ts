@@ -1657,6 +1657,10 @@ export type Database = {
           streak: number
         }[]
       }
+      repair_user_gamification: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
       reset_daily_points: {
         Args: Record<PropertyKey, never>
         Returns: undefined

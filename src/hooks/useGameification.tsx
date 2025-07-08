@@ -19,7 +19,9 @@ export const useGameification = () => {
     purchaseLootBox: storePurchaseLootBox,
     awardPoints: storeAwardPoints,
     getUsernameCollection: storeGetUsernameCollection,
-    reset
+    reset,
+    lastLoadedUserId,
+    setLastLoadedUserId
   } = useGamificationStore();
 
   // Wrapper functions to maintain API compatibility
@@ -63,18 +65,28 @@ export const useGameification = () => {
     }
   };
 
-  // Load data when user changes with debouncing to prevent multiple calls
+  // Load data when user changes with proper debouncing and guards
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     
     if (user?.id) {
+      // Prevent loading if we already loaded for this user and we're not in loading state
+      if (lastLoadedUserId === user.id && !loading) {
+        return;
+      }
+      
       console.log('useGameification: User changed, loading data for', user.id);
       
-      // Debounce the data loading to prevent rapid-fire calls during auth state changes
-      timeoutId = setTimeout(() => {
-        loadUserData(user.id);
-        processDailyLogin();
-      }, 100);
+      // Longer debounce to prevent rapid-fire calls during auth state changes
+      timeoutId = setTimeout(async () => {
+        try {
+          setLastLoadedUserId(user.id);
+          await loadUserData(user.id);
+          await processDailyLogin();
+        } catch (error) {
+          console.error('Error during user data initialization:', error);
+        }
+      }, 500); // Increased debounce time
     } else {
       console.log('useGameification: No user, resetting state');
       reset();
@@ -85,7 +97,7 @@ export const useGameification = () => {
         clearTimeout(timeoutId);
       }
     };
-  }, [user?.id, loadUserData, reset]);
+  }, [user?.id]); // Removed dependencies that cause loops
 
   return {
     stats,

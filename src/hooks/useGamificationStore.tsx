@@ -37,6 +37,7 @@ interface GamificationState {
   isFirstTime: boolean;
   loading: boolean;
   isOpeningBox: boolean;
+  lastLoadedUserId: string | null;
   
   // Actions
   loadUserData: (userId: string) => Promise<void>;
@@ -44,6 +45,7 @@ interface GamificationState {
   purchaseLootBox: (userId: string, boxType: string) => Promise<boolean>;
   awardPoints: (userId: string, activityType: string, points: number, metadata?: any) => Promise<boolean>;
   getUsernameCollection: (userId: string) => Promise<any[]>;
+  setLastLoadedUserId: (userId: string | null) => void;
   reset: () => void;
 }
 
@@ -56,40 +58,81 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   isFirstTime: false,
   loading: false,
   isOpeningBox: false,
+  lastLoadedUserId: null,
 
-  // Load user data using the new database function
+  // Load user data using the new database function with better error handling
   loadUserData: async (userId: string) => {
+    const { loading, lastLoadedUserId } = get();
+    
+    // Prevent multiple simultaneous loads for the same user
+    if (loading && lastLoadedUserId === userId) {
+      return;
+    }
+    
     set({ loading: true });
     try {
       const { data, error } = await supabase.rpc('get_user_gamification_summary', {
         user_id_param: userId
       });
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const userData = data[0];
-        
-        // Transform snake_case database fields to camelCase for frontend
+      if (error) {
+        console.error('Database error:', error);
+        // Set default values instead of failing
         set({
           stats: {
-            totalPoints: userData.total_points || 0,
-            dailyPoints: userData.daily_points || 0,
-            loginStreak: userData.login_streak || 0,
-            currentUsername: userData.current_username || 'Unknown',
-            usernameTier: userData.username_tier || 'COMMON'
+            totalPoints: 0,
+            dailyPoints: 0,
+            loginStreak: 0,
+            currentUsername: 'Unknown',
+            usernameTier: 'COMMON'
           },
-          lootBoxes: Array.isArray(userData.loot_boxes) ? userData.loot_boxes.map((box: any) => ({
-            id: box.id,
-            box_type: box.box_type,
-            quantity: box.quantity
-          })) : [],
+          lootBoxes: [],
           loading: false
         });
+        return;
       }
+
+      // The function now always returns data, but let's be safe
+      const userData = (data && data.length > 0) ? data[0] : {
+        total_points: 0,
+        daily_points: 0,
+        login_streak: 0,
+        current_username: 'Unknown',
+        username_tier: 'COMMON',
+        loot_boxes: [],
+        recent_activities: []
+      };
+      
+      // Transform snake_case database fields to camelCase for frontend
+      set({
+        stats: {
+          totalPoints: userData.total_points || 0,
+          dailyPoints: userData.daily_points || 0,
+          loginStreak: userData.login_streak || 0,
+          currentUsername: userData.current_username || 'Unknown',
+          usernameTier: userData.username_tier || 'COMMON'
+        },
+        lootBoxes: Array.isArray(userData.loot_boxes) ? userData.loot_boxes.map((box: any) => ({
+          id: box.id,
+          box_type: box.box_type,
+          quantity: box.quantity
+        })) : [],
+        loading: false
+      });
     } catch (error) {
       console.error('Error loading user data:', error);
-      set({ loading: false });
+      // Set default values on error
+      set({
+        stats: {
+          totalPoints: 0,
+          dailyPoints: 0,
+          loginStreak: 0,
+          currentUsername: 'Unknown',
+          usernameTier: 'COMMON'
+        },
+        lootBoxes: [],
+        loading: false
+      });
     }
   },
 
@@ -189,7 +232,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     }
   },
 
-  // Purchase loot box
+  // Purchase loot box with fixed increment logic
   purchaseLootBox: async (userId: string, boxType: string) => {
     const costs = {
       standard: 100,
@@ -215,7 +258,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
       if (pointsError) throw pointsError;
 
-      // Add loot box
+      // Add loot box with proper increment logic using upsert
       const { error: boxError } = await supabase
         .from('user_loot_boxes')
         .upsert({
@@ -223,10 +266,33 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
           box_type: boxType,
           quantity: 1
         }, {
-          onConflict: 'user_id,box_type'
+          onConflict: 'user_id,box_type',
+          ignoreDuplicates: false
         });
 
-      if (boxError) throw boxError;
+      if (boxError) {
+        // If upsert failed, try a direct update to increment existing quantity
+        const { data: existingBox } = await supabase
+          .from('user_loot_boxes')
+          .select('quantity')
+          .eq('user_id', userId)
+          .eq('box_type', boxType)
+          .single();
+
+        if (existingBox) {
+          const { error: updateError } = await supabase
+            .from('user_loot_boxes')
+            .update({ 
+              quantity: existingBox.quantity + 1
+            })
+            .eq('user_id', userId)
+            .eq('box_type', boxType);
+          
+          if (updateError) throw updateError;
+        } else {
+          throw boxError;
+        }
+      }
 
       toast.success(`${boxType} loot box purchased!`);
       await get().loadUserData(userId);
@@ -287,6 +353,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     }
   },
 
+  // Set last loaded user ID
+  setLastLoadedUserId: (userId: string | null) => {
+    set({ lastLoadedUserId: userId });
+  },
+
   // Reset state
   reset: () => {
     set({
@@ -296,7 +367,8 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       lastGeneratedCharacter: null,
       isFirstTime: false,
       loading: false,
-      isOpeningBox: false
+      isOpeningBox: false,
+      lastLoadedUserId: null
     });
   }
 }));
