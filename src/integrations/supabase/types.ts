@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      animation_sets: {
+        Row: {
+          animation_config: Json
+          animation_name: string
+          animation_type: string
+          created_at: string | null
+          duration_ms: number | null
+          id: string
+          tier_compatibility: string[] | null
+        }
+        Insert: {
+          animation_config?: Json
+          animation_name: string
+          animation_type?: string
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          tier_compatibility?: string[] | null
+        }
+        Update: {
+          animation_config?: Json
+          animation_name?: string
+          animation_type?: string
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          tier_compatibility?: string[] | null
+        }
+        Relationships: []
+      }
       anime_details: {
         Row: {
           aired_from: string | null
@@ -162,6 +192,74 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      character_templates: {
+        Row: {
+          animation_style: string
+          base_config: Json
+          color_palette: Json
+          created_at: string | null
+          id: string
+          template_name: string
+          tier: Database["public"]["Enums"]["username_tier"]
+          updated_at: string | null
+        }
+        Insert: {
+          animation_style?: string
+          base_config?: Json
+          color_palette?: Json
+          created_at?: string | null
+          id?: string
+          template_name: string
+          tier: Database["public"]["Enums"]["username_tier"]
+          updated_at?: string | null
+        }
+        Update: {
+          animation_style?: string
+          base_config?: Json
+          color_palette?: Json
+          created_at?: string | null
+          id?: string
+          template_name?: string
+          tier?: Database["public"]["Enums"]["username_tier"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      character_variations: {
+        Row: {
+          created_at: string | null
+          id: string
+          rarity_weight: number | null
+          template_id: string | null
+          variation_config: Json
+          variation_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          rarity_weight?: number | null
+          template_id?: string | null
+          variation_config?: Json
+          variation_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          rarity_weight?: number | null
+          template_id?: string | null
+          variation_config?: Json
+          variation_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_variations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "character_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       claimed_usernames: {
         Row: {
@@ -379,6 +477,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      generated_characters: {
+        Row: {
+          cache_expires_at: string | null
+          cached_at: string | null
+          character_data: Json
+          generation_method: string
+          id: string
+          image_url: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Insert: {
+          cache_expires_at?: string | null
+          cached_at?: string | null
+          character_data?: Json
+          generation_method?: string
+          id?: string
+          image_url?: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Update: {
+          cache_expires_at?: string | null
+          cached_at?: string | null
+          character_data?: Json
+          generation_method?: string
+          id?: string
+          image_url?: string | null
+          tier?: Database["public"]["Enums"]["username_tier"]
+          username?: string
+        }
+        Relationships: []
       }
       genres: {
         Row: {
@@ -1129,7 +1260,6 @@ export type Database = {
           name: string
           source_anime: string | null
           tier: Database["public"]["Enums"]["username_tier"]
-          visual_traits: Json | null
         }
         Insert: {
           character_description?: string | null
@@ -1140,7 +1270,6 @@ export type Database = {
           name: string
           source_anime?: string | null
           tier: Database["public"]["Enums"]["username_tier"]
-          visual_traits?: Json | null
         }
         Update: {
           character_description?: string | null
@@ -1151,7 +1280,6 @@ export type Database = {
           name?: string
           source_anime?: string | null
           tier?: Database["public"]["Enums"]["username_tier"]
-          visual_traits?: Json | null
         }
         Relationships: []
       }
@@ -1250,6 +1378,10 @@ export type Database = {
           username: string
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
+      }
+      cleanup_expired_generated_characters: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       initialize_user_gamification: {
         Args: { user_id_param: string }

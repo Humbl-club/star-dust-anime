@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usernameService, UserStats, LootBox, UsernameResult } from '@/services/usernameService';
+import { characterGenerationService } from '@/services/characterGenerationService';
+import type { GeneratedCharacter } from '@/types/character';
 import { toast } from 'sonner';
 
 export const useGameification = () => {
@@ -10,6 +12,7 @@ export const useGameification = () => {
   const [loading, setLoading] = useState(true);
   const [isOpeningBox, setIsOpeningBox] = useState(false);
   const [lastOpenedResult, setLastOpenedResult] = useState<UsernameResult | null>(null);
+  const [lastGeneratedCharacter, setLastGeneratedCharacter] = useState<GeneratedCharacter | null>(null);
   const [isFirstTime, setIsFirstTime] = useState(false);
 
   // Load user stats and loot boxes
@@ -64,7 +67,7 @@ export const useGameification = () => {
     }
   };
 
-  // Open a loot box
+  // Open a loot box with enhanced character generation
   const openLootBox = async (boxType: string): Promise<UsernameResult | null> => {
     if (!user?.id || isOpeningBox) return null;
     
@@ -77,6 +80,22 @@ export const useGameification = () => {
       
       if (result) {
         setLastOpenedResult(result);
+        
+        // Generate enhanced character using the new system
+        try {
+          const characterGeneration = await characterGenerationService.generateCharacter({
+            username: result.username,
+            tier: result.tier,
+            sourceAnime: result.sourceAnime,
+            description: result.description,
+            forceAI: isFirstTime // Use AI for first-time experience
+          });
+          
+          setLastGeneratedCharacter(characterGeneration.character);
+          console.log('useGameification: Generated character:', characterGeneration);
+        } catch (error) {
+          console.warn('Character generation failed, using fallback:', error);
+        }
         
         // Mark first loot box as opened if this was the first time
         if (isFirstTime) {
@@ -186,6 +205,7 @@ export const useGameification = () => {
       setLootBoxes([]);
       setIsFirstTime(false);
       setLastOpenedResult(null);
+      setLastGeneratedCharacter(null);
     }
   }, [user?.id]);
 
@@ -195,6 +215,7 @@ export const useGameification = () => {
     loading,
     isOpeningBox,
     lastOpenedResult,
+    lastGeneratedCharacter,
     isFirstTime,
     awardPoints,
     openLootBox,

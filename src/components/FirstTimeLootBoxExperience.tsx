@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CharacterFigurine } from '@/components/CharacterFigurine';
+import { EnhancedCharacterFigurine } from '@/components/EnhancedCharacterFigurine';
+import { EnhancedLootBoxAnimation } from '@/components/EnhancedLootBoxAnimation';
 import { ParticleEffect } from '@/components/ParticleEffect';
 import { useGameification } from '@/hooks/useGameification';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,13 +66,14 @@ const phaseData = {
 };
 
 export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult }: FirstTimeLootBoxExperienceProps) => {
-  const { openLootBox, stats } = useGameification();
+  const { openLootBox, stats, lastGeneratedCharacter } = useGameification();
   const { user } = useAuth();
   const [currentPhase, setCurrentPhase] = useState<AnimationPhase>('intro');
   const [showSkipButton, setShowSkipButton] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showParticles, setShowParticles] = useState(false);
   const [lootBoxResult, setLootBoxResult] = useState<any>(null);
+  const [showEnhancedAnimation, setShowEnhancedAnimation] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -98,6 +100,11 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult
             const result = await openLootBox('standard');
             console.log('FirstTimeLootBoxExperience: Got loot box result:', result);
             setLootBoxResult(result);
+            
+            // Show enhanced animation if we have a generated character
+            if (lastGeneratedCharacter) {
+              setShowEnhancedAnimation(true);
+            }
           } catch (error) {
             console.error('FirstTimeLootBoxExperience: Error opening loot box:', error);
             // Show error message but continue the experience
@@ -336,16 +343,25 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 1, type: "spring" }}
-                className="flex justify-center"
-              >
-                <CharacterFigurine
-                  username={displayResult.username}
-                  tier={displayResult.tier}
-                  sourceAnime={displayResult.sourceAnime}
-                  description={displayResult.description}
-                  className="scale-150"
-                />
-              </motion.div>
+                  className="flex justify-center"
+                >
+                  {lastGeneratedCharacter ? (
+                    <EnhancedCharacterFigurine
+                      character={lastGeneratedCharacter}
+                      className="scale-150"
+                      showAnimation={true}
+                    />
+                  ) : (
+                    <div className="text-center p-8 bg-card rounded-lg border">
+                      <div className="text-4xl font-bold text-gradient-primary mb-2">
+                        {displayResult.username}
+                      </div>
+                      <div className="text-lg text-muted-foreground">
+                        {displayResult.tier} TIER
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
               
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -462,6 +478,16 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult
           ))}
         </div>
       </div>
+
+      {/* Enhanced Loot Box Animation Overlay */}
+      {showEnhancedAnimation && lastGeneratedCharacter && (
+        <EnhancedLootBoxAnimation
+          isOpen={showEnhancedAnimation}
+          character={lastGeneratedCharacter}
+          onAnimationComplete={() => setShowEnhancedAnimation(false)}
+          onCharacterRevealed={() => console.log('Character revealed in enhanced animation')}
+        />
+      )}
     </div>
   );
 };

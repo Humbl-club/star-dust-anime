@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CharacterFigurine } from '@/components/CharacterFigurine';
+import { EnhancedCharacterFigurine } from '@/components/EnhancedCharacterFigurine';
+import { EnhancedLootBoxAnimation } from '@/components/EnhancedLootBoxAnimation';
 import { FirstTimeLootBoxExperience } from '@/components/FirstTimeLootBoxExperience';
 import { ParticleEffect } from '@/components/ParticleEffect';
 import { PointAnimation } from '@/components/PointAnimation';
@@ -81,7 +82,7 @@ export const UltraEnhancedLootBoxOpening = ({
   onClose,
   boxType = 'standard'
 }: UltraEnhancedLootBoxOpeningProps) => {
-  const { openLootBox, isFirstTime } = useGameification();
+  const { openLootBox, isFirstTime, lastGeneratedCharacter } = useGameification();
   const [isOpening, setIsOpening] = useState(false);
   const [result, setResult] = useState<LootBoxResult | null>(null);
   const [showParticles, setShowParticles] = useState(false);
@@ -89,6 +90,7 @@ export const UltraEnhancedLootBoxOpening = ({
   const [showSkipButton, setShowSkipButton] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showFirstTimeExperience, setShowFirstTimeExperience] = useState(false);
+  const [showEnhancedAnimation, setShowEnhancedAnimation] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'idle' | 'shaking' | 'opening' | 'revealing' | 'celebrating'>('idle');
 
   const handleOpenLootBox = async () => {
@@ -126,6 +128,14 @@ export const UltraEnhancedLootBoxOpening = ({
             return;
           }
           
+          // Show enhanced animation if we have a generated character
+          if (lastGeneratedCharacter) {
+            console.log('Showing enhanced animation');
+            setShowEnhancedAnimation(true);
+            setIsOpening(false);
+            return;
+          }
+          
           // Show particles after reveal (regular experience)
           setTimeout(() => {
             setShowParticles(true);
@@ -153,6 +163,7 @@ export const UltraEnhancedLootBoxOpening = ({
     setShowParticles(false);
     setShowPointAnimation(false);
     setShowFirstTimeExperience(false);
+    setShowEnhancedAnimation(false);
     setAnimationPhase('idle');
     setShowSkipButton(false);
     onClose();
@@ -184,6 +195,25 @@ export const UltraEnhancedLootBoxOpening = ({
         isOpen={true}
         onClose={handleFirstTimeClose}
         result={result}
+      />
+    );
+  }
+
+  // Show enhanced animation if available
+  if (showEnhancedAnimation && lastGeneratedCharacter) {
+    return (
+      <EnhancedLootBoxAnimation
+        isOpen={true}
+        character={lastGeneratedCharacter}
+        onAnimationComplete={() => {
+          setShowEnhancedAnimation(false);
+          // Show regular celebration after enhanced animation
+          setTimeout(() => {
+            setShowParticles(true);
+            setAnimationPhase('celebrating');
+          }, 500);
+        }}
+        onCharacterRevealed={() => console.log('Character revealed in enhanced animation')}
       />
     );
   }
@@ -298,12 +328,21 @@ export const UltraEnhancedLootBoxOpening = ({
                     transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
                     className="flex justify-center"
                   >
-                    <CharacterFigurine
-                      username={result.username}
-                      tier={result.tier}
-                      sourceAnime={result.sourceAnime}
-                      description={result.description}
-                    />
+                    {lastGeneratedCharacter ? (
+                      <EnhancedCharacterFigurine
+                        character={lastGeneratedCharacter}
+                        showAnimation={true}
+                      />
+                    ) : (
+                      <div className="text-center p-6 bg-card rounded-lg border">
+                        <div className="text-3xl font-bold text-gradient-primary mb-2">
+                          {result.username}
+                        </div>
+                        <div className="text-lg text-muted-foreground">
+                          {result.tier} TIER
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* Tier Badge */}
