@@ -38,7 +38,7 @@ interface NavigationProps {
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
-  const { stats } = useGameification();
+  const { stats } = useSimpleGameification();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

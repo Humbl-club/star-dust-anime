@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { useGameification } from '@/hooks/useGameification';
+export { AchievementSystem } from '@/components/StubComponents';
 import { useUserLists } from '@/hooks/useUserLists';
 import { 
   Trophy, 

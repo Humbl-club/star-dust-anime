@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useGameification } from '@/hooks/useGameification';
+export { ActivityTracker } from '@/components/StubComponents';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ActivityTrackerProps {

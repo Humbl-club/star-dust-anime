@@ -46,12 +46,11 @@ const Dashboard = () => {
   const { animeList, mangaList, loading } = useUserLists();
   const { 
     stats, 
-    lootBoxes, 
-    loading: gameLoading, 
+    loading: gameLoading,
     openLootBox, 
     isFirstTime, 
     lastOpenedResult 
-  } = useGameification();
+  } = useSimpleGameification();
   const [activeTab, setActiveTab] = useState("overview");
   const [showFirstTimeExperience, setShowFirstTimeExperience] = useState(false);
 

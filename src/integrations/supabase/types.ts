@@ -1625,6 +1625,18 @@ export type Database = {
           recent_activities: Json
         }[]
       }
+      initialize_user_atomic: {
+        Args: { user_id_param: string }
+        Returns: {
+          success: boolean
+          username: string
+          tier: string
+          total_points: number
+          loot_boxes_given: number
+          is_first_time: boolean
+          message: string
+        }[]
+      }
       initialize_user_gamification: {
         Args: { user_id_param: string }
         Returns: undefined

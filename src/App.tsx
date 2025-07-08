@@ -9,6 +9,7 @@ import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { AgeVerificationModal } from "@/components/AgeVerificationModal";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { InitializationWrapper } from "@/components/InitializationWrapper";
 import { HelmetProvider } from "react-helmet-async";
 import { Shield } from "lucide-react";
 
@@ -35,8 +36,6 @@ const queryClient = new QueryClient();
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   const { isVerified, loading, showModal, setVerified } = useAgeVerification();
   
-  console.log('🔍 AutoSyncProvider: showModal =', showModal, 'isVerified =', isVerified, 'loading =', loading);
-  
   return (
     <>
       <AgeVerificationModal 
@@ -44,7 +43,9 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
         onComplete={setVerified}
       />
       
-      {children}
+      <InitializationWrapper>
+        {children}
+      </InitializationWrapper>
     </>
   );
 };
@@ -53,11 +54,8 @@ const App = () => {
   const { isNative } = useNativeSetup();
   const { isVerified, loading, showModal, setVerified } = useAgeVerification();
   
-  console.log('🔍 App: showModal =', showModal, 'isVerified =', isVerified, 'loading =', loading);
-  
   // Render age verification modal at the very top level
   if (showModal) {
-    console.log('🔍 App: Rendering age verification modal');
     return (
       <div className="fixed inset-0 z-[99999] bg-black flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-2xl max-w-md w-full p-6">
@@ -72,20 +70,14 @@ const App = () => {
           
           <div className="flex flex-col gap-3">
             <button 
-              onClick={() => {
-                console.log('✅ App: Age confirmed');
-                setVerified();
-              }}
+              onClick={() => setVerified()}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
             >
               I am 16 years or older
             </button>
             
             <button 
-              onClick={() => {
-                console.log('🚫 App: Redirecting to Google');
-                window.location.href = 'https://www.google.com';
-              }}
+              onClick={() => window.location.href = 'https://www.google.com'}
               className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               I am under 16

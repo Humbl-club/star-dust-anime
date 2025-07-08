@@ -28,7 +28,7 @@ const getTierIcon = (tier: string) => {
 };
 
 const Gamification = () => {
-  const { getUsernameCollection } = useGameification();
+  const { getUsernameCollection } = useSimpleGameification();
   const [collection, setCollection] = useState<any[]>([]);
   const [loadingCollection, setLoadingCollection] = useState(false);
 

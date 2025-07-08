@@ -27,7 +27,7 @@ interface Profile {
 
 export const ProfileMenu = () => {
   const { user, signOut } = useAuth();
-  const { stats } = useGameification();
+  const { stats } = useSimpleGameification();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 

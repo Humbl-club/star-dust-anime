@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, Grid, List, Crown, Star, Sparkles, Gem } from 'lucide-react';
 import { AdvancedCharacterDisplay } from '@/components/AdvancedCharacterDisplay';
-import { useGameification } from '@/hooks/useGameification';
+export { EnhancedCharacterCollection } from '@/components/StubComponents';
 import type { GeneratedCharacter } from '@/types/character';
 
 interface CollectionFilters {

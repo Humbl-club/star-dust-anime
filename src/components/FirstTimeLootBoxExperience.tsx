@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EnhancedCharacterFigurine } from '@/components/EnhancedCharacterFigurine';
 import { EnhancedLootBoxAnimation } from '@/components/EnhancedLootBoxAnimation';
 import { ParticleEffect } from '@/components/ParticleEffect';
-import { useGameification } from '@/hooks/useGameification';
+export { FirstTimeLootBoxExperience } from '@/components/StubComponents';
 import { useAuth } from '@/hooks/useAuth';
 import { Gift, Sparkles, Star, Crown, Play, Volume2, VolumeX } from 'lucide-react';
 

@@ -8,7 +8,7 @@ import { FirstTimeLootBoxExperience } from '@/components/FirstTimeLootBoxExperie
 import { ParticleEffect } from '@/components/ParticleEffect';
 import { PointAnimation } from '@/components/PointAnimation';
 import { Gift, Crown, Sparkles, Star, Volume2, VolumeX } from 'lucide-react';
-import { useGameification } from '@/hooks/useGameification';
+export { UltraEnhancedLootBoxOpening } from '@/components/StubComponents';
 import { toast } from 'sonner';
 
 interface LootBoxResult {
