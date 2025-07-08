@@ -193,6 +193,168 @@ export type Database = {
         }
         Relationships: []
       }
+      character_enhancements: {
+        Row: {
+          applied_at: string | null
+          applied_by: string
+          character_id: string | null
+          cost_points: number
+          enhancement_data: Json
+          enhancement_type: string
+          id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by: string
+          character_id?: string | null
+          cost_points: number
+          enhancement_data?: Json
+          enhancement_type: string
+          id?: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string
+          character_id?: string | null
+          cost_points?: number
+          enhancement_data?: Json
+          enhancement_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_enhancements_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "generated_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_interactions: {
+        Row: {
+          character1_id: string | null
+          character2_id: string | null
+          created_at: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          result_data: Json | null
+        }
+        Insert: {
+          character1_id?: string | null
+          character2_id?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          result_data?: Json | null
+        }
+        Update: {
+          character1_id?: string | null
+          character2_id?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          result_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_interactions_character1_id_fkey"
+            columns: ["character1_id"]
+            isOneToOne: false
+            referencedRelation: "generated_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_interactions_character2_id_fkey"
+            columns: ["character2_id"]
+            isOneToOne: false
+            referencedRelation: "generated_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_showcase_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          showcase_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          showcase_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          showcase_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_showcase_likes_showcase_id_fkey"
+            columns: ["showcase_id"]
+            isOneToOne: false
+            referencedRelation: "character_showcases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      character_showcases: {
+        Row: {
+          character_id: string | null
+          created_at: string | null
+          description: string | null
+          featured: boolean | null
+          id: string
+          is_public: boolean | null
+          like_count: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          character_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          is_public?: boolean | null
+          like_count?: number | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          character_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          is_public?: boolean | null
+          like_count?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_showcases_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "generated_characters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       character_templates: {
         Row: {
           animation_style: string
@@ -225,6 +387,50 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      character_trade_listings: {
+        Row: {
+          asking_price: number
+          character_id: string | null
+          created_at: string | null
+          currency_type: string | null
+          expires_at: string | null
+          id: string
+          seller_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asking_price: number
+          character_id?: string | null
+          created_at?: string | null
+          currency_type?: string | null
+          expires_at?: string | null
+          id?: string
+          seller_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asking_price?: number
+          character_id?: string | null
+          created_at?: string | null
+          currency_type?: string | null
+          expires_at?: string | null
+          id?: string
+          seller_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_trade_listings_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "generated_characters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       character_variations: {
         Row: {
@@ -935,6 +1141,30 @@ export type Database = {
           title_japanese?: string | null
           updated_at?: string | null
           year?: number | null
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_data: Json | null
+          achievement_type: string
+          id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_data?: Json | null
+          achievement_type: string
+          id?: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_data?: Json | null
+          achievement_type?: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
