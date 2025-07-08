@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { EnhancedCharacterFigurine } from '@/components/EnhancedCharacterFigurine';
+import { AdvancedCharacterDisplay } from '@/components/AdvancedCharacterDisplay';
 import { EnhancedLootBoxAnimation } from '@/components/EnhancedLootBoxAnimation';
 import { FirstTimeLootBoxExperience } from '@/components/FirstTimeLootBoxExperience';
 import { ParticleEffect } from '@/components/ParticleEffect';
@@ -329,9 +329,10 @@ export const UltraEnhancedLootBoxOpening = ({
                     className="flex justify-center"
                   >
                     {lastGeneratedCharacter ? (
-                      <EnhancedCharacterFigurine
+                      <AdvancedCharacterDisplay
                         character={lastGeneratedCharacter}
                         showAnimation={true}
+                        size="medium"
                       />
                     ) : (
                       <div className="text-center p-6 bg-card rounded-lg border">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EnhancedCharacterFigurine } from '@/components/EnhancedCharacterFigurine';
+import { AdvancedCharacterDisplay } from '@/components/AdvancedCharacterDisplay';
 import { ParticleEffect } from '@/components/ParticleEffect';
 import type { GeneratedCharacter } from '@/types/character';
 
@@ -197,10 +197,10 @@ export const EnhancedLootBoxAnimation = ({
               animate={{ opacity: 1, scale: 1 }}
               className="relative z-10"
             >
-              <EnhancedCharacterFigurine
+              <AdvancedCharacterDisplay
                 character={character}
                 showAnimation={true}
-                className="scale-125"
+                size="large"
               />
             </motion.div>
           )}

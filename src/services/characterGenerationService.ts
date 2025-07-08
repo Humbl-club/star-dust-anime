@@ -191,18 +191,39 @@ class CharacterGenerationService {
   }
 
   private generateVisualData(template: CharacterTemplate, variation: CharacterVariation, username: string) {
-    // Use username as seed for consistent generation
+    // Enhanced visual generation for Phase 2
     const seed = this.hashCode(username);
-    
     const colors = template.color_palette;
     const baseIndex = Math.abs(seed) % colors.length;
     
+    // Advanced color harmony system
+    const colorVariant = variation.variation_config.color_variant || 0;
+    const harmonyOffset = colorVariant * 2;
+    
+    // Generate complementary colors based on tier
+    const tierColorMod = {
+      'GOD': 0,      // Use pure colors
+      'LEGENDARY': 1, // Slight shift
+      'EPIC': 2,     // More shift
+      'RARE': 3,     // Moderate shift
+      'UNCOMMON': 4, // Higher shift
+      'COMMON': 5    // Maximum shift
+    };
+    
+    const mod = tierColorMod[template.tier] || 5;
+    
     return {
-      hair_color: colors[baseIndex],
-      eye_color: colors[(baseIndex + 1) % colors.length],
-      outfit_color: colors[(baseIndex + 2) % colors.length],
-      accessory_color: colors[(baseIndex + 3) % colors.length],
-      skin_tone: this.getSkinTone(seed)
+      hair_color: colors[(baseIndex + harmonyOffset) % colors.length],
+      eye_color: colors[(baseIndex + harmonyOffset + 1) % colors.length],
+      outfit_color: colors[(baseIndex + harmonyOffset + 2) % colors.length],
+      accessory_color: colors[(baseIndex + harmonyOffset + 3) % colors.length],
+      skin_tone: this.getSkinTone(seed + mod),
+      // Enhanced visual properties
+      hair_style: variation.variation_config.hair_style || 'medium',
+      outfit_style: variation.variation_config.outfit_style || 'classic',
+      accessory_pattern: this.generateAccessoryPattern(seed, template.tier),
+      color_saturation: this.getTierSaturation(template.tier),
+      special_effects: this.getSpecialEffects(template.tier, seed)
     };
   }
 
@@ -232,10 +253,24 @@ class CharacterGenerationService {
   }
 
   private shouldUseAIGeneration(request: CharacterGenerationRequest): boolean {
-    // Use AI for special cases or high-tier characters
-    return request.forceAI || 
-           request.tier === 'GOD' || 
-           (request.tier === 'LEGENDARY' && Math.random() < 0.3);
+    // Enhanced AI usage strategy for Phase 2
+    if (request.forceAI) return true;
+    
+    // Always use AI for GOD tier
+    if (request.tier === 'GOD') return true;
+    
+    // 50% chance for LEGENDARY
+    if (request.tier === 'LEGENDARY') return Math.random() < 0.5;
+    
+    // 20% chance for EPIC
+    if (request.tier === 'EPIC') return Math.random() < 0.2;
+    
+    // Special cases: if sourceAnime is provided, increase AI chance
+    if (request.sourceAnime) {
+      return Math.random() < 0.3;
+    }
+    
+    return false;
   }
 
   private async generateAIImage(character: GeneratedCharacter): Promise<string | undefined> {
@@ -354,6 +389,55 @@ class CharacterGenerationService {
   private getSkinTone(seed: number): string {
     const tones = ['#FDBCB4', '#F1C27D', '#E0AC69', '#C68642', '#8D5524'];
     return tones[Math.abs(seed) % tones.length];
+  }
+
+  private generateAccessoryPattern(seed: number, tier: string): string {
+    const patterns = {
+      'GOD': ['divine_radiance', 'celestial_aura', 'golden_particles'],
+      'LEGENDARY': ['heroic_emblem', 'energy_lines', 'power_glow'],
+      'EPIC': ['mystic_runes', 'magic_circles', 'elemental_effects'],
+      'RARE': ['combat_insignia', 'warrior_marks', 'skill_symbols'],
+      'UNCOMMON': ['study_marks', 'apprentice_symbols', 'learning_aura'],
+      'COMMON': ['simple_pattern', 'basic_design', 'minimal_detail']
+    };
+    
+    const tierPatterns = patterns[tier as keyof typeof patterns] || patterns['COMMON'];
+    return tierPatterns[Math.abs(seed) % tierPatterns.length];
+  }
+
+  private getTierSaturation(tier: string): number {
+    const saturation = {
+      'GOD': 1.0,
+      'LEGENDARY': 0.9,
+      'EPIC': 0.8,
+      'RARE': 0.7,
+      'UNCOMMON': 0.6,
+      'COMMON': 0.5
+    };
+    
+    return saturation[tier as keyof typeof saturation] || 0.5;
+  }
+
+  private getSpecialEffects(tier: string, seed: number): string[] {
+    const effects = {
+      'GOD': ['divine_light', 'golden_particles', 'heavenly_aura', 'transcendent_glow'],
+      'LEGENDARY': ['heroic_aura', 'power_emanation', 'epic_glow', 'champion_radiance'],
+      'EPIC': ['magical_sparkles', 'mystic_energy', 'elemental_wisps', 'enchanted_shimmer'],
+      'RARE': ['skill_aura', 'combat_energy', 'focused_glow', 'determined_radiance'],
+      'UNCOMMON': ['learning_glow', 'study_sparkles', 'growth_aura', 'potential_shimmer'],
+      'COMMON': ['gentle_glow', 'simple_shine', 'basic_aura']
+    };
+    
+    const tierEffects = effects[tier as keyof typeof effects] || effects['COMMON'];
+    const numEffects = Math.min(2, Math.abs(seed) % 3 + 1);
+    
+    const selectedEffects = [];
+    for (let i = 0; i < numEffects; i++) {
+      const index = (Math.abs(seed) + i) % tierEffects.length;
+      selectedEffects.push(tierEffects[index]);
+    }
+    
+    return selectedEffects;
   }
 
   // Public method to clear cache for testing

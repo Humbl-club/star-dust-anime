@@ -58,6 +58,12 @@ export interface GeneratedCharacter {
       outfit_color: string;
       accessory_color: string;
       skin_tone: string;
+      // Enhanced Phase 2 properties
+      hair_style?: string;
+      outfit_style?: string;
+      accessory_pattern?: string;
+      color_saturation?: number;
+      special_effects?: string[];
     };
     personality_traits: string[];
     [key: string]: any;
