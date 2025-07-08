@@ -23,14 +23,14 @@ export const useSimpleGameification = () => {
 
   return {
     stats: stats ? {
-      totalPoints: stats.total_points || 0,
-      dailyPoints: stats.daily_points || 0,
+      totalPoints: 0, // Simplified - no points system
+      dailyPoints: 0, // Simplified - no points system
       loginStreak: stats.login_streak || 0,
       currentUsername: stats.current_username || 'Unknown',
       usernameTier: stats.username_tier || 'COMMON'
     } : null,
     loading: isLoading,
-    // Simple functions for compatibility
+    // Simplified functions - no complex gamification
     awardPoints: () => Promise.resolve(false),
     openLootBox: () => Promise.resolve(null),
     purchaseLootBox: () => Promise.resolve(false),

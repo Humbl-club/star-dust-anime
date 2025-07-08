@@ -26,7 +26,7 @@ import { type Anime } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
 import { NameToggle } from "@/components/NameToggle";
 import { Navigation } from "@/components/Navigation";
-import { ActivityTracker } from "@/components/ActivityTracker";
+import { SEOMetaTags } from "@/components/SEOMetaTags";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { ShareButton } from "@/components/ShareButton";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
@@ -84,9 +84,6 @@ const AnimeDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
-      {/* Activity Tracking */}
-      <ActivityTracker activityType="view_anime" points={1} metadata={{ animeId: id }} />
-      
       {/* SEO Meta Tags */}
       <AnimeMetaTags anime={anime} />
       
