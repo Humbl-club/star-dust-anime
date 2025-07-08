@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-export { AchievementSystem } from '@/components/StubComponents';
+import { useAuth } from '@/hooks/useAuth';
+import { useSimpleGameification } from '@/hooks/useSimpleGameification';
 import { useUserLists } from '@/hooks/useUserLists';
 import { 
   Trophy, 
@@ -42,7 +43,7 @@ const achievementTiers = {
 };
 
 export const AchievementSystem = () => {
-  const { stats, awardPoints } = useGameification();
+  const { stats, awardPoints } = useSimpleGameification();
   const { animeList, mangaList } = useUserLists();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
 
@@ -192,21 +193,17 @@ export const AchievementSystem = () => {
   }, [stats, animeList, mangaList]);
 
   const handleClaimAchievement = async (achievement: Achievement) => {
-    const success = await awardPoints('achievement', achievement.points, {
-      achievementId: achievement.id,
-      achievementTitle: achievement.title
-    });
-
-    if (success) {
-      // Mark as claimed (in a real app, you'd persist this)
-      setAchievements(prev => 
-        prev.map(a => 
-          a.id === achievement.id 
-            ? { ...a, isClaimable: false }
-            : a
-        )
-      );
-    }
+    // For now, just show a message since awardPoints returns empty in stub
+    console.log('Achievement claimed:', achievement.title);
+    
+    // Mark as claimed
+    setAchievements(prev => 
+      prev.map(a => 
+        a.id === achievement.id 
+          ? { ...a, isClaimable: false }
+          : a
+      )
+    );
   };
 
   const completedCount = achievements.filter(a => a.isCompleted).length;

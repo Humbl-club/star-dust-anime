@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-export { PointActivity } from '@/components/StubComponents';
 import { ParticleEffect } from '@/components/ParticleEffect';
+import { useSimpleGameification } from '@/hooks/useSimpleGameification';
 import { PointAnimation } from '@/components/PointAnimation';
 import { motion } from 'framer-motion';
 import { 
@@ -60,7 +60,7 @@ export const PointActivity = ({
   variant = 'button',
   size = 'default'
 }: PointActivityProps) => {
-  const { awardPoints } = useGameification();
+  const { awardPoints } = useSimpleGameification();
   const [isAwarding, setIsAwarding] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
@@ -75,11 +75,7 @@ export const PointActivity = ({
     setIsAwarding(true);
     
     try {
-      const success = await awardPoints(type, points, {
-        itemId,
-        itemType,
-        timestamp: new Date().toISOString()
-      });
+      const success = await awardPoints();
 
       if (success) {
         setIsCompleted(true);

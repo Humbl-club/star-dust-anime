@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useGameification } from "@/hooks/useGameification";
+import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { LootBoxAnimation } from "@/components/LootBoxAnimation";
 import { 
   Gift, 
@@ -38,7 +38,10 @@ const getTierColor = (tier: string) => {
 };
 
 export const LootBoxOpening = () => {
-  const { stats, lootBoxes, isOpeningBox, openLootBox, purchaseLootBox, lastOpenedResult } = useGameification();
+  const { stats, openLootBox, purchaseLootBox } = useSimpleGameification();
+  const lootBoxes: any[] = [];
+  const isOpeningBox = false;
+  const lastOpenedResult = null;
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [showAnimation, setShowAnimation] = useState(false);
 
@@ -48,7 +51,7 @@ export const LootBoxOpening = () => {
     setShowAnimation(true);
     
     // Actually open the loot box
-    const result = await openLootBox(boxType);
+    const result = await openLootBox();
     console.log('🎁 Loot box result:', result);
     
     if (!result) {
@@ -182,7 +185,7 @@ export const LootBoxOpening = () => {
                 <div className="text-xs text-muted-foreground">0.01% GOD chance</div>
               </div>
               <Button 
-                onClick={() => purchaseLootBox('standard')}
+                onClick={() => purchaseLootBox()}
                 disabled={!stats || stats.totalPoints < costs.standard}
                 className="w-full"
                 variant="outline"
@@ -204,7 +207,7 @@ export const LootBoxOpening = () => {
                 <div className="text-xs text-muted-foreground">0.05% GOD chance</div>
               </div>
               <Button 
-                onClick={() => purchaseLootBox('premium')}
+                onClick={() => purchaseLootBox()}
                 disabled={!stats || stats.totalPoints < costs.premium}
                 className="w-full"
                 variant="secondary"
@@ -226,7 +229,7 @@ export const LootBoxOpening = () => {
                 <div className="text-xs text-muted-foreground">0.1% GOD chance</div>
               </div>
               <Button 
-                onClick={() => purchaseLootBox('ultra')}
+                onClick={() => purchaseLootBox()}
                 disabled={!stats || stats.totalPoints < costs.ultra}
                 className="w-full"
                 variant="hero"

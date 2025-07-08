@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-export { ActivityTracker } from '@/components/StubComponents';
 import { useAuth } from '@/hooks/useAuth';
+import { useSimpleGameification } from '@/hooks/useSimpleGameification';
 
 interface ActivityTrackerProps {
   activityType: string;
@@ -15,14 +15,14 @@ export const ActivityTracker = ({
   metadata = {},
   triggerOnMount = true 
 }: ActivityTrackerProps) => {
-  const { awardPoints } = useGameification();
+  const { awardPoints } = useSimpleGameification();
   const { user } = useAuth();
 
   useEffect(() => {
     if (triggerOnMount && user) {
       // Debounce activity tracking to prevent spam
       const timeoutId = setTimeout(() => {
-        awardPoints(activityType, points, metadata);
+        awardPoints();
       }, 1000);
 
       return () => clearTimeout(timeoutId);
@@ -34,12 +34,12 @@ export const ActivityTracker = ({
 
 // Hook for manual activity tracking
 export const useActivityTracker = () => {
-  const { awardPoints } = useGameification();
+  const { awardPoints } = useSimpleGameification();
   const { user } = useAuth();
 
   const trackActivity = (activityType: string, points: number, metadata?: any) => {
     if (user) {
-      awardPoints(activityType, points, metadata);
+      awardPoints();
     }
   };
 

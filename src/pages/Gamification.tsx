@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { EnhancedLootBoxOpening } from "@/components/EnhancedLootBoxOpening";
-import { useGameification } from "@/hooks/useGameification";
+import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useGameification } from "@/hooks/useGameification";
+import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

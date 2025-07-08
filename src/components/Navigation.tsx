@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useGameification } from "@/hooks/useGameification";
+import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { useOptimizedSearch } from "@/hooks/useOptimizedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
