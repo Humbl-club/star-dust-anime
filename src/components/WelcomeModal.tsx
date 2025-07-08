@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGameification } from '@/hooks/useGameification';
-import { LootBoxOpening } from '@/components/LootBoxOpening';
+import { EnhancedLootBoxOpening } from '@/components/EnhancedLootBoxOpening';
+import { ParticleEffect } from '@/components/ParticleEffect';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Crown, Gift, Zap } from 'lucide-react';
 
 interface WelcomeModalProps {
@@ -15,16 +17,19 @@ interface WelcomeModalProps {
 export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
   const { stats, lootBoxes, openLootBox } = useGameification();
   const [currentStep, setCurrentStep] = useState(0);
-  const [isOpeningBox, setIsOpeningBox] = useState(false);
+  const [showLootBoxModal, setShowLootBoxModal] = useState(false);
+  const [showParticles, setShowParticles] = useState(false);
   const [openedResult, setOpenedResult] = useState<any>(null);
 
   const handleOpenStarterBox = async () => {
     if (lootBoxes.length === 0) return;
-    
-    setIsOpeningBox(true);
-    const result = await openLootBox('standard');
+    setShowLootBoxModal(true);
+  };
+
+  const handleLootBoxComplete = (result: any) => {
     setOpenedResult(result);
-    setIsOpeningBox(false);
+    setShowLootBoxModal(false);
+    setShowParticles(true);
     setCurrentStep(2);
   };
 
@@ -106,11 +111,11 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 </p>
                 <Button 
                   onClick={handleOpenStarterBox}
-                  disabled={isOpeningBox || lootBoxes.length === 0}
+                  disabled={lootBoxes.length === 0}
                   size="lg"
                   className="min-w-32"
                 >
-                  {isOpeningBox ? 'Opening...' : 'Open Loot Box'}
+                  Open Loot Box
                 </Button>
               </div>
             </>
@@ -140,55 +145,85 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
   const currentStepData = steps[currentStep];
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            {currentStepData.title}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="py-4">
-          {currentStepData.content}
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-1">
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentStep ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              {currentStepData.title}
+            </DialogTitle>
+          </DialogHeader>
           
-          <div className="flex gap-2">
-            {currentStep > 0 && (
-              <Button 
-                variant="outline" 
-                onClick={() => setCurrentStep(currentStep - 1)}
-              >
-                Back
-              </Button>
-            )}
-            {currentStep < steps.length - 1 ? (
-              <Button 
-                onClick={() => setCurrentStep(currentStep + 1)}
-                disabled={currentStep === 1 && !openedResult}
-              >
-                Next
-              </Button>
-            ) : (
-              <Button onClick={onClose}>
-                Get Started!
-              </Button>
-            )}
+          <motion.div 
+            className="py-4"
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {currentStepData.content}
+          </motion.div>
+
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-1">
+              {steps.map((_, index) => (
+                <motion.div
+                  key={index}
+                  className={`w-2 h-2 rounded-full ${
+                    index === currentStep ? 'bg-primary' : 'bg-muted'
+                  }`}
+                  animate={index === currentStep ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                />
+              ))}
+            </div>
+            
+            <div className="flex gap-2">
+              {currentStep > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                >
+                  Back
+                </Button>
+              )}
+              {currentStep < steps.length - 1 ? (
+                <Button 
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  disabled={currentStep === 1 && !openedResult}
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button onClick={onClose}>
+                  Get Started!
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Enhanced Loot Box Opening */}
+      <EnhancedLootBoxOpening
+        isOpen={showLootBoxModal}
+        onClose={() => {
+          setShowLootBoxModal(false);
+          if (openedResult) {
+            setCurrentStep(2);
+          }
+        }}
+        boxType="standard"
+      />
+
+      {/* Welcome Celebration Particles */}
+      <ParticleEffect
+        trigger={showParticles}
+        type="celebration"
+        intensity="high"
+        onComplete={() => setShowParticles(false)}
+      />
+    </>
   );
 }
