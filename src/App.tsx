@@ -42,10 +42,7 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
         isOpen={showModal} 
         onComplete={setVerified}
       />
-      
-      <InitializationWrapper>
-        {children}
-      </InitializationWrapper>
+      {children}
     </>
   );
 };
@@ -114,37 +111,51 @@ const App = () => {
             {/* Protected Routes - Require Authentication */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Dashboard />
+                <InitializationWrapper>
+                  <Dashboard />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             <Route path="/my-lists" element={
               <ProtectedRoute>
-                <MyLists />
+                <InitializationWrapper>
+                  <MyLists />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />            
             <Route path="/recommendations" element={
               <ProtectedRoute>
-                <Recommendations />
+                <InitializationWrapper>
+                  <Recommendations />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute>
-                <Analytics />
+                <InitializationWrapper>
+                  <Analytics />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             <Route path="/gamification" element={
               <ProtectedRoute>
-                <Gamification />
+                <InitializationWrapper>
+                  <Gamification />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             <Route path="/template-manager" element={
               <ProtectedRoute>
-                <TemplateManager />
+                <InitializationWrapper>
+                  <TemplateManager />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             <Route path="/sync-dashboard" element={
               <ProtectedRoute>
-                <SyncDashboard />
+                <InitializationWrapper>
+                  <SyncDashboard />
+                </InitializationWrapper>
               </ProtectedRoute>
             } />
             
