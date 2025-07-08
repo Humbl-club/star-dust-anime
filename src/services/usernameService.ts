@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface UsernameResult {
   username: string;
   tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON';
+  sourceAnime?: string;
+  description?: string;
+  personality?: string;
+  isFirstTime?: boolean;
 }
 
 export interface UserStats {
@@ -183,7 +187,11 @@ class UsernameService {
 
       return {
         username: data.username,
-        tier: data.tier as any
+        tier: data.tier as any,
+        sourceAnime: data.sourceAnime,
+        description: data.description,
+        personality: data.personality,
+        isFirstTime: data.isFirstTime
       };
     } catch (error) {
       console.error('Error opening loot box:', error);

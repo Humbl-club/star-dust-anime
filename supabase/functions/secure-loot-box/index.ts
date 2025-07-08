@@ -18,6 +18,10 @@ interface LootBoxResult {
   serverSeed: string;
   nonce: number;
   hash: string;
+  sourceAnime?: string;
+  description?: string;
+  personality?: string;
+  isFirstTime?: boolean;
 }
 
 serve(async (req) => {
@@ -35,6 +39,13 @@ serve(async (req) => {
     const { userId, boxType, clientSeed } = await req.json() as LootBoxRequest;
 
     console.log(`Opening ${boxType} loot box for user ${userId}`);
+
+    // Check if this is the user's first loot box
+    const { data: isFirstData, error: firstError } = await supabase
+      .rpc('is_first_loot_box', { user_id_param: userId });
+
+    console.log(`Is first loot box: ${!isFirstData}`);
+    let isFirstTime = !isFirstData;
 
     // Verify user has the loot box
     const { data: boxData, error: boxError } = await supabase
@@ -98,10 +109,10 @@ serve(async (req) => {
 
     console.log(`Selected tier: ${targetTier}`);
 
-    // Get random username from pool for this tier
+    // Get random username from pool for this tier with character data
     const { data: usernameData, error: usernameError } = await supabase
       .from('username_pool')
-      .select('name, tier')
+      .select('name, tier, source_anime, character_description, character_personality')
       .eq('tier', targetTier)
       .order('random()')
       .limit(1)
@@ -139,6 +150,18 @@ serve(async (req) => {
       throw historyError;
     }
 
+    // Mark first loot box as opened if this was their first time
+    if (isFirstTime) {
+      const { error: markError } = await supabase
+        .rpc('mark_first_loot_box_opened', { user_id_param: userId });
+      
+      if (markError) {
+        console.error('Mark first loot box error:', markError);
+      } else {
+        console.log('Marked first loot box as opened');
+      }
+    }
+
     // Log the opening for audit trail
     const { error: auditError } = await supabase
       .from('daily_activities')
@@ -154,7 +177,8 @@ serve(async (req) => {
           client_seed: clientSeed,
           nonce: nonce,
           hash: hash.substring(0, 16),
-          random_value: random
+          random_value: random,
+          is_first_time: isFirstTime
         }
       });
 
@@ -167,7 +191,11 @@ serve(async (req) => {
       tier: usernameData.tier as any,
       serverSeed,
       nonce,
-      hash: hash.substring(0, 16)
+      hash: hash.substring(0, 16),
+      sourceAnime: usernameData.source_anime,
+      description: usernameData.character_description,
+      personality: usernameData.character_personality,
+      isFirstTime
     };
 
     console.log(`Loot box opened successfully:`, result);

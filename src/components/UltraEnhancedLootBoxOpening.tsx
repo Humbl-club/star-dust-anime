@@ -15,6 +15,8 @@ interface LootBoxResult {
   tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON';
   sourceAnime?: string;
   description?: string;
+  personality?: string;
+  isFirstTime?: boolean;
 }
 
 interface UltraEnhancedLootBoxOpeningProps {
@@ -109,15 +111,15 @@ export const UltraEnhancedLootBoxOpening = ({
         if (lootResult) {
           const enhancedResult = {
             ...lootResult,
-            sourceAnime: `${lootResult.username} Anime`,
-            description: `A ${lootResult.tier.toLowerCase()} tier character with unique abilities and personality traits.`
+            sourceAnime: lootResult.sourceAnime || `${lootResult.username} Anime`,
+            description: lootResult.description || `A ${lootResult.tier.toLowerCase()} tier character with unique abilities and personality traits.`
           };
           
           setResult(enhancedResult);
           setAnimationPhase('revealing');
           
           // Check if this should show first-time experience
-          if (isFirstTime) {
+          if (lootResult.isFirstTime) {
             console.log('Showing first-time experience');
             setShowFirstTimeExperience(true);
             setIsOpening(false);
@@ -167,11 +169,11 @@ export const UltraEnhancedLootBoxOpening = ({
 
   // Enable skip button after 5 seconds for regular experience
   useEffect(() => {
-    if (isOpen && !isFirstTime && result) {
+    if (isOpen && !result?.isFirstTime && result) {
       const timer = setTimeout(() => setShowSkipButton(true), 5000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, isFirstTime, result]);
+  }, [isOpen, result]);
 
   if (!isOpen) return null;
 
@@ -259,7 +261,7 @@ export const UltraEnhancedLootBoxOpening = ({
                   <p className="text-muted-foreground">
                     {isOpening 
                       ? 'Unveiling your legendary username...' 
-                      : isFirstTime 
+                      : result?.isFirstTime 
                       ? 'Your first legendary username awaits! This will be an incredible experience!'
                       : 'Discover a new legendary anime character username!'
                     }
@@ -272,7 +274,7 @@ export const UltraEnhancedLootBoxOpening = ({
                       className="w-full"
                     >
                       <Gift className="w-5 h-5 mr-2" />
-                      {isFirstTime ? 'Begin Your Journey' : 'Open Loot Box'}
+                      {result?.isFirstTime ? 'Begin Your Journey' : 'Open Loot Box'}
                     </Button>
                   )}
                 </div>
@@ -284,7 +286,7 @@ export const UltraEnhancedLootBoxOpening = ({
                 >
                   <div className="space-y-2">
                     <h2 className="text-3xl font-bold text-gradient-primary">
-                      {isFirstTime ? 'Your Legend Begins!' : 'Congratulations!'}
+                      {result?.isFirstTime ? 'Your Legend Begins!' : 'Congratulations!'}
                     </h2>
                     <p className="text-muted-foreground">You received:</p>
                   </div>
@@ -338,7 +340,7 @@ export const UltraEnhancedLootBoxOpening = ({
                       variant="hero"
                       className="flex-1"
                     >
-                      {isFirstTime ? 'Continue Journey' : 'Awesome!'}
+                      {result?.isFirstTime ? 'Continue Journey' : 'Awesome!'}
                     </Button>
                   </div>
                 </motion.div>

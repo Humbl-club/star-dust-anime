@@ -1251,6 +1251,10 @@ export type Database = {
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
       }
+      initialize_user_gamification: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
       is_first_loot_box: {
         Args: { user_id_param: string }
         Returns: boolean
