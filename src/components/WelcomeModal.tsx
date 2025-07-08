@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGameification } from '@/hooks/useGameification';
-import { EnhancedLootBoxOpening } from '@/components/EnhancedLootBoxOpening';
+import { UltraEnhancedLootBoxOpening } from '@/components/UltraEnhancedLootBoxOpening';
 import { ParticleEffect } from '@/components/ParticleEffect';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Crown, Gift, Zap } from 'lucide-react';
@@ -205,8 +205,8 @@ export function WelcomeModal({ open, onClose }: WelcomeModalProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Enhanced Loot Box Opening */}
-      <EnhancedLootBoxOpening
+      {/* Ultra Enhanced Loot Box Opening */}
+      <UltraEnhancedLootBoxOpening
         isOpen={showLootBoxModal}
         onClose={() => {
           setShowLootBoxModal(false);

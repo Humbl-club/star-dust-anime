@@ -128,9 +128,39 @@ class UsernameService {
     }
   }
 
+  // Check if user has opened their first loot box
+  async isFirstLootBox(userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.rpc('is_first_loot_box', {
+        user_id_param: userId
+      });
+
+      if (error) throw error;
+      return !data; // Function returns true if opened, we want to know if it's NOT opened
+    } catch (error) {
+      console.error('Error checking first loot box:', error);
+      return false;
+    }
+  }
+
+  // Mark first loot box as opened
+  async markFirstLootBoxOpened(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('mark_first_loot_box_opened', {
+        user_id_param: userId
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking first loot box opened:', error);
+    }
+  }
+
   // Open a loot box using secure server-side randomization
   async openLootBox(userId: string, boxType: string): Promise<UsernameResult | null> {
     try {
+      console.log('Opening loot box:', { userId, boxType });
+      
       // Call secure edge function for loot box opening
       const { data, error } = await supabase.functions.invoke('secure-loot-box', {
         body: {
@@ -139,6 +169,8 @@ class UsernameService {
           clientSeed: crypto.getRandomValues(new Uint32Array(1))[0].toString(16)
         }
       });
+
+      console.log('Edge function response:', { data, error });
 
       if (error) {
         console.error('Edge function error:', error);

@@ -41,11 +41,11 @@ export const LootBoxOpening = () => {
   const { stats, lootBoxes, isOpeningBox, openLootBox, purchaseLootBox, lastOpenedResult } = useGameification();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [showLootBoxModal, setShowLootBoxModal] = useState(false);
 
   const handleOpenBox = async (boxType: string) => {
     setSelectedBox(boxType);
-    setShowAnimation(true);
-    await openLootBox(boxType);
+    setShowLootBoxModal(true);
   };
 
   const handleCloseAnimation = () => {

@@ -10,6 +10,7 @@ export const useGameification = () => {
   const [loading, setLoading] = useState(true);
   const [isOpeningBox, setIsOpeningBox] = useState(false);
   const [lastOpenedResult, setLastOpenedResult] = useState<UsernameResult | null>(null);
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
   // Load user stats and loot boxes
   const loadUserData = async () => {
@@ -44,35 +45,58 @@ export const useGameification = () => {
     return success;
   };
 
+  // Check if first-time experience
+  const checkFirstTime = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const isFirst = await usernameService.isFirstLootBox(user.id);
+      setIsFirstTime(isFirst);
+    } catch (error) {
+      console.error('Error checking first-time status:', error);
+    }
+  };
+
   // Open a loot box
   const openLootBox = async (boxType: string): Promise<UsernameResult | null> => {
     if (!user?.id || isOpeningBox) return null;
     
     try {
       setIsOpeningBox(true);
+      console.log('Opening loot box in hook:', { userId: user.id, boxType });
+      
       const result = await usernameService.openLootBox(user.id, boxType);
+      console.log('Loot box result:', result);
       
       if (result) {
         setLastOpenedResult(result);
         
+        // Mark first loot box as opened if this was the first time
+        if (isFirstTime) {
+          await usernameService.markFirstLootBoxOpened(user.id);
+          setIsFirstTime(false);
+        }
+        
         // Refresh data
         await loadUserData();
         
-        // Show epic notification based on tier
-        if (result.tier === 'GOD') {
-          toast.success(`🏆 LEGENDARY! You got ${result.username}! (GOD TIER)`, {
-            duration: 10000,
-          });
-        } else if (result.tier === 'LEGENDARY') {
-          toast.success(`⭐ Amazing! You got ${result.username}! (LEGENDARY)`, {
-            duration: 5000,
-          });
-        } else if (result.tier === 'EPIC') {
-          toast.success(`🎉 Great! You got ${result.username}! (EPIC)`, {
-            duration: 3000,
-          });
-        } else {
-          toast.success(`Nice! You got ${result.username}! (${result.tier})`);
+        // Show epic notification based on tier (only for non-first-time)
+        if (!isFirstTime) {
+          if (result.tier === 'GOD') {
+            toast.success(`🏆 LEGENDARY! You got ${result.username}! (GOD TIER)`, {
+              duration: 10000,
+            });
+          } else if (result.tier === 'LEGENDARY') {
+            toast.success(`⭐ Amazing! You got ${result.username}! (LEGENDARY)`, {
+              duration: 5000,
+            });
+          } else if (result.tier === 'EPIC') {
+            toast.success(`🎉 Great! You got ${result.username}! (EPIC)`, {
+              duration: 3000,
+            });
+          } else {
+            toast.success(`Nice! You got ${result.username}! (${result.tier})`);
+          }
         }
       } else {
         toast.error('Failed to open loot box');
@@ -143,6 +167,7 @@ export const useGameification = () => {
   useEffect(() => {
     if (user?.id) {
       loadUserData();
+      checkFirstTime();
       // Process daily login on component mount
       processDailyLogin();
     }
@@ -154,6 +179,7 @@ export const useGameification = () => {
     loading,
     isOpeningBox,
     lastOpenedResult,
+    isFirstTime,
     awardPoints,
     openLootBox,
     purchaseLootBox,

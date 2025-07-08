@@ -993,6 +993,7 @@ export type Database = {
         Row: {
           created_at: string | null
           daily_points: number | null
+          first_loot_box_opened: boolean | null
           id: string
           is_first_login: boolean | null
           last_daily_reset: string | null
@@ -1005,6 +1006,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           daily_points?: number | null
+          first_loot_box_opened?: boolean | null
           id?: string
           is_first_login?: boolean | null
           last_daily_reset?: string | null
@@ -1017,6 +1019,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           daily_points?: number | null
+          first_loot_box_opened?: boolean | null
           id?: string
           is_first_login?: boolean | null
           last_daily_reset?: string | null
@@ -1118,28 +1121,37 @@ export type Database = {
       }
       username_pool: {
         Row: {
+          character_description: string | null
+          character_personality: string | null
           character_type: string | null
           created_at: string | null
           id: string
           name: string
           source_anime: string | null
           tier: Database["public"]["Enums"]["username_tier"]
+          visual_traits: Json | null
         }
         Insert: {
+          character_description?: string | null
+          character_personality?: string | null
           character_type?: string | null
           created_at?: string | null
           id?: string
           name: string
           source_anime?: string | null
           tier: Database["public"]["Enums"]["username_tier"]
+          visual_traits?: Json | null
         }
         Update: {
+          character_description?: string | null
+          character_personality?: string | null
           character_type?: string | null
           created_at?: string | null
           id?: string
           name?: string
           source_anime?: string | null
           tier?: Database["public"]["Enums"]["username_tier"]
+          visual_traits?: Json | null
         }
         Relationships: []
       }
@@ -1238,6 +1250,14 @@ export type Database = {
           username: string
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
+      }
+      is_first_loot_box: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
+      mark_first_loot_box_opened: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
       process_daily_login: {
         Args: { user_id_param: string }
