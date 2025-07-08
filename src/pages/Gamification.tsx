@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
-import { LootBoxOpening } from "@/components/LootBoxOpening";
+import { EnhancedLootBoxOpening } from "@/components/EnhancedLootBoxOpening";
 import { useGameification } from "@/hooks/useGameification";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,7 +74,7 @@ const Gamification = () => {
           </TabsList>
 
           <TabsContent value="lootboxes">
-            <LootBoxOpening />
+            <EnhancedLootBoxOpening />
           </TabsContent>
 
           <TabsContent value="collection">

@@ -1,253 +1,296 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { ParticleEffect } from '@/components/ParticleEffect';
-import { PointAnimation } from '@/components/PointAnimation';
-import { Gift, Crown, Sparkles, Star } from 'lucide-react';
-import { useGameification } from '@/hooks/useGameification';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useGamificationStore } from "@/hooks/useGamificationStore";
+import { LootBoxAnimation } from "@/components/LootBoxAnimation";
+import { 
+  Gift, 
+  Star, 
+  Crown, 
+  Trophy, 
+  Sparkles, 
+  Package,
+  Coins
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-interface LootBoxResult {
-  username: string;
-  tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON';
-}
-
-interface EnhancedLootBoxOpeningProps {
-  isOpen: boolean;
-  onClose: () => void;
-  boxType?: string;
-}
-
-const tierConfigs = {
-  GOD: {
-    color: 'text-purple-600',
-    bgColor: 'from-purple-600 to-pink-600',
-    glow: 'shadow-purple-500/50',
-    icon: Crown,
-    particles: 'achievement'
-  },
-  LEGENDARY: {
-    color: 'text-yellow-500',
-    bgColor: 'from-yellow-500 to-orange-500',
-    glow: 'shadow-yellow-500/50',
-    icon: Star,
-    particles: 'achievement'
-  },
-  EPIC: {
-    color: 'text-blue-500',
-    bgColor: 'from-blue-500 to-purple-500',
-    glow: 'shadow-blue-500/50',
-    icon: Sparkles,
-    particles: 'celebration'
-  },
-  RARE: {
-    color: 'text-green-500',
-    bgColor: 'from-green-500 to-blue-500',
-    glow: 'shadow-green-500/50',
-    icon: Star,
-    particles: 'points'
-  },
-  UNCOMMON: {
-    color: 'text-gray-400',
-    bgColor: 'from-gray-400 to-gray-600',
-    glow: 'shadow-gray-500/50',
-    icon: Sparkles,
-    particles: 'points'
-  },
-  COMMON: {
-    color: 'text-gray-600',
-    bgColor: 'from-gray-600 to-gray-800',
-    glow: 'shadow-gray-500/30',
-    icon: Star,
-    particles: 'points'
+const getTierIcon = (tier: string) => {
+  switch (tier) {
+    case 'GOD': return <Crown className="w-4 h-4 text-yellow-500" />;
+    case 'LEGENDARY': return <Trophy className="w-4 h-4 text-purple-500" />;
+    case 'EPIC': return <Star className="w-4 h-4 text-blue-500" />;
+    case 'RARE': return <Sparkles className="w-4 h-4 text-green-500" />;
+    case 'UNCOMMON': return <Gift className="w-4 h-4 text-gray-500" />;
+    default: return <Package className="w-4 h-4 text-gray-400" />;
   }
 };
 
-export const EnhancedLootBoxOpening = ({
-  isOpen,
-  onClose,
-  boxType = 'standard'
-}: EnhancedLootBoxOpeningProps) => {
-  const { openLootBox } = useGameification();
-  const [isOpening, setIsOpening] = useState(false);
-  const [result, setResult] = useState<LootBoxResult | null>(null);
-  const [showParticles, setShowParticles] = useState(false);
-  const [showPointAnimation, setShowPointAnimation] = useState(false);
-  const [animationPhase, setAnimationPhase] = useState<'idle' | 'shaking' | 'opening' | 'revealing' | 'celebrating'>('idle');
+const getTierColor = (tier: string) => {
+  switch (tier) {
+    case 'GOD': return 'bg-gradient-to-r from-yellow-400 to-yellow-600';
+    case 'LEGENDARY': return 'bg-gradient-to-r from-purple-400 to-purple-600';
+    case 'EPIC': return 'bg-gradient-to-r from-blue-400 to-blue-600';
+    case 'RARE': return 'bg-gradient-to-r from-green-400 to-green-600';
+    case 'UNCOMMON': return 'bg-gradient-to-r from-gray-400 to-gray-600';
+    default: return 'bg-gradient-to-r from-gray-300 to-gray-500';
+  }
+};
 
-  const handleOpenLootBox = async () => {
-    setIsOpening(true);
-    setAnimationPhase('shaking');
+export const EnhancedLootBoxOpening = () => {
+  const { user } = useAuth();
+  const { 
+    stats, 
+    lootBoxes, 
+    isOpeningBox, 
+    openLootBox, 
+    purchaseLootBox, 
+    lastOpenedResult,
+    lastGeneratedCharacter,
+    isFirstTime
+  } = useGamificationStore();
+  
+  const [selectedBox, setSelectedBox] = useState<string | null>(null);
+  const [showAnimation, setShowAnimation] = useState(false);
 
-    // Shaking animation
-    setTimeout(() => {
-      setAnimationPhase('opening');
-    }, 1000);
-
-    // Opening animation  
-    setTimeout(async () => {
-      const lootResult = await openLootBox(boxType);
-      if (lootResult) {
-        setResult(lootResult);
-        setAnimationPhase('revealing');
-        
-        // Show particles after reveal
-        setTimeout(() => {
-          setShowParticles(true);
-          setAnimationPhase('celebrating');
-          
-          // Show point animation for epic+ tiers
-          if (['GOD', 'LEGENDARY', 'EPIC'].includes(lootResult.tier)) {
-            setShowPointAnimation(true);
-          }
-        }, 500);
-      }
-      setIsOpening(false);
-    }, 2000);
+  const handleOpenBox = async (boxType: string) => {
+    if (!user?.id) return;
+    
+    console.log('🎁 Opening loot box:', boxType);
+    setSelectedBox(boxType);
+    setShowAnimation(true);
+    
+    const result = await openLootBox(user.id, boxType);
+    console.log('🎁 Loot box result:', result);
+    
+    if (!result) {
+      setShowAnimation(false);
+      setSelectedBox(null);
+    }
   };
 
-  const handleClose = () => {
-    setResult(null);
-    setShowParticles(false);
-    setShowPointAnimation(false);
-    setAnimationPhase('idle');
-    onClose();
+  const handleCloseAnimation = () => {
+    setShowAnimation(false);
+    setSelectedBox(null);
   };
 
-  if (!isOpen) return null;
+  const handlePurchaseBox = async (boxType: string) => {
+    if (!user?.id) return;
+    await purchaseLootBox(user.id, boxType);
+  };
 
-  const tierConfig = result ? tierConfigs[result.tier] : null;
-  const TierIcon = tierConfig?.icon || Gift;
+  const costs = {
+    standard: 100,
+    premium: 500,
+    ultra: 1000
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
-          className="relative"
-        >
-          <Card className="w-full max-w-md bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-md border-2 border-primary/30">
-            <CardContent className="p-8 text-center space-y-6">
-              {/* Loot Box Animation */}
-              <div className="relative flex justify-center">
-                <motion.div
-                  animate={
-                    animationPhase === 'shaking' 
-                      ? { 
-                          x: [-5, 5, -5, 5, 0],
-                          rotate: [-2, 2, -2, 2, 0] 
-                        }
-                      : animationPhase === 'opening'
-                      ? {
-                          scale: [1, 1.2, 1.5],
-                          rotateY: [0, 180, 360]
-                        }
-                      : {}
-                  }
-                  transition={{
-                    duration: animationPhase === 'shaking' ? 0.5 : 1,
-                    repeat: animationPhase === 'shaking' ? 2 : 0
-                  }}
-                  className={`w-24 h-24 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center ${
-                    result ? `shadow-2xl ${tierConfig?.glow}` : 'shadow-lg'
-                  }`}
-                >
-                  {result && animationPhase === 'revealing' ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <TierIcon className={`w-12 h-12 ${tierConfig?.color}`} />
-                    </motion.div>
-                  ) : (
-                    <Gift className="w-12 h-12 text-primary-foreground" />
-                  )}
-                </motion.div>
-              </div>
-
-              {/* Content */}
-              {!result ? (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">
-                    {isOpening ? 'Opening Loot Box...' : 'Ready to Open?'}
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {isOpening 
-                      ? 'Unveiling your legendary username...' 
-                      : 'Discover a new legendary anime character username!'
-                    }
-                  </p>
-                  {!isOpening && (
-                    <Button
-                      onClick={handleOpenLootBox}
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-                    >
-                      <Gift className="w-5 h-5 mr-2" />
-                      Open Loot Box
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      Congratulations!
-                    </h2>
-                    <p className="text-muted-foreground">You received:</p>
-                  </div>
-
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
-                    className={`p-6 rounded-lg bg-gradient-to-br ${tierConfig?.bgColor} text-white shadow-2xl ${tierConfig?.glow}`}
-                  >
-                    <div className="text-3xl font-bold mb-2">{result.username}</div>
-                    <Badge variant="secondary" className="text-lg px-3 py-1">
-                      {result.tier} TIER
-                    </Badge>
-                  </motion.div>
-
-                  <Button
-                    onClick={handleClose}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Awesome!
-                  </Button>
-                </motion.div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Particle Effects */}
-      <ParticleEffect
-        trigger={showParticles}
-        type={tierConfig?.particles as any || 'celebration'}
-        intensity={result?.tier === 'GOD' ? 'high' : result?.tier === 'LEGENDARY' ? 'medium' : 'low'}
-        onComplete={() => setShowParticles(false)}
+    <div className="space-y-6">
+      {/* Loot Box Animation Modal */}
+      <LootBoxAnimation
+        isOpen={showAnimation}
+        onClose={handleCloseAnimation}
+        boxType={selectedBox as any}
+        result={lastOpenedResult}
+        isOpening={isOpeningBox}
       />
 
-      {/* Point Animation */}
-      {showPointAnimation && result && (
-        <PointAnimation
-          points={0}
-          type="lootbox"
-          onComplete={() => setShowPointAnimation(false)}
-        />
+      {/* Points Display */}
+      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="w-5 h-5 text-yellow-500" />
+            Your Points
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-primary">{stats?.total_points || 0}</div>
+              <div className="text-sm text-muted-foreground">Total Points</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-secondary">{stats?.daily_points || 0}</div>
+              <div className="text-sm text-muted-foreground">Today</div>
+            </div>
+            <div>
+              <div className="text-lg font-semibold text-accent">{stats?.login_streak || 0}</div>
+              <div className="text-sm text-muted-foreground">Day Streak</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Current Username */}
+      {stats?.current_username && (
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {getTierIcon(stats.username_tier)}
+              Current Username
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <div className={`px-3 py-1 rounded-full text-white font-bold ${getTierColor(stats.username_tier)}`}>
+                {stats.current_username}
+              </div>
+              <Badge variant="secondary">{stats.username_tier}</Badge>
+            </div>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Loot Boxes Inventory */}
+      {lootBoxes.length > 0 && (
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>Your Loot Boxes</CardTitle>
+            <CardDescription>Open these boxes to get new usernames!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {lootBoxes.map((box) => (
+                <div key={box.id} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold capitalize">{box.box_type} Box</h4>
+                    <Badge variant="outline">x{box.quantity}</Badge>
+                  </div>
+                  <Button 
+                    onClick={() => handleOpenBox(box.box_type)}
+                    disabled={isOpeningBox || box.quantity === 0}
+                    className="w-full"
+                    variant="hero"
+                  >
+                    {isOpeningBox && selectedBox === box.box_type ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Opening...
+                      </div>
+                    ) : (
+                      box.quantity > 0 ? 'Open Box' : 'No boxes left'
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loot Box Shop */}
+      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Loot Box Shop</CardTitle>
+          <CardDescription>Purchase loot boxes with your points</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Standard Box */}
+            <div className="border rounded-lg p-4 space-y-3">
+              <div className="text-center">
+                <Package className="w-8 h-8 mx-auto mb-2 text-gray-500" />
+                <h4 className="font-semibold">Standard Box</h4>
+                <p className="text-sm text-muted-foreground">Normal odds for all tiers</p>
+              </div>
+              <div className="space-y-2">
+                <div className="text-center font-bold">{costs.standard} Points</div>
+                <Progress value={10} className="h-2" />
+                <div className="text-xs text-muted-foreground">0.01% GOD chance</div>
+              </div>
+              <Button 
+                onClick={() => handlePurchaseBox('standard')}
+                disabled={!stats || stats.total_points < costs.standard}
+                className="w-full"
+                variant="outline"
+              >
+                Purchase
+              </Button>
+            </div>
+
+            {/* Premium Box */}
+            <div className="border border-purple-500/50 rounded-lg p-4 space-y-3 bg-purple-500/5">
+              <div className="text-center">
+                <Star className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                <h4 className="font-semibold">Premium Box</h4>
+                <p className="text-sm text-muted-foreground">Better odds!</p>
+              </div>
+              <div className="space-y-2">
+                <div className="text-center font-bold">{costs.premium} Points</div>
+                <Progress value={25} className="h-2" />
+                <div className="text-xs text-muted-foreground">0.05% GOD chance</div>
+              </div>
+              <Button 
+                onClick={() => handlePurchaseBox('premium')}
+                disabled={!stats || stats.total_points < costs.premium}
+                className="w-full"
+                variant="secondary"
+              >
+                Purchase
+              </Button>
+            </div>
+
+            {/* Ultra Box */}
+            <div className="border border-yellow-500/50 rounded-lg p-4 space-y-3 bg-yellow-500/5">
+              <div className="text-center">
+                <Crown className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                <h4 className="font-semibold">Ultra Box</h4>
+                <p className="text-sm text-muted-foreground">Best odds!</p>
+              </div>
+              <div className="space-y-2">
+                <div className="text-center font-bold">{costs.ultra} Points</div>
+                <Progress value={50} className="h-2" />
+                <div className="text-xs text-muted-foreground">0.1% GOD chance</div>
+              </div>
+              <Button 
+                onClick={() => handlePurchaseBox('ultra')}
+                disabled={!stats || stats.total_points < costs.ultra}
+                className="w-full"
+                variant="hero"
+              >
+                Purchase
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* How to Earn Points */}
+      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>How to Earn Points</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span>Daily Login</span>
+              <Badge variant="outline">10 points</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>View Anime</span>
+              <Badge variant="outline">1 point</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Add to Watchlist</span>
+              <Badge variant="outline">5 points</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Write Review</span>
+              <Badge variant="outline">25 points</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>Complete Anime</span>
+              <Badge variant="outline">50 points</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span>7-Day Streak Bonus</span>
+              <Badge variant="outline">50 points</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

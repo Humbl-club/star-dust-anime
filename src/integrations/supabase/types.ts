@@ -1613,6 +1613,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_user_gamification_summary: {
+        Args: { user_id_param: string }
+        Returns: {
+          total_points: number
+          daily_points: number
+          login_streak: number
+          current_username: string
+          username_tier: string
+          loot_boxes: Json
+          recent_activities: Json
+        }[]
+      }
       initialize_user_gamification: {
         Args: { user_id_param: string }
         Returns: undefined
@@ -1624,6 +1636,19 @@ export type Database = {
       mark_first_loot_box_opened: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      open_loot_box_secure: {
+        Args: { user_id_param: string; box_type_param: string }
+        Returns: {
+          username: string
+          tier: string
+          source_anime: string
+          description: string
+          personality: string
+          is_first_time: boolean
+          server_seed: string
+          random_value: number
+        }[]
       }
       process_daily_login: {
         Args: { user_id_param: string }
