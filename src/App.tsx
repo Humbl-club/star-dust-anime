@@ -24,6 +24,8 @@ import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
 import Social from "./pages/Social";
 import Gamification from "./pages/Gamification";
+import Trading from "./pages/Trading";
+import TemplateManager from "./pages/TemplateManager";
 
 import SyncDashboard from "./pages/SyncDashboard";
 import LegalPages from "./pages/LegalPages";
@@ -148,6 +150,16 @@ const App = () => {
             <Route path="/gamification" element={
               <ProtectedRoute>
                 <Gamification />
+              </ProtectedRoute>
+            } />
+            <Route path="/trading" element={
+              <ProtectedRoute>
+                <Trading />
+              </ProtectedRoute>
+            } />
+            <Route path="/template-manager" element={
+              <ProtectedRoute>
+                <TemplateManager />
               </ProtectedRoute>
             } />
             <Route path="/sync-dashboard" element={

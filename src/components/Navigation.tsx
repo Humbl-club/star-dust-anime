@@ -19,7 +19,10 @@ import {
   Loader2, 
   Sparkles,
   BarChart3,
-  X
+  X,
+  Users,
+  ShoppingCart,
+  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -307,6 +310,50 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 >
                   <BarChart3 className="w-4 h-4 mr-3" />
                   Analytics
+                </Button>
+              </Link>
+
+              <Link to="/social">
+                <Button
+                  variant={window.location.pathname === "/social" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Users className="w-4 h-4 mr-3" />
+                  Social
+                </Button>
+              </Link>
+
+              <Link to="/gamification">
+                <Button
+                  variant={window.location.pathname === "/gamification" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Sparkles className="w-4 h-4 mr-3" />
+                  Gamification
+                </Button>
+              </Link>
+
+              <Link to="/trading">
+                <Button
+                  variant={window.location.pathname === "/trading" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <ShoppingCart className="w-4 h-4 mr-3" />
+                  Trading
+                </Button>
+              </Link>
+
+              <Link to="/template-manager">
+                <Button
+                  variant={window.location.pathname === "/template-manager" ? "default" : "ghost"}
+                  className="w-full justify-start px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Palette className="w-4 h-4 mr-3" />
+                  Templates
                 </Button>
               </Link>
 
