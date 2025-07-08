@@ -93,7 +93,7 @@ export const EnhancedLootBoxOpening = () => {
         isOpen={showAnimation}
         onClose={handleCloseAnimation}
         boxType={selectedBox as any}
-        result={lastOpenedResult}
+        result={lastOpenedResult as any}
         isOpening={isOpeningBox}
       />
 
@@ -108,15 +108,15 @@ export const EnhancedLootBoxOpening = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-primary">{stats?.total_points || 0}</div>
+              <div className="text-2xl font-bold text-primary">{stats?.totalPoints || 0}</div>
               <div className="text-sm text-muted-foreground">Total Points</div>
             </div>
             <div>
-              <div className="text-lg font-semibold text-secondary">{stats?.daily_points || 0}</div>
+              <div className="text-lg font-semibold text-secondary">{stats?.dailyPoints || 0}</div>
               <div className="text-sm text-muted-foreground">Today</div>
             </div>
             <div>
-              <div className="text-lg font-semibold text-accent">{stats?.login_streak || 0}</div>
+              <div className="text-lg font-semibold text-accent">{stats?.loginStreak || 0}</div>
               <div className="text-sm text-muted-foreground">Day Streak</div>
             </div>
           </div>
@@ -124,20 +124,20 @@ export const EnhancedLootBoxOpening = () => {
       </Card>
 
       {/* Current Username */}
-      {stats?.current_username && (
+      {stats?.currentUsername && (
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {getTierIcon(stats.username_tier)}
+              {getTierIcon(stats.usernameTier)}
               Current Username
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
-              <div className={`px-3 py-1 rounded-full text-white font-bold ${getTierColor(stats.username_tier)}`}>
-                {stats.current_username}
+              <div className={`px-3 py-1 rounded-full text-white font-bold ${getTierColor(stats.usernameTier)}`}>
+                {stats.currentUsername}
               </div>
-              <Badge variant="secondary">{stats.username_tier}</Badge>
+              <Badge variant="secondary">{stats.usernameTier}</Badge>
             </div>
           </CardContent>
         </Card>
@@ -202,7 +202,7 @@ export const EnhancedLootBoxOpening = () => {
               </div>
               <Button 
                 onClick={() => handlePurchaseBox('standard')}
-                disabled={!stats || stats.total_points < costs.standard}
+                disabled={!stats || stats.totalPoints < costs.standard}
                 className="w-full"
                 variant="outline"
               >
@@ -224,7 +224,7 @@ export const EnhancedLootBoxOpening = () => {
               </div>
               <Button 
                 onClick={() => handlePurchaseBox('premium')}
-                disabled={!stats || stats.total_points < costs.premium}
+                disabled={!stats || stats.totalPoints < costs.premium}
                 className="w-full"
                 variant="secondary"
               >
@@ -246,7 +246,7 @@ export const EnhancedLootBoxOpening = () => {
               </div>
               <Button 
                 onClick={() => handlePurchaseBox('ultra')}
-                disabled={!stats || stats.total_points < costs.ultra}
+                disabled={!stats || stats.totalPoints < costs.ultra}
                 className="w-full"
                 variant="hero"
               >

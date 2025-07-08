@@ -10,16 +10,16 @@ interface LootBox {
 }
 
 interface UserStats {
-  total_points: number;
-  daily_points: number;
-  login_streak: number;
-  current_username: string;
-  username_tier: string;
+  totalPoints: number;
+  dailyPoints: number;
+  loginStreak: number;
+  currentUsername: string;
+  usernameTier: string;
 }
 
 interface LootBoxResult {
   username: string;
-  tier: string;
+  tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON';
   source_anime?: string;
   description?: string;
   personality?: string;
@@ -70,13 +70,14 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       if (data && data.length > 0) {
         const userData = data[0];
         
+        // Transform snake_case database fields to camelCase for frontend
         set({
           stats: {
-            total_points: userData.total_points || 0,
-            daily_points: userData.daily_points || 0,
-            login_streak: userData.login_streak || 0,
-            current_username: userData.current_username || 'Unknown',
-            username_tier: userData.username_tier || 'COMMON'
+            totalPoints: userData.total_points || 0,
+            dailyPoints: userData.daily_points || 0,
+            loginStreak: userData.login_streak || 0,
+            currentUsername: userData.current_username || 'Unknown',
+            usernameTier: userData.username_tier || 'COMMON'
           },
           lootBoxes: Array.isArray(userData.loot_boxes) ? userData.loot_boxes.map((box: any) => ({
             id: box.id,
@@ -109,11 +110,23 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       if (data && data.length > 0) {
         const result = data[0];
         
+        // Transform to proper typed result
+        const typedResult: LootBoxResult = {
+          username: result.username,
+          tier: result.tier as any,
+          source_anime: result.source_anime,
+          description: result.description,
+          personality: result.personality,
+          is_first_time: result.is_first_time,
+          server_seed: result.server_seed,
+          random_value: result.random_value
+        };
+
         // Create character data for display
         const character: GeneratedCharacter = {
           id: crypto.randomUUID(),
-          username: result.username,
-          tier: result.tier as any,
+          username: typedResult.username,
+          tier: typedResult.tier as any,
           character_data: {
             template: {} as any,
             variation: {} as any,
@@ -125,11 +138,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
               outfit_color: '#000000',
               accessory_color: '#000000'
             },
-            personality_traits: [result.personality || 'mysterious'],
-            source_anime: result.source_anime,
-            description: result.description,
-            personality: result.personality,
-            tier: result.tier
+            personality_traits: [typedResult.personality || 'mysterious'],
+            source_anime: typedResult.source_anime,
+            description: typedResult.description,
+            personality: typedResult.personality,
+            tier: typedResult.tier
           },
           cached_at: new Date().toISOString(),
           cache_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -138,32 +151,32 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
         };
 
         set({ 
-          lastOpenedResult: result,
+          lastOpenedResult: typedResult,
           lastGeneratedCharacter: character,
-          isFirstTime: result.is_first_time || false
+          isFirstTime: typedResult.is_first_time || false
         });
 
         // Show notification based on tier
-        if (result.tier === 'GOD') {
-          toast.success(`🏆 LEGENDARY! You got ${result.username}! (GOD TIER)`, {
+        if (typedResult.tier === 'GOD') {
+          toast.success(`🏆 LEGENDARY! You got ${typedResult.username}! (GOD TIER)`, {
             duration: 10000,
           });
-        } else if (result.tier === 'LEGENDARY') {
-          toast.success(`⭐ Amazing! You got ${result.username}! (LEGENDARY)`, {
+        } else if (typedResult.tier === 'LEGENDARY') {
+          toast.success(`⭐ Amazing! You got ${typedResult.username}! (LEGENDARY)`, {
             duration: 5000,
           });
-        } else if (result.tier === 'EPIC') {
-          toast.success(`🎉 Great! You got ${result.username}! (EPIC)`, {
+        } else if (typedResult.tier === 'EPIC') {
+          toast.success(`🎉 Great! You got ${typedResult.username}! (EPIC)`, {
             duration: 3000,
           });
         } else {
-          toast.success(`Nice! You got ${result.username}! (${result.tier})`);
+          toast.success(`Nice! You got ${typedResult.username}! (${typedResult.tier})`);
         }
 
         // Refresh user data
         await get().loadUserData(userId);
         
-        return result;
+        return typedResult;
       }
       
       return null;
@@ -188,7 +201,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     if (!cost) return false;
 
     const { stats } = get();
-    if (!stats || stats.total_points < cost) {
+    if (!stats || stats.totalPoints < cost) {
       toast.error(`Not enough points! Need ${cost} points.`);
       return false;
     }
