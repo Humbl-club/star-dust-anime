@@ -163,6 +163,41 @@ export type Database = {
         }
         Relationships: []
       }
+      claimed_usernames: {
+        Row: {
+          claimed_at: string | null
+          id: string
+          is_active: boolean | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          claimed_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          tier?: Database["public"]["Enums"]["username_tier"]
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claimed_usernames_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cleanup_audit_log: {
         Row: {
           action: string
@@ -306,6 +341,44 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      daily_activities: {
+        Row: {
+          activity_date: string | null
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          points_earned: number | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_date?: string | null
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          points_earned?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_date?: string | null
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          points_earned?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       genres: {
         Row: {
@@ -833,6 +906,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_loot_boxes: {
+        Row: {
+          box_type: string
+          created_at: string | null
+          id: string
+          quantity: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          box_type: string
+          created_at?: string | null
+          id?: string
+          quantity?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          box_type?: string
+          created_at?: string | null
+          id?: string
+          quantity?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_loot_boxes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_manga_lists: {
         Row: {
           chapters_read: number | null
@@ -881,6 +989,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_points: {
+        Row: {
+          created_at: string | null
+          daily_points: number | null
+          id: string
+          last_daily_reset: string | null
+          last_login_date: string | null
+          login_streak: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_points?: number | null
+          id?: string
+          last_daily_reset?: string | null
+          last_login_date?: string | null
+          login_streak?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_points?: number | null
+          id?: string
+          last_daily_reset?: string | null
+          last_login_date?: string | null
+          login_streak?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           auto_add_sequels: boolean | null
@@ -923,6 +1075,122 @@ export type Database = {
         }
         Relationships: []
       }
+      username_history: {
+        Row: {
+          acquired_at: string | null
+          acquired_method: string | null
+          id: string
+          is_current: boolean | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          acquired_at?: string | null
+          acquired_method?: string | null
+          id?: string
+          is_current?: boolean | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          acquired_at?: string | null
+          acquired_method?: string | null
+          id?: string
+          is_current?: boolean | null
+          tier?: Database["public"]["Enums"]["username_tier"]
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "username_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      username_pool: {
+        Row: {
+          character_type: string | null
+          created_at: string | null
+          id: string
+          name: string
+          source_anime: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+        }
+        Insert: {
+          character_type?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          source_anime?: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+        }
+        Update: {
+          character_type?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          source_anime?: string | null
+          tier?: Database["public"]["Enums"]["username_tier"]
+        }
+        Relationships: []
+      }
+      username_trades: {
+        Row: {
+          buyer_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          price_points: number
+          seller_id: string | null
+          status: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Insert: {
+          buyer_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          price_points: number
+          seller_id?: string | null
+          status?: string | null
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Update: {
+          buyer_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          price_points?: number
+          seller_id?: string | null
+          status?: string | null
+          tier?: Database["public"]["Enums"]["username_tier"]
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "username_trades_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "username_trades_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       phase_1_cleanup_summary: {
@@ -957,13 +1225,26 @@ export type Database = {
       }
     }
     Functions: {
+      assign_random_username: {
+        Args: { user_id_param: string }
+        Returns: {
+          username: string
+          tier: Database["public"]["Enums"]["username_tier"]
+        }[]
+      }
       safe_date_cast: {
         Args: { date_string: string }
         Returns: string
       }
     }
     Enums: {
-      [_ in never]: never
+      username_tier:
+        | "GOD"
+        | "LEGENDARY"
+        | "EPIC"
+        | "RARE"
+        | "UNCOMMON"
+        | "COMMON"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1090,6 +1371,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      username_tier: ["GOD", "LEGENDARY", "EPIC", "RARE", "UNCOMMON", "COMMON"],
+    },
   },
 } as const
