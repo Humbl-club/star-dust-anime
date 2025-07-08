@@ -95,7 +95,7 @@ class CharacterGenerationService {
     }
   }
 
-  private async getCachedCharacter(username: string, tier: string): Promise<GeneratedCharacter | null> {
+  private async getCachedCharacter(username: string, tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON'): Promise<GeneratedCharacter | null> {
     const { data } = await supabase
       .from('generated_characters')
       .select('*')
