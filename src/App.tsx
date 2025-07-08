@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { AgeVerificationModal } from "@/components/AgeVerificationModal";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { HelmetProvider } from "react-helmet-async";
 import { Shield } from "lucide-react";
 
@@ -117,14 +118,45 @@ const App = () => {
             <Route path="/manga" element={<Manga />} />
             <Route path="/manga/:id" element={<MangaDetail />} />
             <Route path="/trending" element={<Trending />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/my-lists" element={<MyLists />} />
-            <Route path="/recommendations" element={<Recommendations />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/social" element={<Social />} />
-            <Route path="/gamification" element={<Gamification />} />
             
-            <Route path="/sync-dashboard" element={<SyncDashboard />} />
+            {/* Protected Routes - Require Authentication */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-lists" element={
+              <ProtectedRoute>
+                <MyLists />
+              </ProtectedRoute>
+            } />            
+            <Route path="/recommendations" element={
+              <ProtectedRoute>
+                <Recommendations />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Analytics />
+              </ProtectedRoute>
+            } />
+            <Route path="/social" element={
+              <ProtectedRoute>
+                <Social />
+              </ProtectedRoute>
+            } />
+            <Route path="/gamification" element={
+              <ProtectedRoute>
+                <Gamification />
+              </ProtectedRoute>
+            } />
+            <Route path="/sync-dashboard" element={
+              <ProtectedRoute>
+                <SyncDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Public Routes */}
             <Route path="/legal/:pageType" element={<LegalPages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

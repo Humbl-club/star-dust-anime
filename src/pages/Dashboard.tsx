@@ -39,6 +39,8 @@ import {
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { AchievementSystem } from "@/components/AchievementSystem";
+import { PointActivity } from "@/components/PointActivity";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -111,21 +113,7 @@ const Dashboard = () => {
     { name: 'Plan to Read', value: mangaStats.plan_to_read, color: '#6b7280' }
   ].filter(item => item.value > 0);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <CardContent>
-            <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
-            <p className="text-muted-foreground">You need to be signed in to view your dashboard.</p>
-            <Button className="mt-4" onClick={() => window.location.href = '/auth'}>
-              Sign In
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // No auth check needed - ProtectedRoute handles this
 
   if (loading || gameLoading || firstTimeLoading) {
     return (
@@ -286,84 +274,115 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto mb-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="anime">Anime</TabsTrigger>
             <TabsTrigger value="manga">Manga</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <div className="grid lg:grid-cols-2 gap-8">
-              {/* Anime Distribution */}
+              {/* Point Activities */}
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Play className="w-5 h-5" />
-                    Anime Distribution
+                    <Zap className="w-5 h-5 text-primary" />
+                    Daily Activities
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {animeChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={animeChartData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {animeChartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-48 flex items-center justify-center text-muted-foreground">
-                      No anime data yet
-                    </div>
-                  )}
+                <CardContent className="space-y-4">
+                  <PointActivity
+                    type="rate"
+                    points={10}
+                    label="Rate an anime"
+                    description="Give a score to any anime"
+                    variant="card"
+                  />
+                  <PointActivity
+                    type="add_to_list"
+                    points={5}
+                    label="Add to your list"
+                    description="Add anime or manga to your collection"
+                    variant="card"
+                  />
+                  <PointActivity
+                    type="complete"
+                    points={20}
+                    label="Complete a series"
+                    description="Finish watching an anime or reading manga"
+                    variant="card"
+                  />
+                  <PointActivity
+                    type="review"
+                    points={25}
+                    label="Write a review"
+                    description="Share your thoughts on a series"
+                    variant="card"
+                  />
                 </CardContent>
               </Card>
 
-              {/* Manga Distribution */}
+              {/* Today's Stats */}
               <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
-                    Manga Distribution
+                    <Calendar className="w-5 h-5" />
+                    Today's Progress
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {mangaChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={mangaChartData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {mangaChartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="h-48 flex items-center justify-center text-muted-foreground">
-                      No manga data yet
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Daily Points</span>
+                        <span className="text-sm text-muted-foreground">{stats?.dailyPoints || 0}/100</span>
+                      </div>
+                      <Progress value={((stats?.dailyPoints || 0) / 100) * 100} className="h-2" />
                     </div>
-                  )}
+                    
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Login Streak</span>
+                        <span className="text-sm text-muted-foreground">{stats?.loginStreak || 0} days</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 7 }, (_, i) => (
+                          <div
+                            key={i}
+                            className={`w-4 h-4 rounded-full ${
+                              i < (stats?.loginStreak || 0) ? 'bg-primary' : 'bg-muted'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <h4 className="font-medium mb-3">Quick Goals</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Check className="w-4 h-4 text-green-500" />
+                          <span>Daily login completed</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="w-4 h-4 border-2 border-muted rounded-sm" />
+                          <span>Rate 3 anime series</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="w-4 h-4 border-2 border-muted rounded-sm" />
+                          <span>Add 5 items to your list</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="achievements">
+            <AchievementSystem />
           </TabsContent>
 
           <TabsContent value="anime">
