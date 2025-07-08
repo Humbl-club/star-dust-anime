@@ -163,7 +163,7 @@ class UsernameService {
   // Open a loot box using secure server-side randomization
   async openLootBox(userId: string, boxType: string): Promise<UsernameResult | null> {
     try {
-      console.log('Opening loot box:', { userId, boxType });
+      console.log('🎁 usernameService: Starting loot box opening', { userId, boxType });
       
       // Call secure edge function for loot box opening
       const { data, error } = await supabase.functions.invoke('secure-loot-box', {
@@ -174,17 +174,20 @@ class UsernameService {
         }
       });
 
-      console.log('Edge function response:', { data, error });
+      console.log('🎁 usernameService: Edge function response', { data, error });
 
       if (error) {
-        console.error('Edge function error:', error);
+        console.error('❌ usernameService: Edge function error:', error);
         throw error;
       }
 
       if (!data) {
+        console.error('❌ usernameService: No data returned from loot box opening');
         throw new Error('No data returned from loot box opening');
       }
 
+      console.log('✅ usernameService: Loot box opening successful', data);
+      
       return {
         username: data.username,
         tier: data.tier as any,
@@ -194,7 +197,7 @@ class UsernameService {
         isFirstTime: data.isFirstTime
       };
     } catch (error) {
-      console.error('Error opening loot box:', error);
+      console.error('❌ usernameService: Error opening loot box:', error);
       return null;
     }
   }

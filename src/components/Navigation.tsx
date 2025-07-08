@@ -20,8 +20,6 @@ import {
   Sparkles,
   BarChart3,
   X,
-  Users,
-  ShoppingCart,
   Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -313,17 +311,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
 
-              <Link to="/social">
-                <Button
-                  variant={window.location.pathname === "/social" ? "default" : "ghost"}
-                  className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Users className="w-4 h-4 mr-3" />
-                  Social
-                </Button>
-              </Link>
-
               <Link to="/gamification">
                 <Button
                   variant={window.location.pathname === "/gamification" ? "default" : "ghost"}
@@ -332,17 +319,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 >
                   <Sparkles className="w-4 h-4 mr-3" />
                   Gamification
-                </Button>
-              </Link>
-
-              <Link to="/trading">
-                <Button
-                  variant={window.location.pathname === "/trading" ? "default" : "ghost"}
-                  className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-3" />
-                  Trading
                 </Button>
               </Link>
 

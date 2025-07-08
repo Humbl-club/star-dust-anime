@@ -41,11 +41,20 @@ export const LootBoxOpening = () => {
   const { stats, lootBoxes, isOpeningBox, openLootBox, purchaseLootBox, lastOpenedResult } = useGameification();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [showLootBoxModal, setShowLootBoxModal] = useState(false);
 
   const handleOpenBox = async (boxType: string) => {
+    console.log('🎁 Opening loot box:', boxType);
     setSelectedBox(boxType);
-    setShowLootBoxModal(true);
+    setShowAnimation(true);
+    
+    // Actually open the loot box
+    const result = await openLootBox(boxType);
+    console.log('🎁 Loot box result:', result);
+    
+    if (!result) {
+      setShowAnimation(false);
+      setSelectedBox(null);
+    }
   };
 
   const handleCloseAnimation = () => {
@@ -132,7 +141,7 @@ export const LootBoxOpening = () => {
                   </div>
                   <Button 
                     onClick={() => handleOpenBox(box.box_type)}
-                    disabled={isOpeningBox || selectedBox === box.box_type}
+                    disabled={isOpeningBox || box.quantity === 0}
                     className="w-full"
                     variant="hero"
                   >
@@ -142,7 +151,7 @@ export const LootBoxOpening = () => {
                         Opening...
                       </div>
                     ) : (
-                      'Open Box'
+                      box.quantity > 0 ? 'Open Box' : 'No boxes left'
                     )}
                   </Button>
                 </div>

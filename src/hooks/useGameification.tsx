@@ -69,20 +69,24 @@ export const useGameification = () => {
 
   // Open a loot box with enhanced character generation
   const openLootBox = async (boxType: string): Promise<UsernameResult | null> => {
-    if (!user?.id || isOpeningBox) return null;
+    if (!user?.id || isOpeningBox) {
+      console.error('useGameification: Cannot open loot box - no user or already opening', { userId: user?.id, isOpeningBox });
+      return null;
+    }
     
     try {
       setIsOpeningBox(true);
-      console.log('useGameification: Opening loot box', { userId: user.id, boxType, isFirstTime });
+      console.log('🎁 useGameification: Starting loot box opening', { userId: user.id, boxType, isFirstTime });
       
       const result = await usernameService.openLootBox(user.id, boxType);
-      console.log('useGameification: Loot box result:', result);
+      console.log('🎁 useGameification: Loot box service result:', result);
       
       if (result) {
         setLastOpenedResult(result);
         
         // Generate enhanced character using the new system
         try {
+          console.log('🎨 useGameification: Starting character generation');
           const characterGeneration = await characterGenerationService.generateCharacter({
             username: result.username,
             tier: result.tier,
@@ -92,14 +96,15 @@ export const useGameification = () => {
           });
           
           setLastGeneratedCharacter(characterGeneration.character);
-          console.log('useGameification: Generated character:', characterGeneration);
+          console.log('🎨 useGameification: Character generation success:', characterGeneration);
         } catch (error) {
-          console.warn('Character generation failed, using fallback:', error);
+          console.error('❌ useGameification: Character generation failed:', error);
+          // Don't fail the whole process if character generation fails
         }
         
         // Mark first loot box as opened if this was the first time
         if (isFirstTime) {
-          console.log('useGameification: Marking first loot box as opened');
+          console.log('🏆 useGameification: Marking first loot box as opened');
           await usernameService.markFirstLootBoxOpened(user.id);
           setIsFirstTime(false);
         }
@@ -126,14 +131,14 @@ export const useGameification = () => {
           }
         }
       } else {
-        console.error('useGameification: No result from loot box opening');
-        toast.error('Failed to open loot box');
+        console.error('❌ useGameification: No result from loot box opening');
+        toast.error('Failed to open loot box - please try again');
       }
       
       return result;
     } catch (error) {
-      console.error('Error opening loot box:', error);
-      toast.error('Failed to open loot box');
+      console.error('❌ useGameification: Error opening loot box:', error);
+      toast.error('Failed to open loot box - please check your connection');
       return null;
     } finally {
       setIsOpeningBox(false);

@@ -22,9 +22,7 @@ import Dashboard from "./pages/Dashboard";
 import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
-import Social from "./pages/Social";
 import Gamification from "./pages/Gamification";
-import Trading from "./pages/Trading";
 import TemplateManager from "./pages/TemplateManager";
 
 import SyncDashboard from "./pages/SyncDashboard";
@@ -142,19 +140,9 @@ const App = () => {
                 <Analytics />
               </ProtectedRoute>
             } />
-            <Route path="/social" element={
-              <ProtectedRoute>
-                <Social />
-              </ProtectedRoute>
-            } />
             <Route path="/gamification" element={
               <ProtectedRoute>
                 <Gamification />
-              </ProtectedRoute>
-            } />
-            <Route path="/trading" element={
-              <ProtectedRoute>
-                <Trading />
               </ProtectedRoute>
             } />
             <Route path="/template-manager" element={
