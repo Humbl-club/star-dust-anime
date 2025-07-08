@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
 import { useGameification } from "@/hooks/useGameification";
-import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,28 +37,49 @@ import {
   Users
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
-import { WelcomeModal } from "@/components/WelcomeModal";
+import { FirstTimeLootBoxExperience } from "@/components/FirstTimeLootBoxExperience";
 import { AchievementSystem } from "@/components/AchievementSystem";
 import { PointActivity } from "@/components/PointActivity";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { animeList, mangaList, loading } = useUserLists();
-  const { stats, lootBoxes, loading: gameLoading, openLootBox } = useGameification();
-  const { isFirstTime, loading: firstTimeLoading, markAsReturningUser } = useFirstTimeUser();
+  const { 
+    stats, 
+    lootBoxes, 
+    loading: gameLoading, 
+    openLootBox, 
+    isFirstTime, 
+    lastOpenedResult 
+  } = useGameification();
   const [activeTab, setActiveTab] = useState("overview");
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showFirstTimeExperience, setShowFirstTimeExperience] = useState(false);
 
-  // Show welcome modal for first-time users
+  // Show first-time experience for new users who haven't opened their first loot box
   useEffect(() => {
-    if (!firstTimeLoading && isFirstTime && stats) {
-      setShowWelcomeModal(true);
+    console.log('Dashboard: Checking first-time status', { 
+      isFirstTime, 
+      gameLoading, 
+      stats, 
+      lootBoxes: lootBoxes?.length,
+      username: stats?.currentUsername 
+    });
+    
+    if (!gameLoading && isFirstTime && stats) {
+      console.log('Dashboard: Triggering first-time experience');
+      setShowFirstTimeExperience(true);
     }
-  }, [isFirstTime, firstTimeLoading, stats]);
+  }, [isFirstTime, gameLoading, stats]);
 
-  const handleWelcomeClose = () => {
-    setShowWelcomeModal(false);
-    markAsReturningUser();
+  const handleFirstTimeExperienceClose = async () => {
+    console.log('Dashboard: Closing first-time experience');
+    setShowFirstTimeExperience(false);
+    
+    // Open the first loot box if they haven't opened one yet
+    if (lootBoxes && lootBoxes.length > 0 && isFirstTime) {
+      const result = await openLootBox('standard');
+      console.log('Dashboard: Opened first loot box:', result);
+    }
   };
 
   const handleOpenLootBox = async () => {
@@ -115,7 +135,7 @@ const Dashboard = () => {
 
   // No auth check needed - ProtectedRoute handles this
 
-  if (loading || gameLoading || firstTimeLoading) {
+  if (loading || gameLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="glass-card p-8">
@@ -138,7 +158,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Crown className="w-10 h-10 text-yellow-400 animate-bounce" />
                 <h1 className="text-4xl md:text-6xl font-bold text-gradient-primary">
-                  Welcome, {stats?.currentUsername}!
+                  Welcome, {stats?.currentUsername || 'New User'}!
                 </h1>
               </div>
               <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
@@ -507,10 +527,11 @@ const Dashboard = () => {
         </Tabs>
       </div>
       
-      {/* Welcome Modal for First-Time Users */}
-      <WelcomeModal 
-        open={showWelcomeModal} 
-        onClose={handleWelcomeClose}
+      {/* First-Time Experience for New Users */}
+      <FirstTimeLootBoxExperience
+        isOpen={showFirstTimeExperience}
+        onClose={handleFirstTimeExperienceClose}
+        result={lastOpenedResult}
       />
     </div>
   );

@@ -18,10 +18,14 @@ export const useGameification = () => {
     
     try {
       setLoading(true);
+      console.log('useGameification: Loading user data for', user.id);
+      
       const [userStats, userLootBoxes] = await Promise.all([
         usernameService.getUserStats(user.id),
         usernameService.getUserLootBoxes(user.id)
       ]);
+      
+      console.log('useGameification: Loaded data', { userStats, userLootBoxes });
       
       setStats(userStats);
       setLootBoxes(userLootBoxes);
@@ -50,10 +54,13 @@ export const useGameification = () => {
     if (!user?.id) return;
     
     try {
+      console.log('useGameification: Checking first-time status for', user.id);
       const isFirst = await usernameService.isFirstLootBox(user.id);
+      console.log('useGameification: First-time status:', isFirst);
       setIsFirstTime(isFirst);
     } catch (error) {
       console.error('Error checking first-time status:', error);
+      setIsFirstTime(false);
     }
   };
 
@@ -63,16 +70,17 @@ export const useGameification = () => {
     
     try {
       setIsOpeningBox(true);
-      console.log('Opening loot box in hook:', { userId: user.id, boxType });
+      console.log('useGameification: Opening loot box', { userId: user.id, boxType, isFirstTime });
       
       const result = await usernameService.openLootBox(user.id, boxType);
-      console.log('Loot box result:', result);
+      console.log('useGameification: Loot box result:', result);
       
       if (result) {
         setLastOpenedResult(result);
         
         // Mark first loot box as opened if this was the first time
         if (isFirstTime) {
+          console.log('useGameification: Marking first loot box as opened');
           await usernameService.markFirstLootBoxOpened(user.id);
           setIsFirstTime(false);
         }
@@ -99,6 +107,7 @@ export const useGameification = () => {
           }
         }
       } else {
+        console.error('useGameification: No result from loot box opening');
         toast.error('Failed to open loot box');
       }
       
@@ -166,10 +175,17 @@ export const useGameification = () => {
   // Load data when user changes
   useEffect(() => {
     if (user?.id) {
+      console.log('useGameification: User changed, loading data for', user.id);
       loadUserData();
       checkFirstTime();
       // Process daily login on component mount
       processDailyLogin();
+    } else {
+      console.log('useGameification: No user, resetting state');
+      setStats(null);
+      setLootBoxes([]);
+      setIsFirstTime(false);
+      setLastOpenedResult(null);
     }
   }, [user?.id]);
 

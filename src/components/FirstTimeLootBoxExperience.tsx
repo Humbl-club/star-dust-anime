@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CharacterFigurine } from '@/components/CharacterFigurine';
 import { ParticleEffect } from '@/components/ParticleEffect';
+import { useGameification } from '@/hooks/useGameification';
 import { Gift, Sparkles, Star, Crown, Play, Volume2, VolumeX } from 'lucide-react';
 
 interface FirstTimeLootBoxExperienceProps {
   isOpen: boolean;
   onClose: () => void;
-  result: {
+  result?: {
     username: string;
     tier: 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON';
     sourceAnime?: string;
@@ -62,14 +63,18 @@ const phaseData = {
   }
 };
 
-export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTimeLootBoxExperienceProps) => {
+export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult }: FirstTimeLootBoxExperienceProps) => {
+  const { openLootBox, stats } = useGameification();
   const [currentPhase, setCurrentPhase] = useState<AnimationPhase>('intro');
   const [showSkipButton, setShowSkipButton] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showParticles, setShowParticles] = useState(false);
+  const [lootBoxResult, setLootBoxResult] = useState<any>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    console.log('FirstTimeLootBoxExperience: Starting experience');
 
     const phaseSequence: AnimationPhase[] = [
       'intro', 'buildup', 'mystery', 'opening', 'revealing', 'character-intro', 'celebration', 'collection'
@@ -78,17 +83,30 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
     let currentIndex = 0;
     setCurrentPhase(phaseSequence[0]);
 
-    const progressToNextPhase = () => {
+    const progressToNextPhase = async () => {
       if (currentIndex < phaseSequence.length - 1) {
         currentIndex++;
-        setCurrentPhase(phaseSequence[currentIndex]);
+        const nextPhase = phaseSequence[currentIndex];
+        setCurrentPhase(nextPhase);
+        
+        // Auto-open loot box when we reach the opening phase
+        if (nextPhase === 'opening' && !lootBoxResult) {
+          console.log('FirstTimeLootBoxExperience: Auto-opening first loot box');
+          try {
+            const result = await openLootBox('standard');
+            console.log('FirstTimeLootBoxExperience: Got loot box result:', result);
+            setLootBoxResult(result);
+          } catch (error) {
+            console.error('FirstTimeLootBoxExperience: Error opening loot box:', error);
+          }
+        }
         
         // Show particles during key moments
-        if (['revealing', 'character-intro', 'celebration'].includes(phaseSequence[currentIndex])) {
+        if (['revealing', 'character-intro', 'celebration'].includes(nextPhase)) {
           setShowParticles(true);
         }
         
-        setTimeout(progressToNextPhase, phaseData[phaseSequence[currentIndex]].duration);
+        setTimeout(progressToNextPhase, phaseData[nextPhase].duration);
       } else {
         // Experience complete
         setTimeout(onClose, 3000);
@@ -98,7 +116,7 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
     const firstTimer = setTimeout(progressToNextPhase, phaseData[phaseSequence[0]].duration);
 
     return () => clearTimeout(firstTimer);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, openLootBox, lootBoxResult]);
 
   // Enable skip button after 10 seconds (but only for testing - real users can't skip)
   useEffect(() => {
@@ -116,6 +134,10 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
   if (!isOpen) return null;
 
   const currentPhaseData = phaseData[currentPhase];
+  const displayResult = lootBoxResult || propResult || { 
+    username: stats?.currentUsername || 'Unknown',
+    tier: stats?.usernameTier || 'COMMON'
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden">
@@ -125,8 +147,8 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
       {/* Particle Effects */}
       <ParticleEffect
         trigger={showParticles}
-        type={result?.tier === 'GOD' ? 'achievement' : result?.tier === 'LEGENDARY' ? 'celebration' : 'points'}
-        intensity={result?.tier === 'GOD' ? 'high' : 'medium'}
+        type={displayResult?.tier === 'GOD' ? 'achievement' : displayResult?.tier === 'LEGENDARY' ? 'celebration' : 'points'}
+        intensity={displayResult?.tier === 'GOD' ? 'high' : 'medium'}
         onComplete={() => setShowParticles(false)}
       />
 
@@ -252,7 +274,7 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
             </div>
           )}
 
-          {currentPhase === 'revealing' && result && (
+          {currentPhase === 'revealing' && displayResult && (
             <div className="text-center space-y-8">
               <motion.h2
                 initial={{ y: -30, opacity: 0 }}
@@ -269,7 +291,7 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
                 className="flex justify-center"
               >
                 <div className="text-6xl font-bold text-gradient-primary">
-                  {result.username}
+                  {displayResult.username}
                 </div>
               </motion.div>
               
@@ -279,12 +301,12 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
                 transition={{ delay: 1 }}
                 className="text-2xl text-muted-foreground"
               >
-                {result.tier} TIER
+                {displayResult.tier} TIER
               </motion.div>
             </div>
           )}
 
-          {currentPhase === 'character-intro' && result && (
+          {currentPhase === 'character-intro' && displayResult && (
             <div className="text-center space-y-8">
               <motion.h2
                 initial={{ y: -30, opacity: 0 }}
@@ -301,10 +323,10 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
                 className="flex justify-center"
               >
                 <CharacterFigurine
-                  username={result.username}
-                  tier={result.tier}
-                  sourceAnime={result.sourceAnime}
-                  description={result.description}
+                  username={displayResult.username}
+                  tier={displayResult.tier}
+                  sourceAnime={displayResult.sourceAnime}
+                  description={displayResult.description}
                   className="scale-150"
                 />
               </motion.div>
@@ -316,11 +338,11 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result }: FirstTim
                 className="text-center space-y-2"
               >
                 <p className="text-lg text-muted-foreground">
-                  {result.description || "A legendary anime character with unique powers and personality."}
+                  {displayResult.description || "A legendary anime character with unique powers and personality."}
                 </p>
-                {result.sourceAnime && (
+                {displayResult.sourceAnime && (
                   <p className="text-sm text-muted-foreground">
-                    From: {result.sourceAnime}
+                    From: {displayResult.sourceAnime}
                   </p>
                 )}
               </motion.div>
