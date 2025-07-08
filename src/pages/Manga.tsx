@@ -27,7 +27,7 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
 
   return (
     <Card 
-      className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm hover-scale cursor-pointer touch-friendly"
+      className="anime-card group hover-scale cursor-pointer touch-friendly"
       onClick={handleClick}
     >
       <CardContent className="p-0">
@@ -41,7 +41,7 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
         
         {/* Score Badge */}
         {manga.score && (
-          <Badge className="absolute top-2 right-2 bg-primary/90 text-primary-foreground">
+          <Badge className="absolute top-2 right-2 glass-card border border-primary/20 glow-primary">
             <Star className="w-3 h-3 mr-1" />
             {manga.score}
           </Badge>
@@ -49,7 +49,7 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
       </div>
       
       <div className="p-4">
-        <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-gradient-primary transition-colors">
           {manga.title}
         </h3>
         
@@ -168,18 +168,21 @@ const Manga = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+    <div className="min-h-screen">
       <Navigation />
       {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Discover <span className="text-accent">Manga</span>
-            </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Explore thousands of manga series and novels with <span className="text-accent font-semibold">Anithing</span>.
-            </p>
+      <div className="relative py-20 mb-8">
+        <div className="absolute inset-0 bg-gradient-hero"></div>
+        <div className="relative container mx-auto px-4">
+          <div className="glass-card p-8 border border-primary/20 glow-primary">
+            <div className="text-center">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 text-gradient-primary">
+                Discover <span className="text-gradient-secondary">Manga</span>
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Explore thousands of manga series and novels with <span className="text-gradient-primary font-semibold">Anithing</span>.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -200,7 +203,7 @@ const Manga = () => {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="anime-card mb-8 glow-card">
           <CardHeader>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
@@ -210,7 +213,7 @@ const Manga = () => {
                   placeholder="Search by title, author, or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 glass-input"
                 />
               </div>
 
@@ -280,18 +283,18 @@ const Manga = () => {
             ))}
           </div>
         ) : (
-          <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="anime-card text-center py-12 glow-card">
             <CardContent>
               <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center glow-primary">
+                  <Search className="w-8 h-8 text-primary-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">No manga found</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-gradient-primary">No manga found</h3>
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or clear the filters.
                   </p>
-                  <Button variant="outline" onClick={clearFilters}>
+                  <Button variant="hero" onClick={clearFilters}>
                     Clear All Filters
                   </Button>
                 </div>

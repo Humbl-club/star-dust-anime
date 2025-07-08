@@ -84,20 +84,22 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-gradient-primary">AnimeHub</h1>
+            <div className="p-3 bg-gradient-primary rounded-full glow-primary">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
+            </div>
           </div>
-          <p className="text-muted-foreground">Your ultimate anime & manga tracking platform</p>
+          <h1 className="text-4xl font-bold text-gradient-primary mb-2">Welcome to Anithing</h1>
+          <p className="text-muted-foreground mb-6">Your ultimate anime & manga tracking platform</p>
           
           {/* Gamification teaser */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-primary/20">
+          <div className="glass-card p-4 border border-primary/20 glow-primary">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Crown className="w-5 h-5 text-yellow-500" />
-              <span className="font-semibold text-primary">Get Your Legendary Username!</span>
+              <span className="font-semibold text-gradient-primary">Get Your Legendary Username!</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Get a random legendary anime character username automatically! No choosing required.
@@ -105,7 +107,7 @@ const Auth = () => {
           </div>
         </div>
 
-        <Card className="border-border/50 backdrop-blur-sm bg-card/80">
+        <Card className="glass-card border border-primary/20 glow-card">
           <CardHeader className="text-center">
             <Tabs value={isSignUp ? "signup" : "signin"} onValueChange={(value) => setIsSignUp(value === "signup")}>
               <TabsList className="grid w-full grid-cols-2">
@@ -156,10 +158,10 @@ const Auth = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
-                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-primary/20 mb-4">
+                <div className="glass-card p-4 border border-primary/20 glow-card mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">Automatic Username Assignment</span>
+                    <span className="text-sm font-medium text-gradient-primary">Automatic Username Assignment</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     You'll receive a random anime character username automatically! 
@@ -179,7 +181,7 @@ const Auth = () => {
                     placeholder="your@email.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="pl-10"
+                    className="pl-10 glass-input"
                     required
                   />
                 </div>
@@ -196,7 +198,7 @@ const Auth = () => {
                     placeholder="Create a secure password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-10 glass-input"
                     required
                     minLength={6}
                   />

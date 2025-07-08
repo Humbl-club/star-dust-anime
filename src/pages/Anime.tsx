@@ -113,25 +113,28 @@ const Anime = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+    <div className="min-h-screen">
       <Navigation />
       {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Discover Anime
-            </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Explore thousands of anime series and movies. Find your next favorite story.
-            </p>
+      <div className="relative py-20 mb-8">
+        <div className="absolute inset-0 bg-gradient-hero"></div>
+        <div className="relative container mx-auto px-4">
+          <div className="glass-card p-8 border border-primary/20 glow-primary">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gradient-primary">
+                Discover Anime
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Explore thousands of anime series and movies. Find your next favorite story.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}
-        <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="anime-card mb-8 glow-card">
           <CardHeader>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
@@ -141,7 +144,7 @@ const Anime = () => {
                   placeholder="Search by title, studio, or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 glass-input"
                 />
               </div>
 
@@ -237,18 +240,18 @@ const Anime = () => {
             ))}
           </div>
         ) : (
-          <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="anime-card text-center py-12 glow-card">
             <CardContent>
               <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center glow-primary">
+                  <Search className="w-8 h-8 text-primary-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">No anime found</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-gradient-primary">No anime found</h3>
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or clear the filters.
                   </p>
-                  <Button variant="outline" onClick={clearFilters}>
+                  <Button variant="hero" onClick={clearFilters}>
                     Clear All Filters
                   </Button>
                 </div>

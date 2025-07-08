@@ -34,7 +34,7 @@ export const AnimeCard = ({
   return (
     <>
       <Card 
-        className="anime-card cursor-pointer group relative h-[400px] overflow-hidden"
+        className="anime-card cursor-pointer group relative h-[400px] overflow-hidden hover-scale"
         onClick={handleCardClick}
       >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
@@ -49,7 +49,7 @@ export const AnimeCard = ({
         
         {/* Floating Status Badge */}
         <Badge 
-          className="absolute top-3 right-3 z-20 bg-primary/90 backdrop-blur-sm"
+          className="absolute top-3 right-3 z-20 glass-card border border-primary/20 glow-primary"
           variant="default"
         >
           {anime.status}
@@ -57,9 +57,9 @@ export const AnimeCard = ({
 
         {/* Score Badge */}
         {anime.score && (
-          <div className="absolute top-3 left-3 z-20 p-2 bg-black/50 backdrop-blur-sm rounded-full flex items-center gap-1">
+          <div className="absolute top-3 left-3 z-20 p-2 glass-card border border-yellow-400/20 rounded-full flex items-center gap-1" style={{boxShadow: '0 0 15px rgba(251, 191, 36, 0.3)'}}>
             <Star className="w-3 h-3 text-yellow-400" />
-            <span className="text-xs font-semibold text-white">{anime.score}</span>
+            <span className="text-xs font-semibold text-foreground">{anime.score}</span>
           </div>
         )}
 
@@ -70,13 +70,13 @@ export const AnimeCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white"
+                className="h-8 w-8 p-0 glass-card border border-border/20 hover:border-primary/30 text-foreground"
               >
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowReportModal(true)}>
+            <DropdownMenuContent align="end" className="glass-card border border-border/30">
+              <DropdownMenuItem onClick={() => setShowReportModal(true)} className="hover:bg-primary/10">
                 <Flag className="w-4 h-4 mr-2" />
                 Report Content
               </DropdownMenuItem>
@@ -86,14 +86,14 @@ export const AnimeCard = ({
       </div>
       
       {/* Content Overlay */}
-      <CardContent className="absolute bottom-0 left-0 right-0 z-20 p-4 text-white">
-        <div className="space-y-2">
+      <CardContent className="absolute bottom-0 left-0 right-0 z-20 p-4">
+        <div className="glass-card p-4 border border-border/20 space-y-2">
           <h3 className="font-bold text-lg line-clamp-2 group-hover:text-gradient-primary transition-all duration-300">
             {anime.title}
           </h3>
           
           {/* Simple info */}
-          <div className="flex items-center gap-2 text-xs text-gray-300">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{anime.year}</span>
             <span>•</span>
             <span>{anime.type}</span>
@@ -112,18 +112,18 @@ export const AnimeCard = ({
               type="anime" 
               variant="outline" 
               size="sm"
-              className="w-full bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="w-full glass-input border-primary/20 hover:border-primary/40 hover:bg-primary/10"
             />
           </div>
 
           {/* Trailer Preview - Subtle */}
           {(anime as any).trailer_id && (
-            <div className="absolute top-16 right-3 z-20">
+            <div className="absolute -top-12 right-3 z-20">
               <TrailerPreview
                 videoId={(anime as any).trailer_id}
                 title={`${anime.title} Trailer`}
                 size="sm"
-                className="w-8 h-8 opacity-70 hover:opacity-100 transition-opacity"
+                className="w-8 h-8 glass-card border border-accent/20 opacity-70 hover:opacity-100 transition-opacity hover:glow-accent"
               />
             </div>
           )}
