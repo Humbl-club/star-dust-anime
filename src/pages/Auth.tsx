@@ -30,24 +30,45 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData.email, formData.password);
+        const result = await signUp(formData.email, formData.password);
         
-        if (error) {
-          toast.error(error.message);
+        if (result.error) {
+          // Handle specific error cases for better UX
+          const errorMessage = result.error.message || 'An error occurred during signup';
+          if (errorMessage.includes('already registered')) {
+            toast.error('This email is already registered. Try signing in instead.');
+          } else if (errorMessage.includes('invalid email')) {
+            toast.error('Please enter a valid email address.');
+          } else if (errorMessage.includes('password')) {
+            toast.error('Password must be at least 6 characters long.');
+          } else {
+            toast.error(errorMessage);
+          }
+        } else if (result.needsConfirmation) {
+          toast.success(result.message || "Check your email to verify your account and get your legendary username!");
         } else {
-          toast.success("Welcome to AnimeHub! Check your email to verify your account and get your legendary username!");
+          toast.success("Welcome to AnimeHub! Your legendary username has been assigned automatically!");
         }
       } else {
         const { error } = await signIn(formData.email, formData.password);
         
         if (error) {
-          toast.error(error.message);
+          // Handle specific signin error cases
+          const errorMessage = error.message || 'An error occurred during signin';
+          if (errorMessage.includes('Invalid login credentials')) {
+            toast.error('Invalid email or password. Please check your credentials.');
+          } else if (errorMessage.includes('Email not confirmed')) {
+            toast.error('Please check your email and click the confirmation link first.');
+          } else {
+            toast.error(errorMessage);
+          }
         } else {
           toast.success("Welcome back to AnimeHub!");
         }
       }
     } catch (error: any) {
-      toast.error("An unexpected error occurred");
+      console.error('Auth error:', error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,6 +106,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
+      {/* Mobile-optimized viewport */}
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -128,7 +150,7 @@ const Auth = () => {
           </CardHeader>
 
           <CardContent>
-            {/* Google Sign In */}
+            {/* Google Sign In - Mobile optimized */}
             <div className="space-y-4 mb-6">
               <Button 
                 type="button"
@@ -143,7 +165,7 @@ const Auth = () => {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Sign in with Google & Get Random Username!
+                Continue with Google
               </Button>
               
               <div className="relative">
