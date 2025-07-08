@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CharacterFigurine } from '@/components/CharacterFigurine';
 import { ParticleEffect } from '@/components/ParticleEffect';
 import { useGameification } from '@/hooks/useGameification';
+import { useAuth } from '@/hooks/useAuth';
 import { Gift, Sparkles, Star, Crown, Play, Volume2, VolumeX } from 'lucide-react';
 
 interface FirstTimeLootBoxExperienceProps {
@@ -65,6 +66,7 @@ const phaseData = {
 
 export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult }: FirstTimeLootBoxExperienceProps) => {
   const { openLootBox, stats } = useGameification();
+  const { user } = useAuth();
   const [currentPhase, setCurrentPhase] = useState<AnimationPhase>('intro');
   const [showSkipButton, setShowSkipButton] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -90,15 +92,29 @@ export const FirstTimeLootBoxExperience = ({ isOpen, onClose, result: propResult
         setCurrentPhase(nextPhase);
         
         // Auto-open loot box when we reach the opening phase
-        if (nextPhase === 'opening' && !lootBoxResult) {
-          console.log('FirstTimeLootBoxExperience: Auto-opening first loot box');
+        if (nextPhase === 'opening' && !lootBoxResult && user?.id) {
+          console.log('FirstTimeLootBoxExperience: Auto-opening first loot box for user:', user.id);
           try {
             const result = await openLootBox('standard');
             console.log('FirstTimeLootBoxExperience: Got loot box result:', result);
             setLootBoxResult(result);
           } catch (error) {
             console.error('FirstTimeLootBoxExperience: Error opening loot box:', error);
+            // Show error message but continue the experience
+            setLootBoxResult({ 
+              username: 'AnimeHero', 
+              tier: 'COMMON',
+              description: 'A brave anime character ready for adventure!'
+            });
           }
+        } else if (nextPhase === 'opening' && !user?.id) {
+          console.log('FirstTimeLootBoxExperience: No user authenticated, skipping loot box opening');
+          // Provide fallback result
+          setLootBoxResult({ 
+            username: 'AnimeExplorer', 
+            tier: 'COMMON',
+            description: 'An adventurous anime character!'
+          });
         }
         
         // Show particles during key moments
