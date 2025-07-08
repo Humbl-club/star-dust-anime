@@ -15,9 +15,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
-    fullName: "",
-    username: ""
+    password: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,15 +30,12 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData.email, formData.password, {
-          full_name: formData.fullName,
-          username: formData.username
-        });
+        const { error } = await signUp(formData.email, formData.password);
         
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success("Account created! Please check your email to verify your account.");
+          toast.success("Welcome to AnimeHub! Check your email to verify your account and get your legendary username!");
         }
       } else {
         const { error } = await signIn(formData.email, formData.password);
@@ -105,7 +100,7 @@ const Auth = () => {
               <span className="font-semibold text-primary">Get Your Legendary Username!</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Join now and unlock rare anime character names, earn points, and open loot boxes!
+              Get a random legendary anime character username automatically! No choosing required.
             </p>
           </div>
         </div>
@@ -125,7 +120,7 @@ const Auth = () => {
               
               <TabsContent value="signup">
                 <CardTitle className="text-2xl">Join AnimeHub</CardTitle>
-                <CardDescription>Create your account to start tracking</CardDescription>
+                <CardDescription>Get your legendary anime username automatically!</CardDescription>
               </TabsContent>
             </Tabs>
           </CardHeader>
@@ -146,7 +141,7 @@ const Auth = () => {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Sign in with Google & Get Legendary Username!
+                Sign in with Google & Get Random Username!
               </Button>
               
               <div className="relative">
@@ -161,41 +156,16 @@ const Auth = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="fullName"
-                        name="fullName"
-                        type="text"
-                        placeholder="Your display name"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border border-primary/20 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">Automatic Username Assignment</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="username"
-                        name="username"
-                        type="text"
-                        placeholder="Pick a unique username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                </>
+                  <p className="text-xs text-muted-foreground">
+                    You'll receive a random anime character username automatically! 
+                    Get new ones through loot boxes later.
+                  </p>
+                </div>
               )}
 
               <div className="space-y-2">

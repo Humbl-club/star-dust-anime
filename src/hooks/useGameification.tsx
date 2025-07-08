@@ -9,6 +9,7 @@ export const useGameification = () => {
   const [lootBoxes, setLootBoxes] = useState<LootBox[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpeningBox, setIsOpeningBox] = useState(false);
+  const [lastOpenedResult, setLastOpenedResult] = useState<UsernameResult | null>(null);
 
   // Load user stats and loot boxes
   const loadUserData = async () => {
@@ -52,6 +53,8 @@ export const useGameification = () => {
       const result = await usernameService.openLootBox(user.id, boxType);
       
       if (result) {
+        setLastOpenedResult(result);
+        
         // Refresh data
         await loadUserData();
         
@@ -150,6 +153,7 @@ export const useGameification = () => {
     lootBoxes,
     loading,
     isOpeningBox,
+    lastOpenedResult,
     awardPoints,
     openLootBox,
     purchaseLootBox,

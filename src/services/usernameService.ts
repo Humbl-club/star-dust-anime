@@ -128,86 +128,30 @@ class UsernameService {
     }
   }
 
-  // Open a loot box
+  // Open a loot box using secure server-side randomization
   async openLootBox(userId: string, boxType: string): Promise<UsernameResult | null> {
     try {
-      // Check if user has the box
-      const { data: boxData, error: boxError } = await supabase
-        .from('user_loot_boxes')
-        .select('quantity')
-        .eq('user_id', userId)
-        .eq('box_type', boxType)
-        .single();
+      // Call secure edge function for loot box opening
+      const { data, error } = await supabase.functions.invoke('secure-loot-box', {
+        body: {
+          userId,
+          boxType,
+          clientSeed: crypto.getRandomValues(new Uint32Array(1))[0].toString(16)
+        }
+      });
 
-      if (boxError || !boxData || boxData.quantity <= 0) {
-        throw new Error('No loot boxes available');
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
       }
 
-      // Simulate loot box opening with weighted probabilities
-      let tierProbability = Math.random();
-      let targetTier: string;
-
-      if (boxType === 'ultra') {
-        // Ultra box: better odds
-        if (tierProbability <= 0.001) targetTier = 'GOD';
-        else if (tierProbability <= 0.01) targetTier = 'LEGENDARY';
-        else if (tierProbability <= 0.1) targetTier = 'EPIC';
-        else if (tierProbability <= 0.3) targetTier = 'RARE';
-        else if (tierProbability <= 0.6) targetTier = 'UNCOMMON';
-        else targetTier = 'COMMON';
-      } else if (boxType === 'premium') {
-        // Premium box: slightly better odds
-        if (tierProbability <= 0.0005) targetTier = 'GOD';
-        else if (tierProbability <= 0.005) targetTier = 'LEGENDARY';
-        else if (tierProbability <= 0.08) targetTier = 'EPIC';
-        else if (tierProbability <= 0.25) targetTier = 'RARE';
-        else if (tierProbability <= 0.5) targetTier = 'UNCOMMON';
-        else targetTier = 'COMMON';
-      } else {
-        // Standard box: normal odds
-        if (tierProbability <= 0.0001) targetTier = 'GOD';
-        else if (tierProbability <= 0.005) targetTier = 'LEGENDARY';
-        else if (tierProbability <= 0.05) targetTier = 'EPIC';
-        else if (tierProbability <= 0.2) targetTier = 'RARE';
-        else if (tierProbability <= 0.5) targetTier = 'UNCOMMON';
-        else targetTier = 'COMMON';
+      if (!data) {
+        throw new Error('No data returned from loot box opening');
       }
-
-      // Get random username from pool
-      const { data: usernameData, error: usernameError } = await supabase
-        .from('username_pool')
-        .select('name, tier')
-        .eq('tier', targetTier as 'GOD' | 'LEGENDARY' | 'EPIC' | 'RARE' | 'UNCOMMON' | 'COMMON')
-        .order('random()')
-        .limit(1)
-        .single();
-
-      if (usernameError) throw usernameError;
-
-      // Consume the loot box
-      const { error: consumeError } = await supabase
-        .from('user_loot_boxes')
-        .update({ quantity: boxData.quantity - 1 })
-        .eq('user_id', userId)
-        .eq('box_type', boxType);
-
-      if (consumeError) throw consumeError;
-
-      // Add to username history
-      const { error: historyError } = await supabase
-        .from('username_history')
-        .insert({
-          user_id: userId,
-          username: usernameData.name,
-          tier: usernameData.tier,
-          acquired_method: 'loot_box'
-        });
-
-      if (historyError) throw historyError;
 
       return {
-        username: usernameData.name,
-        tier: usernameData.tier as any
+        username: data.username,
+        tier: data.tier as any
       };
     } catch (error) {
       console.error('Error opening loot box:', error);

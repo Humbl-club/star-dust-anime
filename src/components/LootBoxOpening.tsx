@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useGameification } from "@/hooks/useGameification";
+import { LootBoxAnimation } from "@/components/LootBoxAnimation";
 import { 
   Gift, 
   Star, 
@@ -37,12 +38,18 @@ const getTierColor = (tier: string) => {
 };
 
 export const LootBoxOpening = () => {
-  const { stats, lootBoxes, isOpeningBox, openLootBox, purchaseLootBox } = useGameification();
+  const { stats, lootBoxes, isOpeningBox, openLootBox, purchaseLootBox, lastOpenedResult } = useGameification();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const handleOpenBox = async (boxType: string) => {
     setSelectedBox(boxType);
+    setShowAnimation(true);
     await openLootBox(boxType);
+  };
+
+  const handleCloseAnimation = () => {
+    setShowAnimation(false);
     setSelectedBox(null);
   };
 
@@ -54,6 +61,14 @@ export const LootBoxOpening = () => {
 
   return (
     <div className="space-y-6">
+      {/* Loot Box Animation Modal */}
+      <LootBoxAnimation
+        isOpen={showAnimation}
+        onClose={handleCloseAnimation}
+        boxType={selectedBox as any}
+        result={lastOpenedResult}
+        isOpening={isOpeningBox}
+      />
       {/* Points Display */}
       <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader>
