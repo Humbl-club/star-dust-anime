@@ -21,7 +21,7 @@ const Auth = () => {
 
   // Redirect if already authenticated
   if (user && !loading) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +43,7 @@ const Auth = () => {
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success("Welcome back!");
+          toast.success("Welcome back to AnimeHub!");
         }
       }
     } catch (error: any) {
