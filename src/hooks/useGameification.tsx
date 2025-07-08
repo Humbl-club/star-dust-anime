@@ -48,7 +48,7 @@ export const useGameification = () => {
     await loadUserData(user.id);
   };
 
-  // Process daily login using the existing service
+  // Process daily login using the existing service with debouncing
   const processDailyLogin = async () => {
     if (!user?.id) return;
     
@@ -63,16 +63,28 @@ export const useGameification = () => {
     }
   };
 
-  // Load data when user changes
+  // Load data when user changes with debouncing to prevent multiple calls
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     if (user?.id) {
       console.log('useGameification: User changed, loading data for', user.id);
-      loadUserData(user.id);
-      processDailyLogin();
+      
+      // Debounce the data loading to prevent rapid-fire calls during auth state changes
+      timeoutId = setTimeout(() => {
+        loadUserData(user.id);
+        processDailyLogin();
+      }, 100);
     } else {
       console.log('useGameification: No user, resetting state');
       reset();
     }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [user?.id, loadUserData, reset]);
 
   return {
