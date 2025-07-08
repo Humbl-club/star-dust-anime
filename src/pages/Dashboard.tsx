@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
+import { useGameification } from "@/hooks/useGameification";
+import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,14 +31,40 @@ import {
   Clock,
   Check,
   Pause,
-  X
+  X,
+  Crown,
+  Zap,
+  Gift,
+  Users
 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import { WelcomeModal } from "@/components/WelcomeModal";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { animeList, mangaList, loading } = useUserLists();
+  const { stats, lootBoxes, loading: gameLoading, openLootBox } = useGameification();
+  const { isFirstTime, loading: firstTimeLoading, markAsReturningUser } = useFirstTimeUser();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  // Show welcome modal for first-time users
+  useEffect(() => {
+    if (!firstTimeLoading && isFirstTime && stats) {
+      setShowWelcomeModal(true);
+    }
+  }, [isFirstTime, firstTimeLoading, stats]);
+
+  const handleWelcomeClose = () => {
+    setShowWelcomeModal(false);
+    markAsReturningUser();
+  };
+
+  const handleOpenLootBox = async () => {
+    if (lootBoxes && lootBoxes.length > 0) {
+      await openLootBox('standard');
+    }
+  };
 
   // Calculate anime statistics
   const animeStats = {
@@ -90,13 +118,16 @@ const Dashboard = () => {
           <CardContent>
             <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
             <p className="text-muted-foreground">You need to be signed in to view your dashboard.</p>
+            <Button className="mt-4" onClick={() => window.location.href = '/auth'}>
+              Sign In
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (loading) {
+  if (loading || gameLoading || firstTimeLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -107,15 +138,31 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
-      {/* Header */}
+      {/* Gamified Header */}
       <div className="bg-gradient-primary text-primary-foreground py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              My Dashboard
-            </h1>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Crown className="w-8 h-8 text-yellow-400" />
+              <h1 className="text-4xl md:text-6xl font-bold">
+                Welcome, {stats?.currentUsername}!
+              </h1>
+            </div>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                {stats?.usernameTier} Tier
+              </Badge>
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                <span className="text-xl font-bold">{stats?.totalPoints} Points</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5" />
+                <span>Streak: {stats?.loginStreak} days</span>
+              </div>
+            </div>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Track your anime and manga journey. See your progress and statistics.
+              Track your anime journey and collect legendary usernames!
             </p>
           </div>
         </div>
@@ -141,8 +188,8 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Gamification Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card className="text-center border-border/50 bg-card/80 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-center mb-2">
@@ -186,7 +233,56 @@ const Dashboard = () => {
               <div className="text-sm text-muted-foreground">Episodes Watched</div>
             </CardContent>
           </Card>
+
+          <Card className="text-center border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center mb-2">
+                <Zap className="w-8 h-8 text-primary" />
+              </div>
+              <div className="text-2xl font-bold text-primary mb-1">{stats?.totalPoints || 0}</div>
+              <div className="text-sm text-muted-foreground">Total Points</div>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center mb-2">
+                <Gift className="w-8 h-8 text-accent" />
+              </div>
+              <div className="text-2xl font-bold text-accent mb-1">
+                {lootBoxes?.reduce((sum, box) => sum + box.quantity, 0) || 0}
+              </div>
+              <div className="text-sm text-muted-foreground">Loot Boxes</div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Quick Actions */}
+        {lootBoxes && lootBoxes.length > 0 && (
+          <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Gift className="w-5 h-5" />
+                Quick Actions
+              </h3>
+              <div className="flex gap-4">
+                <Button 
+                  variant="default" 
+                  className="flex items-center gap-2"
+                  onClick={handleOpenLootBox}
+                  disabled={!lootBoxes || lootBoxes.reduce((sum, box) => sum + box.quantity, 0) === 0}
+                >
+                  <Gift className="w-4 h-4" />
+                  Open Loot Box ({lootBoxes?.reduce((sum, box) => sum + box.quantity, 0) || 0})
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Trade Usernames
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -361,6 +457,12 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Welcome Modal for First-Time Users */}
+      <WelcomeModal 
+        open={showWelcomeModal} 
+        onClose={handleWelcomeClose}
+      />
     </div>
   );
 };

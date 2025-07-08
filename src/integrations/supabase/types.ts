@@ -994,6 +994,7 @@ export type Database = {
           created_at: string | null
           daily_points: number | null
           id: string
+          is_first_login: boolean | null
           last_daily_reset: string | null
           last_login_date: string | null
           login_streak: number | null
@@ -1005,6 +1006,7 @@ export type Database = {
           created_at?: string | null
           daily_points?: number | null
           id?: string
+          is_first_login?: boolean | null
           last_daily_reset?: string | null
           last_login_date?: string | null
           login_streak?: number | null
@@ -1016,6 +1018,7 @@ export type Database = {
           created_at?: string | null
           daily_points?: number | null
           id?: string
+          is_first_login?: boolean | null
           last_daily_reset?: string | null
           last_login_date?: string | null
           login_streak?: number | null

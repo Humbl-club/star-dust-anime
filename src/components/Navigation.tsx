@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useGameification } from "@/hooks/useGameification";
 import { useOptimizedSearch } from "@/hooks/useOptimizedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
@@ -36,6 +37,7 @@ interface NavigationProps {
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
+  const { stats } = useGameification();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,6 +110,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     { icon: TrendingUp, label: "Trending", href: "/trending", active: window.location.pathname === "/trending" },
     { icon: Play, label: "Anime", href: "/anime", active: window.location.pathname === "/anime" },
     { icon: BookOpen, label: "Manga", href: "/manga", active: window.location.pathname === "/manga" },
+    ...(user ? [{ icon: BarChart3, label: "Dashboard", href: "/dashboard", active: window.location.pathname === "/dashboard" }] : []),
   ];
 
   return (
@@ -205,6 +208,13 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
                 {/* Profile Menu */}
                 <div className="hidden sm:block">
+                  {stats && (
+                    <div className="hidden md:flex items-center gap-2 text-sm mr-3">
+                      <span className="font-medium">{stats.currentUsername}</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span>{stats.totalPoints} pts</span>
+                    </div>
+                  )}
                   <ProfileMenu />
                 </div>
               </>
