@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Settings, LogOut, Star, BookOpen, Coins, Crown, Gift } from "lucide-react";
+import { User, Settings, LogOut, Star, BookOpen, Bell, Crown, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -109,12 +109,17 @@ export const ProfileMenu = () => {
               <div className="glass-card border border-primary/20 px-3 py-2 rounded-lg mt-2">
                 <div className="flex items-center gap-2">
                   <Crown className="w-4 h-4 text-yellow-500" />
-                  <span className={cn(
-                    "text-sm font-semibold",
-                    `username-${stats.usernameTier?.toLowerCase() || 'common'}`
-                  )}>
-                    {stats.currentUsername}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      `username-${stats.usernameTier?.toLowerCase() || 'common'}`
+                    )}>
+                      {stats.currentUsername}
+                    </span>
+                    <span className="text-xs text-muted-foreground capitalize">
+                      {stats.usernameTier?.toLowerCase() || 'common'} tier
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
@@ -151,12 +156,15 @@ export const ProfileMenu = () => {
           </DropdownMenuItem>
         </Link>
         
-        <Link to="/social">
-          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
-            <Settings className="mr-3 h-4 w-4 text-green-500" />
-            <span className="font-medium">Social</span>
-          </DropdownMenuItem>
-        </Link>
+        <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+          <Bell className="mr-3 h-4 w-4 text-blue-500" />
+          <span className="font-medium">Notifications</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+          <Settings className="mr-3 h-4 w-4 text-green-500" />
+          <span className="font-medium">Settings</span>
+        </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         

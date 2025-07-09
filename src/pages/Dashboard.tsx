@@ -59,14 +59,24 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Crown className="w-8 h-8 text-yellow-500" />
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gradient-primary">
+                 <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gradient-primary">
                   Welcome back, <span className={cn(
-                    "text-gradient-secondary",
                     `username-${stats?.usernameTier?.toLowerCase() || 'common'}`
                   )}>
                     {stats?.currentUsername || 'User'}
                   </span>
                 </h1>
+                {stats?.usernameTier && (
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <span className="text-sm text-muted-foreground">Username Tier:</span>
+                    <span className={cn(
+                      "text-lg font-bold capitalize",
+                      `username-${stats.usernameTier.toLowerCase()}`
+                    )}>
+                      {stats.usernameTier.toLowerCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
                 Your personalized anime and manga hub with <span className="text-gradient-primary font-semibold">Anithing</span>.

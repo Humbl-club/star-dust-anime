@@ -184,27 +184,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           <div className="flex items-center space-x-1">
             {!loading && user && (
               <>
-                {/* Quick Actions */}
-                <div className="hidden lg:flex items-center space-x-1">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="w-4 h-4" />
-                    <Badge 
-                      className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center p-0 bg-accent text-xs"
-                    >
-                      3
-                    </Badge>
-                  </Button>
-
-                  <Link to="/sync-dashboard">
-                    <Button variant="ghost" size="icon" title="Sync Dashboard">
-                      <Database className="w-4 h-4" />
-                    </Button>
-                  </Link>
-
-                  <Button variant="ghost" size="icon">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </div>
 
                 {/* Username Display */}
                 <div className="hidden md:flex items-center gap-3">

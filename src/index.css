@@ -292,35 +292,41 @@
       0 0 40px hsl(var(--primary) / 0.1);
   }
 
-  /* Username Display Tiers */
+  /* Username Display Tiers - Fixed & Highly Visible */
   .username-god {
-    @apply text-yellow-400;
-    text-shadow: 0 0 10px hsl(45 100% 70% / 0.5);
+    @apply font-bold;
+    color: hsl(51, 100%, 65%) !important; /* Bright gold - highly visible */
+    text-shadow: 0 0 12px hsl(51, 100%, 65%, 0.6), 0 0 4px hsl(51, 100%, 65%, 0.8);
     animation: glow-pulse 2s ease-in-out infinite;
   }
 
   .username-legendary {
-    @apply text-purple-400;
-    text-shadow: 0 0 8px hsl(270 100% 70% / 0.4);
+    @apply font-bold;
+    color: hsl(270, 100%, 70%) !important; /* Bright purple - highly visible */
+    text-shadow: 0 0 10px hsl(270, 100%, 70%, 0.5), 0 0 4px hsl(270, 100%, 70%, 0.7);
   }
 
   .username-epic {
-    @apply text-pink-400;
-    text-shadow: 0 0 6px hsl(315 100% 70% / 0.3);
+    @apply font-bold;
+    color: hsl(330, 100%, 70%) !important; /* Bright pink - highly visible */
+    text-shadow: 0 0 8px hsl(330, 100%, 70%, 0.4), 0 0 4px hsl(330, 100%, 70%, 0.6);
   }
 
   .username-rare {
-    @apply text-blue-400;
-    text-shadow: 0 0 4px hsl(219 100% 70% / 0.3);
+    @apply font-bold;
+    color: hsl(200, 100%, 70%) !important; /* Bright blue - highly visible */
+    text-shadow: 0 0 6px hsl(200, 100%, 70%, 0.4), 0 0 3px hsl(200, 100%, 70%, 0.5);
   }
 
   .username-uncommon {
-    @apply text-green-400;
-    text-shadow: 0 0 3px hsl(142 100% 70% / 0.2);
+    @apply font-bold;
+    color: hsl(120, 100%, 60%) !important; /* Bright green - highly visible */
+    text-shadow: 0 0 6px hsl(120, 100%, 60%, 0.3), 0 0 3px hsl(120, 100%, 60%, 0.4);
   }
 
   .username-common {
-    @apply text-muted-foreground;
+    @apply font-medium;
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   /* Enhanced Button Variants */
