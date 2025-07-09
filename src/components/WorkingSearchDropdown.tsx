@@ -20,7 +20,7 @@ export const WorkingSearchDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
   
   const { query, isSearching, searchResults, handleInputChange, clearSearch } = useSimpleSearch();
 
@@ -68,7 +68,10 @@ export const WorkingSearchDropdown = ({
     e.stopPropagation();
     clearSearch();
     setIsOpen(false);
-    inputRef.current?.focus();
+    if (inputRef.current) {
+      inputRef.current.textContent = '';
+      inputRef.current.focus();
+    }
   };
 
   const showDropdown = isOpen && (query.length >= 2 || searchResults.length > 0);
@@ -77,14 +80,17 @@ export const WorkingSearchDropdown = ({
     <div ref={searchRef} className={cn("relative w-full", className)}>
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 z-10 group-focus-within:text-primary transition-colors" />
-        <input
+        <div
           ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          value={query}
-          onChange={handleInputChange_}
+          contentEditable
+          suppressContentEditableWarning={true}
+          onInput={(e) => {
+            const value = e.currentTarget.textContent || '';
+            handleInputChange_({ target: { value } } as any);
+          }}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
+          data-placeholder={placeholder}
           style={{
             border: 'none',
             outline: 'none',
@@ -95,11 +101,17 @@ export const WorkingSearchDropdown = ({
             padding: '0 3rem',
             height: '3.5rem',
             fontSize: '1.125rem',
-            lineHeight: '1.75rem',
+            lineHeight: '3.5rem',
             color: 'hsl(210 40% 98%)',
             width: '100%',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            minHeight: '3.5rem',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden'
           }}
+          className="search-editable"
         />
         {/* Loading or Clear button */}
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2">

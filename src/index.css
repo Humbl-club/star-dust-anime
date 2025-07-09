@@ -287,8 +287,11 @@
       inset 0 1px 0 hsl(255 255 255 / 0.1) !important;
   }
 
-  /* Override any default input styling */
-  input.glass-search {
+  /* Search editable div styling */
+  .search-editable {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
     border: none !important;
     outline: none !important;
     box-shadow: 
@@ -296,11 +299,17 @@
       inset 0 1px 0 hsl(255 255 255 / 0.1) !important;
   }
 
-  input.glass-search:focus {
+  .search-editable:focus {
     border: none !important;
     outline: none !important;
     ring: none !important;
     ring-offset: 0 !important;
+  }
+
+  .search-editable:empty:before {
+    content: attr(data-placeholder);
+    color: hsl(215 20.2% 65.1%);
+    pointer-events: none;
   }
 
   .glass-dropdown {
