@@ -85,7 +85,7 @@ export const WorkingSearchDropdown = ({
           onChange={handleInputChange_}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
-          className="pl-12 pr-12 h-14 text-lg glass-search rounded-2xl focus:ring-0 focus:outline-none border-0 focus:border-0 transition-all duration-300"
+          className="pl-12 pr-12 h-14 text-lg glass-search rounded-2xl !border-0 !outline-0 focus:!border-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 transition-all duration-300"
         />
         {/* Loading or Clear button */}
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
