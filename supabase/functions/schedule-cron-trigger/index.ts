@@ -17,17 +17,17 @@ serve(async (req) => {
   }
 
   try {
-    console.log('6-hour automated sync triggered');
+    console.log('Automated sync triggered - calling dual sync...');
 
-    // Use auto-initialize to handle everything intelligently
-    const initResponse = await supabase.functions.invoke('auto-initialize');
+    // Call the new automated dual sync function
+    const syncResponse = await supabase.functions.invoke('automated-dual-sync');
 
-    console.log('Auto-sync update completed');
+    console.log('Automated dual sync completed:', syncResponse.data);
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Automated 6-hour sync completed',
-      autoInit: initResponse.data,
+      message: 'Automated dual sync triggered successfully',
+      syncResult: syncResponse.data,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
