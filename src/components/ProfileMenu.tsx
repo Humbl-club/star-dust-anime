@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Settings, LogOut, Star, BookOpen, Coins, Crown, Gift } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Profile {
   id: string;
@@ -79,41 +80,44 @@ export const ProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
+        <Button variant="ghost" className="relative h-12 w-12 rounded-full spring-bounce">
+          <Avatar className="h-12 w-12 border-2 border-primary/30 shadow-glow-primary">
             <AvatarImage 
               src={profile?.avatar_url || ''} 
               alt={displayName}
               className="object-cover"
             />
-            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
+            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold text-lg">
               {initials}
             </AvatarFallback>
           </Avatar>
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full animate-pulse" />
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{displayName}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+      <DropdownMenuContent className="w-64 glass-dropdown border border-primary/20 animate-fade-in" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal p-4">
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-gradient-primary rounded-full animate-pulse" />
+              <p className="text-base font-semibold leading-none">{displayName}</p>
+            </div>
+            <p className="text-sm leading-none text-muted-foreground">
               {user.email}
             </p>
             {stats?.currentUsername && (
-              <div className="flex items-center gap-1 mt-1">
-                <Crown className="w-3 h-3 text-yellow-500" />
-                <span className="text-xs font-semibold text-primary">{stats.currentUsername}</span>
-                <Badge variant="outline" className="text-[10px] px-1 py-0">
-                  {stats.usernameTier}
-                </Badge>
-              </div>
-            )}
-            {stats && (
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center gap-1">
-                  <Gift className="w-3 h-3 text-purple-500" />
-                  <span className="text-xs text-muted-foreground">No streaks</span>
+              <div className="glass-card border border-primary/20 px-3 py-2 rounded-lg mt-2">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  <span className={cn(
+                    "text-sm font-semibold",
+                    `username-${stats.usernameTier?.toLowerCase() || 'common'}`
+                  )}>
+                    {stats.currentUsername}
+                  </span>
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    {stats.usernameTier}
+                  </Badge>
                 </div>
               </div>
             )}
@@ -123,48 +127,48 @@ export const ProfileMenu = () => {
         <DropdownMenuSeparator />
         
         <Link to="/dashboard">
-          <DropdownMenuItem className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
+          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+            <User className="mr-3 h-4 w-4 text-primary" />
+            <span className="font-medium">Dashboard</span>
           </DropdownMenuItem>
         </Link>
         
         <Link to="/my-lists">
-          <DropdownMenuItem className="cursor-pointer">
-            <BookOpen className="mr-2 h-4 w-4" />
-            <span>My Lists</span>
+          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+            <BookOpen className="mr-3 h-4 w-4 text-blue-500" />
+            <span className="font-medium">My Lists</span>
           </DropdownMenuItem>
         </Link>
         
         <Link to="/recommendations">
-          <DropdownMenuItem className="cursor-pointer">
-            <Star className="mr-2 h-4 w-4" />
-            <span>Recommendations</span>
+          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+            <Star className="mr-3 h-4 w-4 text-yellow-500" />
+            <span className="font-medium">Recommendations</span>
           </DropdownMenuItem>
         </Link>
         
         <Link to="/gamification">
-          <DropdownMenuItem className="cursor-pointer">
-            <Crown className="mr-2 h-4 w-4" />
-            <span>Gamification</span>
+          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+            <Crown className="mr-3 h-4 w-4 text-purple-500" />
+            <span className="font-medium">Gamification</span>
           </DropdownMenuItem>
         </Link>
         
         <Link to="/social">
-          <DropdownMenuItem className="cursor-pointer">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Social</span>
+          <DropdownMenuItem className="cursor-pointer hover:bg-primary/5 spring-bounce py-3">
+            <Settings className="mr-3 h-4 w-4 text-green-500" />
+            <span className="font-medium">Social</span>
           </DropdownMenuItem>
         </Link>
         
         <DropdownMenuSeparator />
         
         <DropdownMenuItem 
-          className="cursor-pointer text-destructive focus:text-destructive"
+          className="cursor-pointer text-destructive focus:text-destructive hover:bg-destructive/5 spring-bounce py-3"
           onClick={handleSignOut}
         >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
+          <LogOut className="mr-3 h-4 w-4" />
+          <span className="font-medium">Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

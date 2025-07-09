@@ -147,8 +147,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "hover-scale touch-friendly",
-                    item.active && "shadow-glow-primary bg-gradient-primary"
+                    "spring-bounce touch-friendly glass-button",
+                    item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
                   )}
                 >
                   <item.icon className="w-4 h-4 mr-2" />
@@ -166,8 +166,8 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   variant={item.active ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "hover-scale touch-friendly",
-                    item.active && "shadow-glow-primary bg-gradient-primary"
+                    "spring-bounce touch-friendly glass-button",
+                    item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
@@ -207,11 +207,22 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   </Button>
                 </div>
 
-                {/* Profile Menu */}
-                <div className="hidden sm:block">
-                  {stats && (
-                    <div className="hidden md:flex items-center gap-2 text-sm mr-3">
-                      <span className="font-medium">{stats.currentUsername}</span>
+                {/* Username Display */}
+                <div className="hidden md:flex items-center gap-3">
+                  {stats?.currentUsername && (
+                    <div className="glass-card border border-primary/20 px-3 py-1.5 rounded-full">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-gradient-primary rounded-full animate-pulse" />
+                        <span className={cn(
+                          "text-sm font-medium",
+                          `username-${stats.usernameTier?.toLowerCase() || 'common'}`
+                        )}>
+                          {stats.currentUsername}
+                        </span>
+                        <Badge variant="outline" className="text-xs px-1 py-0">
+                          {stats.usernameTier}
+                        </Badge>
+                      </div>
                     </div>
                   )}
                   <ProfileMenu />

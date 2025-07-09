@@ -74,9 +74,9 @@ export const WorkingSearchDropdown = ({
   const showDropdown = isOpen && (query.length >= 2 || searchResults.length > 0);
 
   return (
-    <div ref={searchRef} className={cn("relative w-full max-w-md", className)}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
+    <div ref={searchRef} className={cn("relative w-full", className)}>
+      <div className="relative group">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 z-10 group-focus-within:text-primary transition-colors" />
         <Input
           ref={inputRef}
           type="text"
@@ -85,16 +85,16 @@ export const WorkingSearchDropdown = ({
           onChange={handleInputChange_}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
-          className="pl-10 pr-10 bg-background/95 backdrop-blur-md border border-border/50 focus:border-primary/50 transition-colors"
+          className="pl-12 pr-12 h-14 text-lg glass-search rounded-2xl focus:ring-0 focus:outline-none transition-all duration-300"
         />
         {/* Loading or Clear button */}
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
           {isSearching ? (
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
           ) : query.length > 0 ? (
             <button
               onClick={handleClearSearch}
-              className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"
+              className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors spring-bounce rounded-full hover:bg-muted/30 p-0.5"
             >
               <X className="w-4 h-4" />
             </button>
@@ -104,7 +104,7 @@ export const WorkingSearchDropdown = ({
 
       {/* Dropdown Results */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-3 glass-dropdown rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50 animate-fade-in">
           {isSearching && searchResults.length === 0 ? (
             <div className="p-4 text-center">
               <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
@@ -119,7 +119,7 @@ export const WorkingSearchDropdown = ({
               {searchResults.map((anime, index) => (
                 <div 
                   key={anime.id}
-                  className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors border-b border-border/20 last:border-b-0 group"
+                  className="flex items-center gap-4 p-4 hover:bg-primary/5 cursor-pointer transition-all duration-200 border-b border-border/10 last:border-b-0 group spring-bounce"
                   onClick={() => handleResultClick(anime)}
                 >
                   {anime.image_url && (

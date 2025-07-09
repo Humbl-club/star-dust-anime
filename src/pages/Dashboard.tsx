@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
-import { User, Sparkles, BookOpen, Heart, TrendingUp } from "lucide-react";
+import { User, Sparkles, BookOpen, Heart, TrendingUp, Crown, Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -51,154 +52,205 @@ const Dashboard = () => {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Welcome Header with Username */}
+        {/* Welcome Header with Enhanced Username Display */}
         <div className="text-center space-y-6">
-          <div className="glass-card border border-primary/20 glow-card p-8 max-w-2xl mx-auto">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 bg-gradient-primary rounded-full glow-primary">
-                <Sparkles className="w-6 h-6 text-primary-foreground" />
+          <div className="relative max-w-4xl mx-auto">
+            {/* Animated background */}
+            <div className="absolute inset-0 bg-gradient-primary rounded-3xl blur-3xl opacity-20 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-secondary rounded-3xl blur-2xl opacity-10 animate-pulse" style={{ animationDelay: '1s' }} />
+            
+            <div className="relative glass-card border border-primary/30 p-8 md:p-12 rounded-3xl shadow-glow-primary">
+              <div className="flex flex-col items-center gap-6">
+                {/* Animated crown icon */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-primary rounded-full blur-xl opacity-40 animate-pulse" />
+                  <div className="relative p-4 bg-gradient-primary rounded-full shadow-glow-primary">
+                    <Crown className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                </div>
+                
+                {/* Welcome text with username */}
+                <div className="text-center space-y-3">
+                  <h1 className="text-4xl md:text-5xl font-bold">
+                    <span className="text-muted-foreground">Welcome back,</span>
+                    <br />
+                    <span className={cn(
+                      "inline-block mt-2",
+                      `username-${stats?.usernameTier?.toLowerCase() || 'common'}`
+                    )}>
+                      {stats?.currentUsername || 'User'}
+                    </span>
+                  </h1>
+                  
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-3xl animate-bounce">{getTierEmoji(stats?.usernameTier)}</span>
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "px-4 py-2 text-sm font-semibold",
+                        getTierColor(stats?.usernameTier)
+                      )}
+                    >
+                      {stats?.usernameTier || 'COMMON'} TIER
+                    </Badge>
+                  </div>
+                </div>
+                
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
+                  Your personalized anime and manga hub awaits
+                </p>
               </div>
-              <h1 className="text-3xl font-bold text-gradient-primary">
-                Welcome back, {stats?.currentUsername || 'User'}
-              </h1>
             </div>
-            
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="text-2xl">{getTierEmoji(stats?.usernameTier)}</span>
-              <Badge 
-                variant="outline" 
-                className={`${getTierColor(stats?.usernameTier)} font-medium`}
-              >
-                {stats?.usernameTier || 'COMMON'} Profile
-              </Badge>
-            </div>
-            
-            <p className="text-muted-foreground">
-              Your personalized anime and manga hub
-            </p>
           </div>
         </div>
 
-        {/* Dashboard Stats */}
+        {/* Dashboard Stats with Enhanced Glass Design */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Profile Overview */}
-          <div className="glass-card border border-primary/20 glow-card p-6 hover:glow-card-hover transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <User className="w-5 h-5 text-blue-500" />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative glass-card border border-primary/20 p-6 rounded-2xl hover:glow-card-hover transition-all duration-300 spring-bounce">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                  <User className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="font-bold text-foreground">Profile</h3>
               </div>
-              <h3 className="font-semibold text-foreground">Profile</h3>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Signed in as</p>
-              <p className="font-medium text-foreground truncate">{user?.email}</p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Signed in as</p>
+                <p className="font-semibold text-foreground truncate text-sm">{user?.email}</p>
+              </div>
             </div>
           </div>
 
           {/* Lists Count */}
-          <div className="glass-card border border-primary/20 glow-card p-6 hover:glow-card-hover transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <BookOpen className="w-5 h-5 text-green-500" />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative glass-card border border-primary/20 p-6 rounded-2xl hover:glow-card-hover transition-all duration-300 spring-bounce">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <BookOpen className="w-6 h-6 text-green-500" />
+                </div>
+                <h3 className="font-bold text-foreground">My Lists</h3>
               </div>
-              <h3 className="font-semibold text-foreground">My Lists</h3>
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-gradient-primary">-</p>
-              <p className="text-sm text-muted-foreground">Titles tracked</p>
+              <div className="space-y-2">
+                <p className="text-3xl font-bold text-gradient-primary">-</p>
+                <p className="text-sm text-muted-foreground">Titles tracked</p>
+              </div>
             </div>
           </div>
 
           {/* Favorites */}
-          <div className="glass-card border border-primary/20 glow-card p-6 hover:glow-card-hover transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <Heart className="w-5 h-5 text-red-500" />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative glass-card border border-primary/20 p-6 rounded-2xl hover:glow-card-hover transition-all duration-300 spring-bounce">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                  <Heart className="w-6 h-6 text-red-500" />
+                </div>
+                <h3 className="font-bold text-foreground">Favorites</h3>
               </div>
-              <h3 className="font-semibold text-foreground">Favorites</h3>
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-gradient-primary">-</p>
-              <p className="text-sm text-muted-foreground">Loved series</p>
+              <div className="space-y-2">
+                <p className="text-3xl font-bold text-gradient-primary">-</p>
+                <p className="text-sm text-muted-foreground">Loved series</p>
+              </div>
             </div>
           </div>
 
           {/* Activity */}
-          <div className="glass-card border border-primary/20 glow-card p-6 hover:glow-card-hover transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-purple-500" />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative glass-card border border-primary/20 p-6 rounded-2xl hover:glow-card-hover transition-all duration-300 spring-bounce">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                  <TrendingUp className="w-6 h-6 text-purple-500" />
+                </div>
+                <h3 className="font-bold text-foreground">Activity</h3>
               </div>
-              <h3 className="font-semibold text-foreground">Activity</h3>
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-gradient-primary">-</p>
-              <p className="text-sm text-muted-foreground">Recent updates</p>
+              <div className="space-y-2">
+                <p className="text-3xl font-bold text-gradient-primary">-</p>
+                <p className="text-sm text-muted-foreground">Recent updates</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="glass-card border border-primary/20 glow-card p-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gradient-primary mb-2">Explore</h2>
-            <p className="text-muted-foreground">
-              Discover new anime and manga, or manage your collection
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a 
-              href="/anime" 
-              className="glass-card border border-accent/20 p-6 hover:glow-card-hover transition-all duration-300 text-center group"
-            >
-              <div className="mb-3">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto group-hover:glow-primary transition-all duration-300">
-                  <BookOpen className="w-6 h-6 text-primary-foreground" />
-                </div>
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">Browse Anime</h3>
-              <p className="text-sm text-muted-foreground">Discover new series</p>
-            </a>
+        {/* Quick Actions with Enhanced Glass Design */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-primary rounded-3xl blur-3xl opacity-10" />
+          <div className="relative glass-card border border-primary/30 p-8 md:p-10 rounded-3xl">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-gradient-primary mb-3">Explore Your World</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Discover new anime and manga, or manage your personal collection
+              </p>
+            </div>
             
-            <a 
-              href="/manga" 
-              className="glass-card border border-accent/20 p-6 hover:glow-card-hover transition-all duration-300 text-center group"
-            >
-              <div className="mb-3">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto group-hover:glow-primary transition-all duration-300">
-                  <BookOpen className="w-6 h-6 text-primary-foreground" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <a 
+                href="/anime" 
+                className="relative group spring-bounce"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                <div className="relative glass-card border border-primary/20 p-8 rounded-2xl hover:glow-card-hover transition-all duration-300 text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto group-hover:shadow-glow-primary transition-all duration-300">
+                      <BookOpen className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-foreground mb-2 text-lg">Browse Anime</h3>
+                  <p className="text-muted-foreground">Discover new series</p>
                 </div>
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">Browse Manga</h3>
-              <p className="text-sm text-muted-foreground">Find great reads</p>
-            </a>
-            
-            <a 
-              href="/my-lists" 
-              className="glass-card border border-accent/20 p-6 hover:glow-card-hover transition-all duration-300 text-center group"
-            >
-              <div className="mb-3">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto group-hover:glow-primary transition-all duration-300">
-                  <Heart className="w-6 h-6 text-primary-foreground" />
+              </a>
+              
+              <a 
+                href="/manga" 
+                className="relative group spring-bounce"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                <div className="relative glass-card border border-primary/20 p-8 rounded-2xl hover:glow-card-hover transition-all duration-300 text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gradient-secondary rounded-2xl flex items-center justify-center mx-auto group-hover:shadow-glow-accent transition-all duration-300">
+                      <Star className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-foreground mb-2 text-lg">Browse Manga</h3>
+                  <p className="text-muted-foreground">Find great reads</p>
                 </div>
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">My Lists</h3>
-              <p className="text-sm text-muted-foreground">Manage collection</p>
-            </a>
-            
-            <a 
-              href="/recommendations" 
-              className="glass-card border border-accent/20 p-6 hover:glow-card-hover transition-all duration-300 text-center group"
-            >
-              <div className="mb-3">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto group-hover:glow-primary transition-all duration-300">
-                  <TrendingUp className="w-6 h-6 text-primary-foreground" />
+              </a>
+              
+              <a 
+                href="/my-lists" 
+                className="relative group spring-bounce"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                <div className="relative glass-card border border-primary/20 p-8 rounded-2xl hover:glow-card-hover transition-all duration-300 text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto group-hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all duration-300">
+                      <Heart className="w-8 h-8 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-foreground mb-2 text-lg">My Lists</h3>
+                  <p className="text-muted-foreground">Manage collection</p>
                 </div>
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">Recommendations</h3>
-              <p className="text-sm text-muted-foreground">Get suggestions</p>
-            </a>
+              </a>
+              
+              <a 
+                href="/recommendations" 
+                className="relative group spring-bounce"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                <div className="relative glass-card border border-primary/20 p-8 rounded-2xl hover:glow-card-hover transition-all duration-300 text-center">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-orange-500 rounded-2xl flex items-center justify-center mx-auto group-hover:shadow-glow-accent transition-all duration-300">
+                      <TrendingUp className="w-8 h-8 text-primary-foreground" />
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-foreground mb-2 text-lg">Recommendations</h3>
+                  <p className="text-muted-foreground">Get suggestions</p>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
       </div>

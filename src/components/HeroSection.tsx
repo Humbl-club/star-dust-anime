@@ -73,10 +73,11 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           {/* Search Section */}
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-primary rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity duration-300" />
-              <div className="relative">
+              <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-all duration-500" />
+              <div className="absolute inset-0 bg-gradient-secondary rounded-2xl blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-700" style={{ animationDelay: '0.2s' }} />
+              <div className="relative glass-card border border-primary/30 p-2 hover:border-primary/50 transition-all duration-300">
                 <WorkingSearchDropdown 
                   placeholder="Discover your next favorite anime or manga..." 
                   className="w-full"
@@ -86,10 +87,20 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
 
             {/* Action Buttons - Mobile Optimized */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button variant="accent" size="lg" className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly hover-scale">
+              <Button 
+                variant="default" 
+                size="lg" 
+                className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly spring-bounce bg-gradient-primary border-none shadow-glow-primary"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
                 Explore Trending
               </Button>
-              <Button variant="glassmorphism" size="lg" className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly hover-scale">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="w-full sm:w-auto px-8 py-4 text-lg touch-friendly glass-button"
+              >
+                <Zap className="w-5 h-5 mr-2" />
                 My Collection
               </Button>
             </div>
