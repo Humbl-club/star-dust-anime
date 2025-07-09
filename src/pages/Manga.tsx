@@ -15,7 +15,6 @@ import {
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { Navigation } from "@/components/Navigation";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const MangaCard = ({ manga }: { manga: Manga }) => {
@@ -92,7 +91,7 @@ const Manga = () => {
   const { toast } = useToast();
 
   // Fetch manga data from database
-  const { data: mangaData, loading } = useSimpleNewApiData({ 
+  const { data: mangaData, loading, syncFromExternal } = useSimpleNewApiData({ 
     contentType: 'manga',
     limit: 1000,
     search: searchQuery || undefined,
@@ -127,39 +126,17 @@ const Manga = () => {
   const triggerMangaSync = async () => {
     setIsSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('intelligent-content-sync', {
-        body: { 
-          contentType: 'manga',
-          operation: 'full_sync',
-          page: 1 
-        }
-      });
-
-      if (error) throw error;
+      await syncFromExternal(3); // Sync 3 pages like the original logic
       
       toast({
-        title: "Manga Sync Started!",
-        description: "Fetching trending manga from AniList and MAL. This will take a few minutes.",
+        title: "Manga Sync Complete!",
+        description: "Successfully synced manga data from external sources.",
       });
-
-      // Trigger additional pages
-      for (let page = 2; page <= 3; page++) {
-        setTimeout(() => {
-          supabase.functions.invoke('intelligent-content-sync', {
-            body: { 
-              contentType: 'manga',
-              operation: 'full_sync',
-              page 
-            }
-          });
-        }, page * 2000); // Stagger the requests
-      }
-
     } catch (error: any) {
       console.error('Manga sync failed:', error);
       toast({
         title: "Sync Failed",
-        description: error.message || "Failed to start manga sync. Please try again.",
+        description: error.message || "Failed to sync manga data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -199,6 +176,14 @@ const Manga = () => {
               <BookOpen className="w-3 h-3 mr-1" />
               Manga
             </Badge>
+            <Button 
+              onClick={triggerMangaSync}
+              disabled={isSyncing}
+              variant="outline"
+              size="sm"
+            >
+              {isSyncing ? "Syncing..." : "Sync Data"}
+            </Button>
           </div>
         </div>
 
