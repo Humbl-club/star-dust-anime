@@ -13,7 +13,7 @@ interface Particle {
 
 interface ParticleEffectProps {
   trigger: boolean;
-  type?: 'celebration' | 'points' | 'achievement' | 'lootbox';
+  type?: 'celebration' | 'points' | 'achievement';
   intensity?: 'low' | 'medium' | 'high';
   colors?: string[];
   onComplete?: () => void;
@@ -40,13 +40,6 @@ const particleConfigs = {
     size: { min: 6, max: 16 },
     velocity: { min: -8, max: 8 },
     life: 3000
-  },
-  lootbox: {
-    count: 25,
-    colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFD93D'],
-    size: { min: 5, max: 14 },
-    velocity: { min: -6, max: 6 },
-    life: 2500
   }
 };
 

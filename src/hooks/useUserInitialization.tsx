@@ -8,7 +8,6 @@ interface InitializationResult {
   username: string;
   tier: string;
   total_points: number;
-  loot_boxes_given: number;
   is_first_time: boolean;
   message: string;
 }

@@ -186,8 +186,7 @@ const Auth = () => {
                     <span className="text-sm font-medium text-gradient-primary">Automatic Username Assignment</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    You'll receive a random anime character username automatically! 
-                    Get new ones through loot boxes later.
+                    You'll receive a random anime character username automatically!
                   </p>
                 </div>
               )}

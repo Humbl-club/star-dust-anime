@@ -31,10 +31,6 @@ export const useSimpleGameification = () => {
     } : null,
     loading: isLoading,
     // Simplified functions - no complex gamification
-    awardPoints: () => Promise.resolve(false),
-    openLootBox: () => Promise.resolve(null),
-    purchaseLootBox: () => Promise.resolve(false),
-    getUsernameCollection: () => Promise.resolve([]),
     refreshData: () => Promise.resolve(),
   };
 };

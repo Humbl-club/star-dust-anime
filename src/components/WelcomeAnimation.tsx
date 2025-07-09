@@ -144,15 +144,11 @@ export const WelcomeAnimation = ({
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold mb-2">Starter Bonus!</h2>
+                      <h2 className="text-xl font-bold mb-2">Welcome Bonus!</h2>
                       <div className="space-y-2">
                         <div className="glass-card p-3 border border-primary/20">
                           <p className="text-sm text-muted-foreground">Starting Points</p>
                           <p className="text-lg font-bold text-gradient-primary">+100 Points</p>
-                        </div>
-                        <div className="glass-card p-3 border border-primary/20">
-                          <p className="text-sm text-muted-foreground">Free Loot Box</p>
-                          <p className="text-lg font-bold text-gradient-primary">Standard Box</p>
                         </div>
                       </div>
                     </div>
