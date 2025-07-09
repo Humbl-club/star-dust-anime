@@ -94,23 +94,26 @@ export const useSimpleNewApiData = (options: UseSimpleNewApiDataOptions) => {
   const syncFromExternal = async (pages = 1) => {
     setLoading(true);
     try {
-      for (let i = 1; i <= pages; i++) {
-        const { data: response, error } = await supabase.functions.invoke('fetch-anime-data', {
-          body: {
-            type: contentType,
-            page: i,
-            limit: 25
-          }
-        });
-
-        if (error) throw error;
-
-        toast.success(`Synced page ${i}/${pages} - ${response.processed} new ${contentType} items`);
-        
-        // Rate limiting between pages
-        if (i < pages) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`Starting ${contentType} sync using ultra-fast-sync...`);
+      
+      const { data: response, error } = await supabase.functions.invoke('ultra-fast-sync', {
+        body: {
+          contentType,
+          maxPages: pages
         }
+      });
+
+      if (error) {
+        console.error(`${contentType} sync error:`, error);
+        throw error;
+      }
+
+      if (response?.success) {
+        const processed = response.results?.processed || 0;
+        toast.success(`Successfully synced ${processed} new ${contentType} items`);
+        console.log(`${contentType} sync completed:`, response);
+      } else {
+        throw new Error(`Sync failed: ${response?.message || 'Unknown error'}`);
       }
 
       // Refresh local data after sync

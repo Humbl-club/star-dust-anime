@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { useStats } from "@/hooks/useStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DualSyncButton } from "@/components/DualSyncButton";
 import { 
   Database, 
   RefreshCw, 
@@ -79,6 +80,9 @@ const SyncDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Manual Dual Sync */}
+        <DualSyncButton />
+
         {/* Sync Info */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
@@ -100,6 +104,9 @@ const SyncDashboard = () => {
               </p>
               <p>
                 • <strong>No Duplicates:</strong> Automatically skips existing titles to avoid data duplication
+              </p>
+              <p>
+                • <strong>Simultaneous Processing:</strong> Manual sync processes both anime and manga at the same time for faster updates
               </p>
               <p>
                 • <strong>Zero Maintenance:</strong> Continues running until the entire AniList database is synchronized
