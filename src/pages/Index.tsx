@@ -10,7 +10,7 @@ import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
-import { NameToggle } from "@/components/NameToggle";
+
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Index = () => {
@@ -163,7 +163,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative">
-      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation onSearch={handleSearch} />
       
       {/* Hero Section */}

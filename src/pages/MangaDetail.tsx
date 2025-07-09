@@ -23,7 +23,7 @@ import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Manga } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
-import { NameToggle } from "@/components/NameToggle";
+
 import { Navigation } from "@/components/Navigation";
 
 const MangaDetail = () => {
@@ -66,7 +66,6 @@ const MangaDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
-      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
       
       {/* Hero Background with blurred cover */}

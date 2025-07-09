@@ -24,7 +24,7 @@ import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
-import { NameToggle } from "@/components/NameToggle";
+
 import { Navigation } from "@/components/Navigation";
 import { SEOMetaTags } from "@/components/SEOMetaTags";
 import { TrailerPreview } from "@/components/TrailerPreview";
@@ -87,11 +87,7 @@ const AnimeDetail = () => {
       {/* SEO Meta Tags */}
       <AnimeMetaTags anime={anime} />
       
-      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
-      
-      {/* Name Toggle */}
-      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       
       {/* Hero Background with blurred cover */}
       <div className="absolute inset-0 overflow-hidden">

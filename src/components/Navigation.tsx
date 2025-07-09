@@ -20,7 +20,8 @@ import {
   Sparkles,
   BarChart3,
   X,
-  Palette
+  Palette,
+  Languages
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,8 @@ import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
+import { useNamePreference } from "@/hooks/useNamePreference";
+import { Switch } from "@/components/ui/switch";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -40,6 +43,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
   const { stats } = useSimpleGameification();
   const navigate = useNavigate();
+  const { showEnglish, setShowEnglish } = useNamePreference();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -115,7 +119,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 mt-2",
       isScrolled 
         ? "glass-nav" 
         : "bg-transparent",
@@ -123,7 +127,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
       keyboardVisible && isNative && "pb-0"
     )}>
       <div className="container mx-auto mobile-safe-padding">
-        <div className="flex items-center justify-between h-16 md:h-18">
+        <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group touch-friendly">
             <AnimatedLogo size="md" />
@@ -176,8 +180,23 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           </div>
 
           {/* Search Bar with Real-time Dropdown - Only on large screens */}
-          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-md mx-6">
-            <WorkingSearchDropdown placeholder="Search anime instantly..." />
+          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-xs mx-4">
+            <WorkingSearchDropdown placeholder="Search anime..." />
+          </div>
+
+          {/* Language Toggle */}
+          <div className="hidden lg:flex items-center space-x-2 mr-4">
+            <div className="flex items-center space-x-2 glass-card border border-primary/20 px-3 py-1.5 rounded-full">
+              <Languages className="w-3 h-3 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">
+                {showEnglish ? "EN" : "JP"}
+              </span>
+              <Switch
+                checked={showEnglish}
+                onCheckedChange={setShowEnglish}
+                className="scale-75 data-[state=checked]:bg-primary"
+              />
+            </div>
           </div>
 
           {/* Right Side Actions - Condensed */}
@@ -242,9 +261,29 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
               {/* Mobile Search */}
               <div className="px-4 mb-4">
                 <WorkingSearchDropdown 
-                  placeholder="Search anime instantly..." 
+                  placeholder="Search anime..." 
                   onResultClick={() => setIsMobileMenuOpen(false)}
                 />
+              </div>
+
+              {/* Mobile Language Toggle */}
+              <div className="px-4 mb-4">
+                <div className="flex items-center justify-between p-3 glass-card border border-primary/20 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Languages className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Language</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-muted-foreground">
+                      {showEnglish ? "English" : "Original"}
+                    </span>
+                    <Switch
+                      checked={showEnglish}
+                      onCheckedChange={setShowEnglish}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Mobile Nav Items */}

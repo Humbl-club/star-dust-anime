@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Navigation } from "@/components/Navigation";
-import { NameToggle } from "@/components/NameToggle";
+
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { 
@@ -271,7 +271,6 @@ const Trending = () => {
 
   return (
     <div className="min-h-screen">
-      <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
       
       {/* Header */}
