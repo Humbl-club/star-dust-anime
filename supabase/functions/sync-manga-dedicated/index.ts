@@ -186,6 +186,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let newSyncStatus: any = null;
+  
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -194,23 +196,70 @@ serve(async (req) => {
 
     console.log('📚 Starting dedicated manga sync...');
     
-    const maxPages = 2; // Small batch to stay within rate limits
+    // Get the last processed page from content_sync_status
+    const { data: syncStatus } = await supabase
+      .from('content_sync_status')
+      .select('*')
+      .eq('operation_type', 'manga_progressive_sync')
+      .eq('content_type', 'manga')
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    let startPage = 1;
+    if (syncStatus?.current_page) {
+      startPage = syncStatus.current_page + 1;
+    }
+
+    console.log(`📄 Starting from page ${startPage}...`);
+    
+    const pagesPerSync = 5; // Process 5 pages per sync (125 items)
     let totalProcessed = 0;
     let errors: string[] = [];
+    let hasMorePages = true;
+    let currentPage = startPage;
 
-    for (let page = 1; page <= maxPages; page++) {
+    // Create new sync status entry
+    const { data: syncStatusData } = await supabase
+      .from('content_sync_status')
+      .insert({
+        operation_type: 'manga_progressive_sync',
+        content_type: 'manga',
+        status: 'running',
+        current_page: startPage,
+        started_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+    
+    newSyncStatus = syncStatusData;
+
+    for (let i = 0; i < pagesPerSync && hasMorePages; i++) {
       try {
-        console.log(`📄 Processing manga page ${page}/${maxPages}...`);
+        console.log(`📄 Processing manga page ${currentPage}...`);
         
-        const response = await fetchMangaData(page);
+        const response = await fetchMangaData(currentPage);
         
-        if (!response.data?.Page?.media?.length) {
-          console.log(`⚠️ No manga data found on page ${page}`);
-          break;
+        // Check if we've reached the end
+        if (!response.data?.Page?.media?.length || !response.data?.Page?.pageInfo?.hasNextPage) {
+          console.log(`⚠️ No more manga data found, resetting to page 1`);
+          hasMorePages = false;
+          
+          // Reset to page 1 for next sync
+          if (newSyncStatus?.id) {
+            await supabase
+              .from('content_sync_status')
+              .update({ current_page: 1 })
+              .eq('id', newSyncStatus.id);
+          }
+          
+          if (!response.data?.Page?.media?.length) {
+            break;
+          }
         }
 
         const items = response.data.Page.media;
-        console.log(`📊 Found ${items.length} manga items on page ${page}`);
+        console.log(`📊 Found ${items.length} manga items on page ${currentPage}`);
 
         for (const item of items) {
           if (!item.id || (!item.title?.romaji && !item.title?.english)) {
@@ -229,13 +278,37 @@ serve(async (req) => {
           await new Promise(resolve => setTimeout(resolve, 200));
         }
 
+        // Update current page in sync status
+        if (newSyncStatus?.id) {
+          await supabase
+            .from('content_sync_status')
+            .update({ current_page: currentPage })
+            .eq('id', newSyncStatus.id);
+        }
+
+        currentPage++;
+        
         // Longer delay between pages for rate limiting
         await new Promise(resolve => setTimeout(resolve, 2000));
         
       } catch (error) {
-        console.error(`❌ Error processing manga page ${page}:`, error);
-        errors.push(`Page ${page}: ${error.message}`);
+        console.error(`❌ Error processing manga page ${currentPage}:`, error);
+        errors.push(`Page ${currentPage}: ${error.message}`);
+        currentPage++;
       }
+    }
+
+    // Mark sync as completed
+    if (newSyncStatus?.id) {
+      await supabase
+        .from('content_sync_status')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          processed_items: totalProcessed,
+          error_message: errors.length > 0 ? errors.join('; ') : null
+        })
+        .eq('id', newSyncStatus.id);
     }
 
     console.log(`✅ Dedicated manga sync completed: ${totalProcessed} items processed`);
@@ -245,7 +318,7 @@ serve(async (req) => {
       contentType: 'manga',
       totalProcessed,
       errors: errors.slice(0, 5),
-      message: `Successfully synced ${totalProcessed} manga items`,
+      message: `Successfully synced ${totalProcessed} manga items (pages ${startPage}-${currentPage-1})`,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -253,6 +326,27 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Dedicated manga sync error:', error);
+    
+    // Mark sync as failed if we created a sync status entry
+    if (newSyncStatus?.id) {
+      try {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+        
+        await supabase
+          .from('content_sync_status')
+          .update({
+            status: 'failed',
+            completed_at: new Date().toISOString(),
+            error_message: error.message
+          })
+          .eq('id', newSyncStatus.id);
+      } catch (updateError) {
+        console.error('Failed to update sync status:', updateError);
+      }
+    }
     
     return new Response(JSON.stringify({
       success: false,
