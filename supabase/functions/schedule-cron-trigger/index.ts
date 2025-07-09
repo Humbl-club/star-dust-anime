@@ -17,17 +17,61 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Automated sync triggered - calling dual sync...');
+    console.log('Automated sync triggered - calling dedicated sync functions...');
 
-    // Call the new automated dual sync function
-    const syncResponse = await supabase.functions.invoke('automated-dual-sync');
+    // Call both dedicated sync functions simultaneously
+    const [animeResult, mangaResult] = await Promise.all([
+      supabase.functions.invoke('sync-anime-dedicated'),
+      supabase.functions.invoke('sync-manga-dedicated')
+    ]);
 
-    console.log('Automated dual sync completed:', syncResponse.data);
+    // Process results
+    let totalProcessed = 0;
+    let errors: string[] = [];
+    let success = true;
+
+    // Handle anime result
+    if (animeResult.error) {
+      console.error('Anime sync error:', animeResult.error);
+      errors.push(`Anime sync failed: ${animeResult.error.message}`);
+      success = false;
+    } else if (animeResult.data?.success) {
+      totalProcessed += animeResult.data.totalProcessed || 0;
+      console.log(`Anime sync completed: ${animeResult.data.totalProcessed} items`);
+    }
+
+    // Handle manga result
+    if (mangaResult.error) {
+      console.error('Manga sync error:', mangaResult.error);
+      errors.push(`Manga sync failed: ${mangaResult.error.message}`);
+      success = false;
+    } else if (mangaResult.data?.success) {
+      totalProcessed += mangaResult.data.totalProcessed || 0;
+      console.log(`Manga sync completed: ${mangaResult.data.totalProcessed} items`);
+    }
+
+    // Log the execution
+    await supabase.from('cron_job_logs').insert({
+      job_name: 'dedicated-dual-sync',
+      status: success ? 'success' : 'error',
+      details: {
+        total_processed: totalProcessed,
+        anime_result: animeResult.data,
+        manga_result: mangaResult.data,
+        errors: errors
+      },
+      error_message: errors.length > 0 ? errors.join('; ') : null
+    });
+
+    console.log(`Dedicated dual sync completed: ${totalProcessed} total items processed`);
 
     return new Response(JSON.stringify({
-      success: true,
-      message: 'Automated dual sync triggered successfully',
-      syncResult: syncResponse.data,
+      success: success,
+      message: 'Dedicated dual sync completed successfully',
+      totalProcessed: totalProcessed,
+      animeResult: animeResult.data,
+      mangaResult: mangaResult.data,
+      errors: errors,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
