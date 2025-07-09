@@ -77,7 +77,7 @@ export const WorkingSearchDropdown = ({
     <div ref={searchRef} className={cn("relative w-full", className)}>
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 z-10 group-focus-within:text-primary transition-colors" />
-        <Input
+        <input
           ref={inputRef}
           type="text"
           placeholder={placeholder}
@@ -85,7 +85,21 @@ export const WorkingSearchDropdown = ({
           onChange={handleInputChange_}
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
-          className="pl-12 pr-12 h-14 text-lg glass-search rounded-2xl !border-0 !outline-0 focus:!border-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 transition-all duration-300"
+          style={{
+            border: 'none',
+            outline: 'none',
+            boxShadow: '0 8px 32px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(255 255 255 / 0.1)',
+            background: 'hsl(220 20% 8% / 0.6)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '1rem',
+            padding: '0 3rem',
+            height: '3.5rem',
+            fontSize: '1.125rem',
+            lineHeight: '1.75rem',
+            color: 'hsl(210 40% 98%)',
+            width: '100%',
+            transition: 'all 0.3s ease'
+          }}
         />
         {/* Loading or Clear button */}
         <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
