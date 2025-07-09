@@ -14,14 +14,18 @@ interface AnimeCardProps {
   anime: Anime;
   onClick?: () => void;
   showCountdown?: boolean;
+  getDisplayName?: (anime: Anime) => string;
 }
 
 export const AnimeCard = ({ 
   anime,
   onClick,
-  showCountdown = true
+  showCountdown = true,
+  getDisplayName
 }: AnimeCardProps) => {
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const displayName = getDisplayName ? getDisplayName(anime) : anime.title;
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger card click if clicking on the dropdown or report button
@@ -43,7 +47,7 @@ export const AnimeCard = ({
       <div className="relative h-full overflow-hidden">
         <img 
           src={anime.image_url} 
-          alt={anime.title}
+          alt={displayName}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         
@@ -89,7 +93,7 @@ export const AnimeCard = ({
       <CardContent className="absolute bottom-0 left-0 right-0 z-20 p-4">
         <div className="glass-card p-4 border border-border/20 space-y-2">
           <h3 className="font-bold text-lg line-clamp-2 group-hover:text-gradient-primary transition-all duration-300">
-            {anime.title}
+            {displayName}
           </h3>
           
           {/* Simple info */}
@@ -121,7 +125,7 @@ export const AnimeCard = ({
             <div className="absolute -top-12 right-3 z-20">
               <TrailerPreview
                 videoId={(anime as any).trailer_id}
-                title={`${anime.title} Trailer`}
+                title={`${displayName} Trailer`}
                 size="sm"
                 className="w-8 h-8 glass-card border border-accent/20 opacity-70 hover:opacity-100 transition-opacity hover:glow-accent"
               />
@@ -140,7 +144,7 @@ export const AnimeCard = ({
         onClose={() => setShowReportModal(false)}
         contentType="anime"
         contentId={anime.id}
-        contentTitle={anime.title}
+        contentTitle={displayName}
       />
     </>
   );

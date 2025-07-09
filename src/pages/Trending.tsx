@@ -26,14 +26,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
-const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
+const TrendingAnimeCard = ({ anime, rank, getDisplayName }: { anime: Anime; rank: number; getDisplayName: (anime: Anime) => string }) => (
   <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
     <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
           <img 
             src={anime.image_url} 
-            alt={anime.title}
+            alt={getDisplayName(anime)}
             className="w-16 h-20 object-cover rounded-lg"
           />
           <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
@@ -43,7 +43,7 @@ const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
         
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
-            {anime.title}
+            {getDisplayName(anime)}
           </h3>
           
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -76,14 +76,14 @@ const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
   </div>
 );
 
-const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
+const TrendingMangaCard = ({ manga, rank, getDisplayName }: { manga: Manga; rank: number; getDisplayName: (manga: Manga) => string }) => (
   <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
     <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
           <img 
             src={manga.image_url} 
-            alt={manga.title}
+            alt={getDisplayName(manga)}
             className="w-16 h-20 object-cover rounded-lg"
           />
           <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
@@ -93,7 +93,7 @@ const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
         
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
-            {manga.title}
+            {getDisplayName(manga)}
           </h3>
           
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -267,7 +267,7 @@ const Trending = () => {
   const topAnime = animeData[0]; // Highest ranked anime
   const topManga = mangaData[0]; // Highest ranked manga
 
-  const { showEnglish, setShowEnglish } = useNamePreference();
+  const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
 
   return (
     <div className="min-h-screen">
@@ -346,11 +346,11 @@ const Trending = () => {
               <div className="flex gap-4">
                 <img 
                   src={topAnime.image_url} 
-                  alt={topAnime.title}
+                  alt={getDisplayName(topAnime)}
                   className="w-24 h-32 object-cover rounded-lg"
                 />
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-2">{topAnime.title}</h3>
+                  <h3 className="text-xl font-bold mb-2">{getDisplayName(topAnime)}</h3>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-400" />
@@ -386,11 +386,11 @@ const Trending = () => {
                 <div className="flex gap-4">
                   <img 
                     src={topManga.image_url} 
-                    alt={topManga.title}
+                    alt={getDisplayName(topManga)}
                     className="w-24 h-32 object-cover rounded-lg"
                   />
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">{topManga.title}</h3>
+                    <h3 className="text-xl font-bold mb-2">{getDisplayName(topManga)}</h3>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400" />
@@ -449,6 +449,7 @@ const Trending = () => {
                       key={anime.id} 
                       anime={anime} 
                       rank={index + 1} 
+                      getDisplayName={getDisplayName}
                     />
                   ))}
                 </div>
@@ -471,6 +472,7 @@ const Trending = () => {
                       key={manga.id} 
                       manga={manga} 
                       rank={index + 1} 
+                      getDisplayName={getDisplayName}
                     />
                   ))}
                 </div>

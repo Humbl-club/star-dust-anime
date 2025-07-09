@@ -142,6 +142,7 @@ const Index = () => {
               <AnimeCard 
                 anime={anime} 
                 onClick={() => handleAnimeClick(anime)}
+                getDisplayName={getDisplayName}
               />
             </div>
           ))}
@@ -200,6 +201,7 @@ const Index = () => {
                   <AnimeCard 
                     anime={anime} 
                     onClick={() => handleAnimeClick(anime)}
+                    getDisplayName={getDisplayName}
                   />
                 </div>
               ))}
