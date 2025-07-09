@@ -19,7 +19,7 @@ interface AniListResponse {
   errors?: any[];
 }
 
-async function fetchMangaData(page: number = 1): Promise<AniListResponse> {
+async function fetchMangaData(page: number = 1, retryCount: number = 0): Promise<AniListResponse> {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page(page: $page, perPage: $perPage) {
@@ -75,20 +75,52 @@ async function fetchMangaData(page: number = 1): Promise<AniListResponse> {
     perPage: 25 // Reduced to 25 per page for rate limiting
   };
 
-  const response = await fetch('https://graphql.anilist.co', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ query, variables })
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-  if (!response.ok) {
-    throw new Error(`AniList API error: ${response.status}`);
+    const response = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 429 && retryCount < 3) {
+        // Rate limited, wait and retry
+        console.log(`Rate limited, waiting ${(retryCount + 1) * 2} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
+        return fetchMangaData(page, retryCount + 1);
+      }
+      throw new Error(`AniList API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.errors?.length) {
+      throw new Error(`AniList GraphQL errors: ${data.errors.map((e: any) => e.message).join(', ')}`);
+    }
+
+    return data;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    
+    if (retryCount < 3) {
+      console.log(`Fetch error, retrying... (${retryCount + 1}/3)`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return fetchMangaData(page, retryCount + 1);
+    }
+    
+    throw error;
   }
-
-  return await response.json();
 }
 
 async function processMangaItem(supabase: any, item: any) {
@@ -197,21 +229,27 @@ serve(async (req) => {
     console.log('📚 Starting dedicated manga sync...');
     
     // Get the last processed page from content_sync_status
-    const { data: syncStatus } = await supabase
+    const { data: syncStatus, error: syncError } = await supabase
       .from('content_sync_status')
       .select('*')
       .eq('operation_type', 'manga_progressive_sync')
       .eq('content_type', 'manga')
+      .eq('status', 'completed')
       .order('started_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    if (syncError) {
+      console.error('Error fetching sync status:', syncError);
+    }
 
     let startPage = 1;
     if (syncStatus?.current_page) {
       startPage = syncStatus.current_page + 1;
+      console.log(`📄 Resuming from page ${startPage} (last completed: ${syncStatus.current_page})`);
+    } else {
+      console.log('📄 Starting fresh manga sync from page 1');
     }
-
-    console.log(`📄 Starting from page ${startPage}...`);
     
     const pagesPerSync = 5; // Process 5 pages per sync (125 items)
     let totalProcessed = 0;
