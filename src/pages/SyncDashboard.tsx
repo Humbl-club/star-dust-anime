@@ -1,7 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { useStats } from "@/hooks/useStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DualSyncButton } from "@/components/DualSyncButton";
 import { 
   Database, 
   RefreshCw, 
@@ -21,11 +20,11 @@ const SyncDashboard = () => {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Database className="w-8 h-8 text-primary" />
             <h1 className="text-4xl font-bold text-gradient-primary">
-              AniList Sync Dashboard
+              Automated Dual Sync Dashboard
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Automated background sync continuously updating the anime and manga database
+            Automated background sync runs every 2 minutes, simultaneously updating anime and manga database
           </p>
         </div>
 
@@ -80,10 +79,7 @@ const SyncDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Manual Dual Sync */}
-        <DualSyncButton />
-
-        {/* Sync Info */}
+        {/* Automated Sync Info */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -94,19 +90,22 @@ const SyncDashboard = () => {
           <CardContent>
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>
-                • <strong>Automated Sync:</strong> Runs every 2 minutes in the background
+                • <strong>Automated Dual Sync:</strong> Runs every 2 minutes automatically syncing both anime and manga simultaneously
               </p>
               <p>
-                • <strong>Smart Processing:</strong> Dynamically calculates where to continue syncing based on current database counts
+                • <strong>Ultra-Fast Processing:</strong> Uses the ultra-fast-sync function to process 3 pages of anime and 3 pages of manga per run
               </p>
               <p>
-                • <strong>Real AniList Data:</strong> Fetches actual anime and manga with full metadata, genres, studios, and relationships
+                • <strong>Real AniList Data:</strong> Fetches actual content from AniList API with full metadata, genres, studios, and relationships
               </p>
               <p>
-                • <strong>No Duplicates:</strong> Automatically skips existing titles to avoid data duplication
+                • <strong>Normalized Database:</strong> Properly stores data in the normalized schema with titles, anime_details, manga_details, and relationships
               </p>
               <p>
-                • <strong>Simultaneous Processing:</strong> Manual sync processes both anime and manga at the same time for faster updates
+                • <strong>No Duplicates:</strong> Automatically skips existing titles based on anilist_id to prevent data duplication
+              </p>
+              <p>
+                • <strong>Parallel Processing:</strong> Anime and manga sync run simultaneously using Promise.all() for maximum efficiency
               </p>
               <p>
                 • <strong>Zero Maintenance:</strong> Continues running until the entire AniList database is synchronized
