@@ -47,36 +47,6 @@ export type Database = {
         }
         Relationships: []
       }
-      animation_sets: {
-        Row: {
-          animation_config: Json
-          animation_name: string
-          animation_type: string
-          created_at: string | null
-          duration_ms: number | null
-          id: string
-          tier_compatibility: string[] | null
-        }
-        Insert: {
-          animation_config?: Json
-          animation_name: string
-          animation_type?: string
-          created_at?: string | null
-          duration_ms?: number | null
-          id?: string
-          tier_compatibility?: string[] | null
-        }
-        Update: {
-          animation_config?: Json
-          animation_name?: string
-          animation_type?: string
-          created_at?: string | null
-          duration_ms?: number | null
-          id?: string
-          tier_compatibility?: string[] | null
-        }
-        Relationships: []
-      }
       anime_details: {
         Row: {
           aired_from: string | null
@@ -193,280 +163,6 @@ export type Database = {
         }
         Relationships: []
       }
-      character_enhancements: {
-        Row: {
-          applied_at: string | null
-          applied_by: string
-          character_id: string | null
-          cost_points: number
-          enhancement_data: Json
-          enhancement_type: string
-          id: string
-        }
-        Insert: {
-          applied_at?: string | null
-          applied_by: string
-          character_id?: string | null
-          cost_points: number
-          enhancement_data?: Json
-          enhancement_type: string
-          id?: string
-        }
-        Update: {
-          applied_at?: string | null
-          applied_by?: string
-          character_id?: string | null
-          cost_points?: number
-          enhancement_data?: Json
-          enhancement_type?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_enhancements_character_id_fkey"
-            columns: ["character_id"]
-            isOneToOne: false
-            referencedRelation: "generated_characters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      character_interactions: {
-        Row: {
-          character1_id: string | null
-          character2_id: string | null
-          created_at: string | null
-          id: string
-          interaction_data: Json | null
-          interaction_type: string
-          result_data: Json | null
-        }
-        Insert: {
-          character1_id?: string | null
-          character2_id?: string | null
-          created_at?: string | null
-          id?: string
-          interaction_data?: Json | null
-          interaction_type: string
-          result_data?: Json | null
-        }
-        Update: {
-          character1_id?: string | null
-          character2_id?: string | null
-          created_at?: string | null
-          id?: string
-          interaction_data?: Json | null
-          interaction_type?: string
-          result_data?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_interactions_character1_id_fkey"
-            columns: ["character1_id"]
-            isOneToOne: false
-            referencedRelation: "generated_characters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "character_interactions_character2_id_fkey"
-            columns: ["character2_id"]
-            isOneToOne: false
-            referencedRelation: "generated_characters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      character_showcase_likes: {
-        Row: {
-          created_at: string | null
-          id: string
-          showcase_id: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          showcase_id?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          showcase_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_showcase_likes_showcase_id_fkey"
-            columns: ["showcase_id"]
-            isOneToOne: false
-            referencedRelation: "character_showcases"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      character_showcases: {
-        Row: {
-          character_id: string | null
-          created_at: string | null
-          description: string | null
-          featured: boolean | null
-          id: string
-          is_public: boolean | null
-          like_count: number | null
-          title: string
-          updated_at: string | null
-          user_id: string
-          view_count: number | null
-        }
-        Insert: {
-          character_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          featured?: boolean | null
-          id?: string
-          is_public?: boolean | null
-          like_count?: number | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-          view_count?: number | null
-        }
-        Update: {
-          character_id?: string | null
-          created_at?: string | null
-          description?: string | null
-          featured?: boolean | null
-          id?: string
-          is_public?: boolean | null
-          like_count?: number | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-          view_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_showcases_character_id_fkey"
-            columns: ["character_id"]
-            isOneToOne: false
-            referencedRelation: "generated_characters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      character_templates: {
-        Row: {
-          animation_style: string
-          base_config: Json
-          color_palette: Json
-          created_at: string | null
-          id: string
-          template_name: string
-          tier: Database["public"]["Enums"]["username_tier"]
-          updated_at: string | null
-        }
-        Insert: {
-          animation_style?: string
-          base_config?: Json
-          color_palette?: Json
-          created_at?: string | null
-          id?: string
-          template_name: string
-          tier: Database["public"]["Enums"]["username_tier"]
-          updated_at?: string | null
-        }
-        Update: {
-          animation_style?: string
-          base_config?: Json
-          color_palette?: Json
-          created_at?: string | null
-          id?: string
-          template_name?: string
-          tier?: Database["public"]["Enums"]["username_tier"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      character_trade_listings: {
-        Row: {
-          asking_price: number
-          character_id: string | null
-          created_at: string | null
-          currency_type: string | null
-          expires_at: string | null
-          id: string
-          seller_id: string
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          asking_price: number
-          character_id?: string | null
-          created_at?: string | null
-          currency_type?: string | null
-          expires_at?: string | null
-          id?: string
-          seller_id: string
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          asking_price?: number
-          character_id?: string | null
-          created_at?: string | null
-          currency_type?: string | null
-          expires_at?: string | null
-          id?: string
-          seller_id?: string
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_trade_listings_character_id_fkey"
-            columns: ["character_id"]
-            isOneToOne: false
-            referencedRelation: "generated_characters"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      character_variations: {
-        Row: {
-          created_at: string | null
-          id: string
-          rarity_weight: number | null
-          template_id: string | null
-          variation_config: Json
-          variation_name: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          rarity_weight?: number | null
-          template_id?: string | null
-          variation_config?: Json
-          variation_name: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          rarity_weight?: number | null
-          template_id?: string | null
-          variation_config?: Json
-          variation_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "character_variations_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "character_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       claimed_usernames: {
         Row: {
           claimed_at: string | null
@@ -501,42 +197,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      cleanup_audit_log: {
-        Row: {
-          action: string
-          details: Json | null
-          id: string
-          operation_phase: string
-          operation_timestamp: string | null
-          records_affected: number | null
-          records_after: number | null
-          records_before: number | null
-          table_name: string
-        }
-        Insert: {
-          action: string
-          details?: Json | null
-          id?: string
-          operation_phase: string
-          operation_timestamp?: string | null
-          records_affected?: number | null
-          records_after?: number | null
-          records_before?: number | null
-          table_name: string
-        }
-        Update: {
-          action?: string
-          details?: Json | null
-          id?: string
-          operation_phase?: string
-          operation_timestamp?: string | null
-          records_affected?: number | null
-          records_after?: number | null
-          records_before?: number | null
-          table_name?: string
-        }
-        Relationships: []
       }
       content_reports: {
         Row: {
@@ -683,39 +343,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      generated_characters: {
-        Row: {
-          cache_expires_at: string | null
-          cached_at: string | null
-          character_data: Json
-          generation_method: string
-          id: string
-          image_url: string | null
-          tier: Database["public"]["Enums"]["username_tier"]
-          username: string
-        }
-        Insert: {
-          cache_expires_at?: string | null
-          cached_at?: string | null
-          character_data?: Json
-          generation_method?: string
-          id?: string
-          image_url?: string | null
-          tier: Database["public"]["Enums"]["username_tier"]
-          username: string
-        }
-        Update: {
-          cache_expires_at?: string | null
-          cached_at?: string | null
-          character_data?: Json
-          generation_method?: string
-          id?: string
-          image_url?: string | null
-          tier?: Database["public"]["Enums"]["username_tier"]
-          username?: string
-        }
-        Relationships: []
       }
       genres: {
         Row: {
@@ -1144,30 +771,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_achievements: {
-        Row: {
-          achievement_data: Json | null
-          achievement_type: string
-          id: string
-          unlocked_at: string | null
-          user_id: string
-        }
-        Insert: {
-          achievement_data?: Json | null
-          achievement_type: string
-          id?: string
-          unlocked_at?: string | null
-          user_id: string
-        }
-        Update: {
-          achievement_data?: Json | null
-          achievement_type?: string
-          id?: string
-          unlocked_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_anime_lists: {
         Row: {
           anime_detail_id: string | null
@@ -1513,89 +1116,9 @@ export type Database = {
         }
         Relationships: []
       }
-      username_trades: {
-        Row: {
-          buyer_id: string | null
-          completed_at: string | null
-          created_at: string | null
-          id: string
-          price_points: number
-          seller_id: string | null
-          status: string | null
-          tier: Database["public"]["Enums"]["username_tier"]
-          username: string
-        }
-        Insert: {
-          buyer_id?: string | null
-          completed_at?: string | null
-          created_at?: string | null
-          id?: string
-          price_points: number
-          seller_id?: string | null
-          status?: string | null
-          tier: Database["public"]["Enums"]["username_tier"]
-          username: string
-        }
-        Update: {
-          buyer_id?: string | null
-          completed_at?: string | null
-          created_at?: string | null
-          id?: string
-          price_points?: number
-          seller_id?: string | null
-          status?: string | null
-          tier?: Database["public"]["Enums"]["username_tier"]
-          username?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "username_trades_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "username_trades_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
-      phase_1_cleanup_summary: {
-        Row: {
-          action: string | null
-          details: Json | null
-          operation_timestamp: string | null
-          records_affected: number | null
-          records_after: number | null
-          records_before: number | null
-          table_name: string | null
-        }
-        Insert: {
-          action?: string | null
-          details?: Json | null
-          operation_timestamp?: string | null
-          records_affected?: number | null
-          records_after?: number | null
-          records_before?: number | null
-          table_name?: string | null
-        }
-        Update: {
-          action?: string | null
-          details?: Json | null
-          operation_timestamp?: string | null
-          records_affected?: number | null
-          records_after?: number | null
-          records_before?: number | null
-          table_name?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_user_points: {
@@ -1608,10 +1131,6 @@ export type Database = {
           username: string
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
-      }
-      cleanup_expired_generated_characters: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       get_user_gamification_summary: {
         Args: { user_id_param: string }
@@ -1632,14 +1151,10 @@ export type Database = {
           username: string
           tier: string
           total_points: number
-          loot_boxes_given: number
           is_first_time: boolean
+          needs_welcome: boolean
           message: string
         }[]
-      }
-      initialize_user_gamification: {
-        Args: { user_id_param: string }
-        Returns: undefined
       }
       is_first_loot_box: {
         Args: { user_id_param: string }
@@ -1668,10 +1183,6 @@ export type Database = {
           points: number
           streak: number
         }[]
-      }
-      repair_user_gamification: {
-        Args: { user_id_param: string }
-        Returns: undefined
       }
       reset_daily_points: {
         Args: Record<PropertyKey, never>

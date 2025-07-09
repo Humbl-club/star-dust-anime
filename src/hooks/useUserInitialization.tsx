@@ -9,6 +9,7 @@ interface InitializationResult {
   tier: string;
   total_points: number;
   is_first_time: boolean;
+  needs_welcome: boolean;
   message: string;
 }
 
@@ -42,13 +43,7 @@ export const useUserInitialization = () => {
     mutationFn: async () => {
       if (!user?.id) throw new Error('No user found');
 
-      const { error } = await supabase.rpc('repair_user_gamification', {
-        user_id_param: user.id
-      });
-
-      if (error) throw error;
-
-      // Then run initialization
+      // Just run initialization which will now handle repair automatically
       const { data: initData, error: initError } = await supabase.rpc('initialize_user_atomic', {
         user_id_param: user.id
       });
@@ -74,6 +69,7 @@ export const useUserInitialization = () => {
     isError: initializationQuery.isError,
     error: initializationQuery.error,
     isFirstTime: initializationQuery.data?.is_first_time || false,
+    needsWelcome: initializationQuery.data?.needs_welcome || false,
     isInitialized: initializationQuery.data?.success || false,
     repairAccount: repairMutation.mutate,
     isRepairing: repairMutation.isPending

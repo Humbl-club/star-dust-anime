@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingComponent } from "@/components/RatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
 import { Navigation } from "@/components/Navigation";
-import { CountdownTimer } from "@/components/CountdownTimer";
+
 import { useToast } from "@/hooks/use-toast";
 import { listStatuses, type Anime, type Manga } from "@/data/animeData";
 import { 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "@/components/AddToListButton";
-import { CountdownTimer } from "@/components/CountdownTimer";
+
 import { ContentReportModal } from "@/components/ContentReportModal";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";
@@ -133,18 +133,6 @@ export const AnimeCard = ({
       {/* Hover Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-300 z-15" />
       
-      {/* Countdown Timer */}
-      {showCountdown && (anime as any).next_episode_date && (
-        <div className="absolute -bottom-2 left-3 right-3 z-30">
-          <CountdownTimer
-            nextDate={(anime as any).next_episode_date}
-            nextEpisode={(anime as any).next_episode_number}
-            status={anime.status}
-            title={anime.title}
-            type="anime"
-          />
-        </div>
-      )}
     </Card>
 
       <ContentReportModal

@@ -15,7 +15,8 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     initialization, 
     isLoading, 
     isError, 
-    isFirstTime, 
+    isFirstTime,
+    needsWelcome, 
     isInitialized,
     repairAccount,
     isRepairing
@@ -88,7 +89,7 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
         username={initialization?.username}
         tier={initialization?.tier}
         onComplete={() => setShowWelcome(false)}
-        isVisible={showWelcome && isFirstTime}
+        isVisible={showWelcome && (isFirstTime || needsWelcome)}
       />
     </>
   );

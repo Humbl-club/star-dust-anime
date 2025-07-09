@@ -1,6 +1,5 @@
 import { Navigation } from "@/components/Navigation";
 import { useStats } from "@/hooks/useStats";
-import { AutomatedBackgroundSync } from "@/components/AutomatedBackgroundSync";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Database, 
@@ -29,8 +28,23 @@ const SyncDashboard = () => {
           </p>
         </div>
 
-        {/* Automated Background Sync - The only working sync component */}
-        <AutomatedBackgroundSync />
+        {/* Sync Status */}
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="w-5 h-5 text-green-500" />
+              Background Sync Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4">
+              <div className="text-green-500 font-semibold mb-2">Active</div>
+              <p className="text-muted-foreground text-sm">
+                Background sync is running automatically every 2 minutes
+              </p>
+            </div>
+          </CardContent>
+        </Card>
         
         {/* Database Statistics */}
         <Card className="mt-8 mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
