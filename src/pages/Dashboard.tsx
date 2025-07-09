@@ -48,10 +48,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+    <div className="min-h-screen">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-12 space-y-8">
         {/* Welcome Header with Enhanced Username Display */}
         <div className="text-center space-y-6">
           <div className="relative max-w-4xl mx-auto">

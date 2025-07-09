@@ -270,28 +270,31 @@ const Trending = () => {
   const { showEnglish, setShowEnglish } = useNamePreference();
 
   return (
-    <div className="min-h-screen bg-gradient-hero relative">
+    <div className="min-h-screen">
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
       
       {/* Header */}
-      <div className="relative glass-card border-0 rounded-none bg-gradient-primary/20 backdrop-blur-xl text-foreground py-16 shadow-glow-primary/10">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <TrendingUp className="w-8 h-8" />
-              <h1 className="text-4xl md:text-6xl font-bold">
-                Trending Now
-              </h1>
+      <div className="relative py-20 mb-8">
+        <div className="absolute inset-0 bg-gradient-hero"></div>
+        <div className="relative container mx-auto px-4">
+          <div className="glass-card p-8 border border-primary/20 glow-primary">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <TrendingUp className="w-8 h-8" />
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gradient-primary">
+                  Trending <span className="text-gradient-secondary">Now</span>
+                </h1>
+              </div>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Discover what's hot in the anime and manga community with <span className="text-gradient-primary font-semibold">Anithing</span>.
+              </p>
             </div>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Discover what's hot in the anime and manga community right now.
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto mobile-safe-padding py-6 md:py-8">
         {/* Auto-Sync Status */}
         {animeData.length === 0 && (
           <div className="glass-card mb-8 p-6 border border-primary/20">
