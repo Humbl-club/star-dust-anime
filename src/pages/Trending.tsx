@@ -27,8 +27,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
 const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
-  <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm">
-    <CardContent className="p-4">
+  <div className="anime-card">
+    <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
           <img 
@@ -36,18 +36,18 @@ const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
             alt={anime.title}
             className="w-16 h-20 object-cover rounded-lg"
           />
-          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground">
+          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
             {rank}
           </div>
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
             {anime.title}
           </h3>
           
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs glass-card border-0">
               <Play className="w-3 h-3 mr-1" />
               {anime.type}
             </Badge>
@@ -65,20 +65,20 @@ const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
           
           <div className="flex flex-wrap gap-1">
             {anime.genres.slice(0, 2).map(genre => (
-              <Badge key={genre} variant="outline" className="text-xs">
+              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
                 {genre}
               </Badge>
             ))}
           </div>
         </div>
       </div>
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 );
 
 const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
-  <Card className="group hover:shadow-glow-card transition-all duration-300 border-border/50 bg-card/80 backdrop-blur-sm">
-    <CardContent className="p-4">
+  <div className="anime-card">
+    <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
           <img 
@@ -86,18 +86,18 @@ const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
             alt={manga.title}
             className="w-16 h-20 object-cover rounded-lg"
           />
-          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground">
+          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
             {rank}
           </div>
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
             {manga.title}
           </h3>
           
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs glass-card border-0">
               <BookOpen className="w-3 h-3 mr-1" />
               {manga.type}
             </Badge>
@@ -115,15 +115,15 @@ const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
           
           <div className="flex flex-wrap gap-1">
             {manga.genres.slice(0, 2).map(genre => (
-              <Badge key={genre} variant="outline" className="text-xs">
+              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
                 {genre}
               </Badge>
             ))}
           </div>
         </div>
       </div>
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 );
 
 const Trending = () => {
@@ -293,23 +293,23 @@ const Trending = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Auto-Sync Status */}
         {animeData.length === 0 && (
-          <Alert className="mb-8 border-primary/20 bg-primary/5">
-            <Database className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium mb-1">Database Auto-Sync Active</p>
-                  <p className="text-sm text-muted-foreground">
-                    Comprehensive anime & manga database is automatically syncing in the background
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                  <span className="text-sm text-primary font-medium">Syncing...</span>
-                </div>
+          <div className="glass-card mb-8 p-6 border border-primary/20">
+            <div className="flex items-center gap-3 mb-4">
+              <Database className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-primary">Database Auto-Sync Active</h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Comprehensive anime & manga database is automatically syncing in the background
+                </p>
               </div>
-            </AlertDescription>
-          </Alert>
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-primary glow-primary" />
+                <span className="text-sm text-primary font-medium">Syncing...</span>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Loading State */}
@@ -328,12 +328,12 @@ const Trending = () => {
         {/* Featured Spotlight */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Top Anime Spotlight */}
-          <Card className="relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
+          <div className="glass-card relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent" />
-            <CardContent className="p-6 relative">
+            <div className="p-6 relative">
               <div className="flex items-center gap-2 mb-4">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <Badge variant="secondary">
+                <Trophy className="w-5 h-5 text-yellow-400 glow-accent" />
+                <Badge variant="secondary" className="glass-card border-0">
                   <Play className="w-3 h-3 mr-1" />
                   #1 Anime
                 </Badge>
@@ -364,16 +364,16 @@ const Trending = () => {
                 </div>
               </div>
             )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Top Manga Spotlight */}
-          <Card className="relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm">
+          <div className="glass-card relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-transparent" />
-            <CardContent className="p-6 relative">
+            <div className="p-6 relative">
               <div className="flex items-center gap-2 mb-4">
-                <Trophy className="w-5 h-5 text-yellow-400" />
-                <Badge variant="secondary">
+                <Trophy className="w-5 h-5 text-yellow-400 glow-accent" />
+                <Badge variant="secondary" className="glass-card border-0">
                   <BookOpen className="w-3 h-3 mr-1" />
                   #1 Manga
                 </Badge>
@@ -404,32 +404,42 @@ const Trending = () => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Trending Lists */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
-            <TabsTrigger value="anime" className="flex items-center gap-2">
-              <Play className="w-4 h-4" />
-              Trending Anime
-            </TabsTrigger>
-            <TabsTrigger value="manga" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Trending Manga
-            </TabsTrigger>
-          </TabsList>
+          <div className="glass-nav border border-glass-border rounded-lg p-1 max-w-md mx-auto mb-8">
+            <div className="grid w-full grid-cols-2 gap-1">
+              <Button
+                variant={activeTab === "anime" ? "default" : "ghost"}
+                onClick={() => setActiveTab("anime")}
+                className="flex items-center gap-2 transition-smooth"
+              >
+                <Play className="w-4 h-4" />
+                Trending Anime
+              </Button>
+              <Button
+                variant={activeTab === "manga" ? "default" : "ghost"}
+                onClick={() => setActiveTab("manga")}
+                className="flex items-center gap-2 transition-smooth"
+              >
+                <BookOpen className="w-4 h-4" />
+                Trending Manga
+              </Button>
+            </div>
+          </div>
 
-          <TabsContent value="anime">
-            <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
+          {activeTab === "anime" && (
+            <div className="glass-card">
+              <div className="p-6 border-b border-glass-border">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
                   Top 10 Trending Anime
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h2>
+              </div>
+              <div className="p-6">
                 <div className="space-y-4">
                   {trendingAnime.map((anime, index) => (
                     <TrendingAnimeCard 
@@ -439,19 +449,19 @@ const Trending = () => {
                     />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          )}
 
-          <TabsContent value="manga">
-            <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
+          {activeTab === "manga" && (
+            <div className="glass-card">
+              <div className="p-6 border-b border-glass-border">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
                   Top 10 Trending Manga
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h2>
+              </div>
+              <div className="p-6">
                 <div className="space-y-4">
                   {trendingManga.map((manga, index) => (
                     <TrendingMangaCard 
@@ -461,32 +471,32 @@ const Trending = () => {
                     />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          )}
         </Tabs>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-          <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.animeCount)}</div>
+          <div className="glass-card text-center p-6 hover-scale">
+            <div className="text-2xl font-bold text-primary mb-2 glow-primary">{formatCount(stats.animeCount)}</div>
             <div className="text-sm text-muted-foreground">Anime Titles</div>
-          </Card>
+          </div>
           
-          <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.mangaCount)}</div>
+          <div className="glass-card text-center p-6 hover-scale">
+            <div className="text-2xl font-bold text-secondary mb-2">{formatCount(stats.mangaCount)}</div>
             <div className="text-sm text-muted-foreground">Manga Titles</div>
-          </Card>
+          </div>
           
-          <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="text-2xl font-bold text-primary mb-2">{formatCount(stats.userCount)}</div>
+          <div className="glass-card text-center p-6 hover-scale">
+            <div className="text-2xl font-bold text-accent mb-2">{formatCount(stats.userCount)}</div>
             <div className="text-sm text-muted-foreground">Community Members</div>
-          </Card>
+          </div>
           
-          <Card className="text-center p-6 border-border/50 bg-card/80 backdrop-blur-sm">
+          <div className="glass-card text-center p-6 hover-scale">
             <div className="text-2xl font-bold text-primary mb-2">2025</div>
             <div className="text-sm text-muted-foreground">Latest Season</div>
-          </Card>
+          </div>
         </div>
         </>
         )}

@@ -43,23 +43,40 @@ export const useUserInitialization = () => {
     mutationFn: async () => {
       if (!user?.id) throw new Error('No user found');
 
-      // Just run initialization which will now handle repair automatically
+      console.log('Starting account repair for user:', user.id);
+      
+      // Run initialization which will handle repair automatically
       const { data: initData, error: initError } = await supabase.rpc('initialize_user_atomic', {
         user_id_param: user.id
       });
 
-      if (initError) throw initError;
-      return initData?.[0];
+      console.log('Repair response:', { initData, initError });
+
+      if (initError) {
+        console.error('Database function error:', initError);
+        throw new Error(initError.message || 'Database function failed');
+      }
+
+      if (!initData || initData.length === 0) {
+        throw new Error('No data returned from repair function');
+      }
+
+      return initData[0];
     },
     onSuccess: (data) => {
+      console.log('Repair successful:', data);
       queryClient.invalidateQueries({ queryKey: ['user-initialization'] });
+      queryClient.refetchQueries({ queryKey: ['user-initialization'] });
+      
       if (data?.success) {
         toast.success(`Account repaired! Welcome ${data.username}!`);
+      } else {
+        toast.error(data?.message || 'Repair completed but with issues');
       }
     },
     onError: (error) => {
       console.error('Repair failed:', error);
-      toast.error('Failed to repair account. Please contact support.');
+      toast.error(`Failed to repair account: ${error.message}`);
     }
   });
 
