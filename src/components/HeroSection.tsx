@@ -73,11 +73,11 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           {/* Search Section */}
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-4xl mx-auto space-y-6 relative z-30">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-all duration-500" />
               <div className="absolute inset-0 bg-gradient-secondary rounded-2xl blur-2xl opacity-10 group-hover:opacity-20 transition-all duration-700" style={{ animationDelay: '0.2s' }} />
-              <div className="relative glass-card border border-primary/30 p-2 hover:border-primary/50 transition-all duration-300">
+              <div className="relative glass-card border border-primary/30 p-3 hover:border-primary/50 transition-all duration-300 shadow-glow-primary/20">
                 <WorkingSearchDropdown 
                   placeholder="Discover your next favorite anime or manga..." 
                   className="w-full"

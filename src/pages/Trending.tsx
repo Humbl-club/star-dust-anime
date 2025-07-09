@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
 const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
-  <div className="anime-card">
+  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
     <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
@@ -77,7 +77,7 @@ const TrendingAnimeCard = ({ anime, rank }: { anime: Anime; rank: number }) => (
 );
 
 const TrendingMangaCard = ({ manga, rank }: { manga: Manga; rank: number }) => (
-  <div className="anime-card">
+  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
     <div className="p-4">
       <div className="flex gap-4">
         <div className="relative flex-shrink-0">
@@ -270,11 +270,12 @@ const Trending = () => {
   const { showEnglish, setShowEnglish } = useNamePreference();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+    <div className="min-h-screen bg-gradient-hero relative">
       <NameToggle showEnglish={showEnglish} onToggle={setShowEnglish} />
       <Navigation />
+      
       {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
+      <div className="relative glass-card border-0 rounded-none bg-gradient-primary/20 backdrop-blur-xl text-foreground py-16 shadow-glow-primary/10">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -410,12 +411,12 @@ const Trending = () => {
 
         {/* Trending Lists */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="glass-nav border border-glass-border rounded-lg p-1 max-w-md mx-auto mb-8">
-            <div className="grid w-full grid-cols-2 gap-1">
+          <div className="glass-nav border border-glass-border rounded-xl p-2 max-w-md mx-auto mb-8 shadow-glow-primary/20">
+            <div className="grid w-full grid-cols-2 gap-2">
               <Button
                 variant={activeTab === "anime" ? "default" : "ghost"}
                 onClick={() => setActiveTab("anime")}
-                className="flex items-center gap-2 transition-smooth"
+                className="flex items-center gap-2 transition-smooth glass-button rounded-lg"
               >
                 <Play className="w-4 h-4" />
                 Trending Anime
@@ -423,7 +424,7 @@ const Trending = () => {
               <Button
                 variant={activeTab === "manga" ? "default" : "ghost"}
                 onClick={() => setActiveTab("manga")}
-                className="flex items-center gap-2 transition-smooth"
+                className="flex items-center gap-2 transition-smooth glass-button rounded-lg"
               >
                 <BookOpen className="w-4 h-4" />
                 Trending Manga
@@ -432,14 +433,14 @@ const Trending = () => {
           </div>
 
           {activeTab === "anime" && (
-            <div className="glass-card">
-              <div className="p-6 border-b border-glass-border">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+            <div className="glass-card border border-glass-border shadow-glow-primary/10">
+              <div className="p-6 border-b border-glass-border bg-gradient-primary/10">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-gradient-primary">
+                  <TrendingUp className="w-5 h-5 text-primary glow-primary" />
                   Top 10 Trending Anime
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
                   {trendingAnime.map((anime, index) => (
                     <TrendingAnimeCard 
@@ -454,14 +455,14 @@ const Trending = () => {
           )}
 
           {activeTab === "manga" && (
-            <div className="glass-card">
-              <div className="p-6 border-b border-glass-border">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+            <div className="glass-card border border-glass-border shadow-glow-primary/10">
+              <div className="p-6 border-b border-glass-border bg-gradient-primary/10">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-gradient-primary">
+                  <TrendingUp className="w-5 h-5 text-primary glow-primary" />
                   Top 10 Trending Manga
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
                   {trendingManga.map((manga, index) => (
                     <TrendingMangaCard 
@@ -478,23 +479,23 @@ const Trending = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-          <div className="glass-card text-center p-6 hover-scale">
+          <div className="glass-card border border-glass-border text-center p-6 hover-scale shadow-glow-primary/10">
             <div className="text-2xl font-bold text-primary mb-2 glow-primary">{formatCount(stats.animeCount)}</div>
             <div className="text-sm text-muted-foreground">Anime Titles</div>
           </div>
           
-          <div className="glass-card text-center p-6 hover-scale">
+          <div className="glass-card border border-glass-border text-center p-6 hover-scale shadow-glow-accent/10">
             <div className="text-2xl font-bold text-secondary mb-2">{formatCount(stats.mangaCount)}</div>
             <div className="text-sm text-muted-foreground">Manga Titles</div>
           </div>
           
-          <div className="glass-card text-center p-6 hover-scale">
+          <div className="glass-card border border-glass-border text-center p-6 hover-scale shadow-glow-primary/10">
             <div className="text-2xl font-bold text-accent mb-2">{formatCount(stats.userCount)}</div>
             <div className="text-sm text-muted-foreground">Community Members</div>
           </div>
           
-          <div className="glass-card text-center p-6 hover-scale">
-            <div className="text-2xl font-bold text-primary mb-2">2025</div>
+          <div className="glass-card border border-glass-border text-center p-6 hover-scale shadow-glow-primary/10">
+            <div className="text-2xl font-bold text-primary mb-2 glow-primary">2025</div>
             <div className="text-sm text-muted-foreground">Latest Season</div>
           </div>
         </div>

@@ -104,7 +104,12 @@ export const WorkingSearchDropdown = ({
 
       {/* Dropdown Results */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-3 glass-dropdown rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50 animate-fade-in">
+        <>
+          {/* Backdrop overlay */}
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[998]" onClick={() => setIsOpen(false)} />
+          
+          <div className="absolute top-full left-0 right-0 mt-3 glass-dropdown rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-[999] animate-fade-in border border-primary/20"
+               style={{ backgroundColor: 'hsl(var(--background) / 0.95)' }}>
           {isSearching && searchResults.length === 0 ? (
             <div className="p-4 text-center">
               <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
@@ -176,7 +181,8 @@ export const WorkingSearchDropdown = ({
               </div>
             </div>
           ) : null}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
