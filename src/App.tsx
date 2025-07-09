@@ -151,15 +151,9 @@ const App = () => {
                 </InitializationWrapper>
               </ProtectedRoute>
             } />
-            <Route path="/sync-dashboard" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <SyncDashboard />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
             
             {/* Public Routes */}
+            <Route path="/sync-dashboard" element={<SyncDashboard />} />
             <Route path="/legal/:pageType" element={<LegalPages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
