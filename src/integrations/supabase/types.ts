@@ -306,44 +306,6 @@ export type Database = {
         }
         Relationships: []
       }
-      daily_activities: {
-        Row: {
-          activity_date: string | null
-          activity_type: string
-          created_at: string | null
-          id: string
-          metadata: Json | null
-          points_earned: number | null
-          user_id: string | null
-        }
-        Insert: {
-          activity_date?: string | null
-          activity_type: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          points_earned?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          activity_date?: string | null
-          activity_type?: string
-          created_at?: string | null
-          id?: string
-          metadata?: Json | null
-          points_earned?: number | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_activities_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       genres: {
         Row: {
           created_at: string | null
@@ -953,56 +915,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_points: {
-        Row: {
-          created_at: string | null
-          daily_points: number | null
-          first_loot_box_opened: boolean | null
-          id: string
-          is_first_login: boolean | null
-          last_daily_reset: string | null
-          last_login_date: string | null
-          login_streak: number | null
-          total_points: number | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          daily_points?: number | null
-          first_loot_box_opened?: boolean | null
-          id?: string
-          is_first_login?: boolean | null
-          last_daily_reset?: string | null
-          last_login_date?: string | null
-          login_streak?: number | null
-          total_points?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          daily_points?: number | null
-          first_loot_box_opened?: boolean | null
-          id?: string
-          is_first_login?: boolean | null
-          last_daily_reset?: string | null
-          last_login_date?: string | null
-          login_streak?: number | null
-          total_points?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_points_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_preferences: {
         Row: {
           auto_add_sequels: boolean | null
@@ -1121,10 +1033,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_user_points: {
-        Args: { user_id_param: string; points_to_add: number }
-        Returns: undefined
-      }
       assign_random_username: {
         Args: { user_id_param: string }
         Returns: {
@@ -1135,8 +1043,6 @@ export type Database = {
       get_user_gamification_summary: {
         Args: { user_id_param: string }
         Returns: {
-          total_points: number
-          daily_points: number
           login_streak: number
           current_username: string
           username_tier: string
@@ -1150,19 +1056,10 @@ export type Database = {
           success: boolean
           username: string
           tier: string
-          total_points: number
           is_first_time: boolean
           needs_welcome: boolean
           message: string
         }[]
-      }
-      is_first_loot_box: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
-      mark_first_loot_box_opened: {
-        Args: { user_id_param: string }
-        Returns: undefined
       }
       open_loot_box_secure: {
         Args: { user_id_param: string; box_type_param: string }
@@ -1176,17 +1073,6 @@ export type Database = {
           server_seed: string
           random_value: number
         }[]
-      }
-      process_daily_login: {
-        Args: { user_id_param: string }
-        Returns: {
-          points: number
-          streak: number
-        }[]
-      }
-      reset_daily_points: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       safe_date_cast: {
         Args: { date_string: string }

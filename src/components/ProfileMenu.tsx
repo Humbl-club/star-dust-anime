@@ -112,12 +112,8 @@ export const ProfileMenu = () => {
             {stats && (
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center gap-1">
-                  <Coins className="w-3 h-3 text-yellow-500" />
-                  <span className="text-xs text-muted-foreground">{stats.totalPoints}</span>
-                </div>
-                <div className="flex items-center gap-1">
                   <Gift className="w-3 h-3 text-purple-500" />
-                  <span className="text-xs text-muted-foreground">{stats.loginStreak}d</span>
+                  <span className="text-xs text-muted-foreground">No streaks</span>
                 </div>
               </div>
             )}

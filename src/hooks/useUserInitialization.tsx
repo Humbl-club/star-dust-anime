@@ -7,7 +7,6 @@ interface InitializationResult {
   success: boolean;
   username: string;
   tier: string;
-  total_points: number;
   is_first_time: boolean;
   needs_welcome: boolean;
   message: string;

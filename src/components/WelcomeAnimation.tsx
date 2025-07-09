@@ -31,7 +31,6 @@ export const WelcomeAnimation = ({
     const sequence = [
       () => setStep(1), // Welcome
       () => setStep(2), // Username assignment
-      () => setStep(3), // Starter bonus
       () => setShowComplete(true) // Complete
     ];
 
@@ -132,28 +131,6 @@ export const WelcomeAnimation = ({
                   </motion.div>
                 )}
 
-                {step === 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
-                  >
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-gradient-primary rounded-full glow-primary">
-                        <Gift className="w-8 h-8 text-primary-foreground" />
-                      </div>
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold mb-2">Welcome Bonus!</h2>
-                      <div className="space-y-2">
-                        <div className="glass-card p-3 border border-primary/20">
-                          <p className="text-sm text-muted-foreground">Starting Points</p>
-                          <p className="text-lg font-bold text-gradient-primary">+100 Points</p>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
               </CardContent>
             </Card>
           </motion.div>

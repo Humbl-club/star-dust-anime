@@ -23,9 +23,7 @@ export const useSimpleGameification = () => {
 
   return {
     stats: stats ? {
-      totalPoints: 0, // Simplified - no points system
-      dailyPoints: 0, // Simplified - no points system
-      loginStreak: stats.login_streak || 0,
+      loginStreak: 0, // No more login streak
       currentUsername: stats.current_username || 'Unknown',
       usernameTier: stats.username_tier || 'COMMON'
     } : null,

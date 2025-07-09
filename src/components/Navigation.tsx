@@ -212,8 +212,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   {stats && (
                     <div className="hidden md:flex items-center gap-2 text-sm mr-3">
                       <span className="font-medium">{stats.currentUsername}</span>
-                      <span className="text-muted-foreground">•</span>
-                      <span>{stats.totalPoints} pts</span>
                     </div>
                   )}
                   <ProfileMenu />
