@@ -115,9 +115,6 @@ export const ProfileMenu = () => {
                   )}>
                     {stats.currentUsername}
                   </span>
-                  <Badge variant="outline" className="text-xs px-2 py-0.5">
-                    {stats.usernameTier}
-                  </Badge>
                 </div>
               </div>
             )}

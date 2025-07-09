@@ -111,7 +111,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     { icon: TrendingUp, label: "Trending", href: "/trending", active: window.location.pathname === "/trending" },
     { icon: Play, label: "Anime", href: "/anime", active: window.location.pathname === "/anime" },
     { icon: BookOpen, label: "Manga", href: "/manga", active: window.location.pathname === "/manga" },
-    ...(user ? [{ icon: BarChart3, label: "Dashboard", href: "/dashboard", active: window.location.pathname === "/dashboard" }] : []),
   ];
 
   return (
@@ -219,9 +218,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                         )}>
                           {stats.currentUsername}
                         </span>
-                        <Badge variant="outline" className="text-xs px-1 py-0">
-                          {stats.usernameTier}
-                        </Badge>
                       </div>
                     </div>
                   )}
