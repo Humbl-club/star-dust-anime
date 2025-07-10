@@ -113,7 +113,7 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
             damping: 20,
             stiffness: 200
           }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[150] w-96 max-w-[calc(100vw-2rem)] md:w-96"
+          className="fixed top-20 right-4 z-[300] w-72 max-w-[calc(100vw-2rem)] md:right-6 md:w-80 max-sm:left-4 max-sm:right-4 max-sm:w-auto pointer-events-auto"
           style={{ willChange: 'transform, opacity' }}
         >
           {/* Floating particles for premium effect */}
@@ -142,7 +142,7 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10" />
             
             {/* Content */}
-            <div className="relative p-5">
+            <div className="relative p-4">
               {/* Header with close button */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
