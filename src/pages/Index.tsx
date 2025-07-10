@@ -12,9 +12,10 @@ import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
-import { SignupWelcomePopup } from "@/components/SignupWelcomePopup";
+import { WelcomeAnimation } from "@/components/WelcomeAnimation";
 import { EmailVerificationCornerPopup } from "@/components/EmailVerificationCornerPopup";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
+import { useUserInitialization } from "@/hooks/useUserInitialization";
 
 import { LegalFooter } from "@/components/LegalFooter";
 
@@ -26,22 +27,29 @@ const Index = () => {
   const { showVerificationPrompt } = useEmailVerification();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [showVerificationCornerPopup, setShowVerificationCornerPopup] = useState(false);
 
-  // Check for just signed up flag
+  const { 
+    initialization, 
+    isFirstTime,
+    needsWelcome, 
+    isInitialized
+  } = useUserInitialization();
+
+  // Check for just signed up flag and show welcome animation
   useEffect(() => {
     console.log('Checking for justSignedUp flag...');
     const justSignedUp = sessionStorage.getItem('justSignedUp');
     console.log('justSignedUp flag:', justSignedUp);
-    console.log('user:', user);
+    console.log('user:', user, 'isInitialized:', isInitialized);
     
-    if (justSignedUp) {
-      console.log('Setting welcome popup to true (regardless of user session)');
-      setShowWelcomePopup(true);
+    if (justSignedUp && user && isInitialized) {
+      console.log('Setting welcome animation to true');
+      setShowWelcomeAnimation(true);
       sessionStorage.removeItem('justSignedUp');
     }
-  }, [user]);
+  }, [user, isInitialized]);
 
   // Show verification corner popup if user is not verified
   useEffect(() => {
@@ -302,10 +310,16 @@ const Index = () => {
 
       <LegalFooter />
 
-      {/* Welcome Popup */}
-      <SignupWelcomePopup
-        isVisible={showWelcomePopup}
-        onComplete={() => setShowWelcomePopup(false)}
+      {/* Welcome Animation */}
+      <WelcomeAnimation
+        isFirstTime={isFirstTime}
+        username={initialization?.username}
+        tier={initialization?.tier}
+        onComplete={() => {
+          console.log('Welcome animation completed');
+          setShowWelcomeAnimation(false);
+        }}
+        isVisible={showWelcomeAnimation && (isFirstTime || needsWelcome)}
       />
 
       {/* Email Verification Corner Popup */}
