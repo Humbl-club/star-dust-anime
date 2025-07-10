@@ -87,7 +87,7 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
             damping: 20,
             stiffness: 200
           }}
-          className="fixed top-1 right-4 z-[100] w-80 max-w-[calc(100vw-2rem)]"
+          className="fixed top-1 right-4 z-[150] w-80 max-w-[calc(100vw-2rem)]"
           style={{ willChange: 'transform, opacity' }}
         >
           {/* Floating particles for premium effect */}
