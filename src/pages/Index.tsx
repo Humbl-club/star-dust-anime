@@ -13,8 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { WelcomeAnimation } from "@/components/WelcomeAnimation";
-import { EmailVerificationCornerPopup } from "@/components/EmailVerificationCornerPopup";
-import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { useUserInitialization } from "@/hooks/useUserInitialization";
 
@@ -25,11 +24,9 @@ const Index = () => {
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   const { stats, formatCount } = useStats();
-  const { showVerificationPrompt } = useEmailVerification();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
-  const [showVerificationCornerPopup, setShowVerificationCornerPopup] = useState(false);
 
   const { 
     initialization, 
@@ -193,9 +190,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative">
-      {/* Email Verification Banner */}
-      <EmailVerificationBanner />
-      
       <Navigation onSearch={handleSearch} />
       
       
@@ -316,11 +310,8 @@ const Index = () => {
         isVisible={showWelcomeAnimation}
       />
 
-      {/* Email Verification Corner Popup */}
-      <EmailVerificationCornerPopup
-        isVisible={showVerificationPrompt}
-        onDismiss={() => {}}
-      />
+      {/* Unified Email Verification Popup */}
+      <EmailVerificationPopup />
     </div>
   );
 };

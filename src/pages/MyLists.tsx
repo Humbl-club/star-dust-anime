@@ -58,7 +58,9 @@ import {
   Eye,
   Edit,
   Trash2,
-  Heart
+  Heart,
+  Mail,
+  Sparkles
 } from "lucide-react";
 
 const MyLists = () => {
@@ -264,24 +266,39 @@ const MyLists = () => {
   if (!canUseFeature('my_lists')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
-        <Card className="p-8 text-center border-orange-200/50 bg-orange-50/90 dark:bg-orange-900/20">
-          <CardContent>
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
-                <Heart className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+        <Card className="max-w-md mx-4 glass-card border-primary/30 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-primary opacity-10" />
+          <CardContent className="relative p-8 text-center">
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="w-20 h-20 glass-card border-primary/20 rounded-full flex items-center justify-center">
+                  <Heart className="w-10 h-10 text-primary animate-pulse" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-accent-foreground animate-bounce" />
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-2 text-orange-800 dark:text-orange-200">Email Verification Required</h2>
-                <p className="text-orange-700 dark:text-orange-300 mb-4">
-                  Please verify your email address to access your lists and save your progress.
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-gradient-primary">Unlock Your Lists!</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Verify your email to save your progress and access your personalized anime & manga collection.
                 </p>
-                <Button 
-                  variant="outline" 
-                  className="border-orange-200 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-800"
-                  onClick={() => window.location.href = '/'}
-                >
-                  Return Home
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    className="w-full glass-button gradient-primary hover:glow-primary transition-all duration-300 transform hover:scale-105"
+                    onClick={() => window.location.href = '/'}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Verify Email & Continue
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full hover:bg-muted/20"
+                    onClick={() => window.location.href = '/'}
+                  >
+                    Return Home
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

@@ -27,6 +27,7 @@ export const WelcomeAnimation = ({
       return;
     }
 
+    // Lightning-fast animation: 300ms per step (total ~1 second)
     const sequence = [
       () => setStep(1), // Welcome
       () => setStep(2), // Username assignment  
@@ -35,7 +36,7 @@ export const WelcomeAnimation = ({
 
     let timeouts: NodeJS.Timeout[] = [];
     sequence.forEach((action, index) => {
-      const timeout = setTimeout(action, (index + 1) * 2000);
+      const timeout = setTimeout(action, (index + 1) * 300);
       timeouts.push(timeout);
     });
 
@@ -64,119 +65,136 @@ export const WelcomeAnimation = ({
     }
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <AnimatePresence mode="wait">
-        {step >= 1 && !showComplete && (
-          <motion.div
-            key="welcome"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="text-center space-y-6"
-          >
-            <Card className="glass-card border border-primary/20 glow-card max-w-md">
-              <CardContent className="p-8 space-y-6">
-                {step === 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
-                  >
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-gradient-primary rounded-full glow-primary">
-                        <Sparkles className="w-8 h-8 text-primary-foreground" />
-                      </div>
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gradient-primary mb-2">
-                        Welcome to Anithing!
-                      </h2>
-                      <p className="text-muted-foreground">
-                        Let's set up your legendary anime profile...
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {step === 2 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
-                  >
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-gradient-primary rounded-full glow-primary">
-                        <Crown className="w-8 h-8 text-primary-foreground" />
-                      </div>
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold mb-2">Your Legendary Username</h2>
-                      <div className="glass-card p-4 border border-primary/20">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="text-2xl">{getTierEmoji(tier)}</span>
-                          <span className="text-xl font-bold text-gradient-primary">
-                            {username}
-                          </span>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{ willChange: 'opacity' }}
+        >
+          <AnimatePresence mode="wait">
+            {step >= 1 && !showComplete && (
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2, ease: [0.175, 0.885, 0.32, 1.275] }}
+                className="text-center space-y-6"
+                style={{ willChange: 'transform, opacity' }}
+              >
+                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-primary opacity-5" />
+                  <CardContent className="relative p-8 space-y-6">
+                    {step === 1 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="space-y-4"
+                        style={{ willChange: 'transform, opacity' }}
+                      >
+                        <div className="flex justify-center">
+                          <div className="p-4 gradient-primary rounded-full glow-primary">
+                            <Sparkles className="w-8 h-8 text-primary-foreground animate-pulse" />
+                          </div>
                         </div>
-                        <p className={`text-sm ${getTierColor(tier)} font-medium mt-1`}>
-                          {tier} TIER
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
+                        <div>
+                          <h2 className="text-2xl font-bold text-gradient-primary mb-2">
+                            Welcome to AniTracker!
+                          </h2>
+                          <p className="text-muted-foreground">
+                            Let's set up your legendary anime profile...
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
 
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                    {step === 2 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="space-y-4"
+                        style={{ willChange: 'transform, opacity' }}
+                      >
+                        <div className="flex justify-center">
+                          <div className="p-4 gradient-primary rounded-full glow-primary">
+                            <Crown className="w-8 h-8 text-primary-foreground" />
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold mb-2 text-gradient-primary">Your Legendary Username</h2>
+                          <div className="glass-card p-4 border border-primary/20 bg-gradient-primary/5">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-2xl">{getTierEmoji(tier)}</span>
+                              <span className="text-xl font-bold text-gradient-primary">
+                                {username}
+                              </span>
+                            </div>
+                            <p className={`text-sm ${getTierColor(tier)} font-medium mt-1`}>
+                              {tier} TIER
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
-        {showComplete && (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="text-center space-y-6"
-          >
-            <Card className="glass-card border border-primary/20 glow-card max-w-md">
-              <CardContent className="p-8 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="flex justify-center">
-                    <div className="p-4 bg-green-500/20 rounded-full">
-                      <CheckCircle className="w-8 h-8 text-green-500" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h2 className="text-2xl font-bold text-gradient-primary mb-2">
-                      All Set!
-                    </h2>
-                    <p className="text-muted-foreground mb-6">
-                      Your anime journey begins now. Ready to explore?
-                    </p>
-                    
-                    <Button 
-                      onClick={onComplete}
-                      variant="hero"
-                      className="w-full"
+            {showComplete && (
+              <motion.div
+                key="complete"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: [0.175, 0.885, 0.32, 1.275] }}
+                className="text-center space-y-6"
+                style={{ willChange: 'transform, opacity' }}
+              >
+                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-primary opacity-5" />
+                  <CardContent className="relative p-8 space-y-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-6"
+                      style={{ willChange: 'transform, opacity' }}
                     >
-                      Start Exploring
-                    </Button>
-                  </div>
-                </motion.div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                      <div className="flex justify-center">
+                        <div className="p-4 bg-green-500/20 rounded-full">
+                          <CheckCircle className="w-8 h-8 text-green-500 animate-bounce-in" />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h2 className="text-2xl font-bold text-gradient-primary mb-2">
+                          All Set!
+                        </h2>
+                        <p className="text-muted-foreground mb-6">
+                          Your anime journey begins now. Ready to explore?
+                        </p>
+                        
+                        <Button 
+                          onClick={onComplete}
+                          className="w-full glass-button gradient-primary hover:glow-primary transition-all duration-300 transform hover:scale-105"
+                        >
+                          Start Exploring
+                        </Button>
+                      </div>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
