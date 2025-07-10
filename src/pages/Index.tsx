@@ -193,6 +193,20 @@ const Index = () => {
     <div className="min-h-screen relative">
       <Navigation onSearch={handleSearch} />
       
+      {/* Welcome Animation - Perfect Top Overlay Positioning */}
+      <WelcomeAnimation
+        isFirstTime={isFirstTime}
+        username={initialization?.username}
+        tier={initialization?.tier}
+        onComplete={() => {
+          setShowWelcomeAnimation(false);
+          // Trigger email popup 1 second after welcome animation completes
+          setTimeout(() => {
+            setTriggerEmailPopup(true);
+          }, 1000);
+        }}
+        isVisible={showWelcomeAnimation}
+      />
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
@@ -299,21 +313,6 @@ const Index = () => {
       </section>
 
       <LegalFooter />
-
-      {/* Welcome Animation */}
-      <WelcomeAnimation
-        isFirstTime={isFirstTime}
-        username={initialization?.username}
-        tier={initialization?.tier}
-        onComplete={() => {
-          setShowWelcomeAnimation(false);
-          // Trigger email popup 1 second after welcome animation completes
-          setTimeout(() => {
-            setTriggerEmailPopup(true);
-          }, 1000);
-        }}
-        isVisible={showWelcomeAnimation}
-      />
 
       {/* Coordinated Email Verification Popup */}
       <EmailVerificationPopup triggerShow={triggerEmailPopup} />

@@ -628,23 +628,26 @@ export const WelcomeAnimation = ({
   const reducedMotion = useReducedMotion();
   const capabilities = useDeviceCapabilities();
   
-  // Performance-optimized timing calculation
+  // Performance-optimized timing calculation with slower, more cinematic timing
   const timingConfig = useMemo(() => {
-    const baseScale = reducedMotion ? 0.5 : 
-                     capabilities.performanceLevel === 'low' ? 0.7 : 
-                     capabilities.connectionSpeed === 'slow' ? 0.8 : 1;
+    const baseScale = reducedMotion ? 0.3 : 
+                     capabilities.performanceLevel === 'low' ? 0.5 : 
+                     capabilities.connectionSpeed === 'slow' ? 0.6 : 1;
+    
+    // Slower, more cinematic timing (2-3x slower)
+    const cinematicMultiplier = 2.5;
     
     return {
       scale: baseScale,
-      totalDuration: reducedMotion ? 4 : capabilities.isMobile ? 6 : 8,
+      totalDuration: reducedMotion ? 8 : capabilities.isMobile ? 15 : 18,
       baseTimings: {
-        arrival: 100,
-        mission: 2200,
-        looking: 3200,
-        exit: 4000,
-        explosion: 4800,
-        username: 5400,
-        welcome: 6200
+        arrival: 500 * cinematicMultiplier,
+        mission: 2200 * cinematicMultiplier,
+        looking: 4500 * cinematicMultiplier,
+        exit: 6800 * cinematicMultiplier,
+        explosion: 8500 * cinematicMultiplier,
+        username: 10500 * cinematicMultiplier,
+        welcome: 12800 * cinematicMultiplier
       }
     };
   }, [reducedMotion, capabilities]);
@@ -778,30 +781,48 @@ export const WelcomeAnimation = ({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
-          ref={containerRef}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0,
-            x: screenShake && !reducedMotion ? [0, -4, 4, -2, 2, 0] : 0,
-            scale: screenShake && !reducedMotion ? [1, 1.005, 0.995, 1.002, 0.998, 1] : 1
-          }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ 
-            duration: 0.4, 
-            ease: 'easeOut',
-            x: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] },
-            scale: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
-          }}
-          className="relative w-full max-w-4xl mx-auto flex flex-col items-center justify-start pt-4 pb-8 px-4 min-h-[80vh]"
-          style={{ 
-            willChange: 'transform, opacity',
-            transform: 'translate3d(0, 0, 0)',
-            contain: 'layout style paint',
-            isolation: 'isolate'
-          }}
-        >
+        <>
+          {/* Full-screen backdrop with blur and darkening */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="fixed inset-0 bg-background/90 backdrop-blur-lg z-[9998]"
+            style={{
+              backdropFilter: 'blur(12px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(180%)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          
+          {/* Main animation container - Fixed overlay positioned at top */}
+          <motion.div
+            ref={containerRef}
+            initial={{ opacity: 0, y: -30, scale: 0.95 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+              scale: 1,
+              x: screenShake && !reducedMotion ? [0, -4, 4, -2, 2, 0] : 0
+            }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            transition={{ 
+              duration: 0.8, 
+              ease: 'easeOut',
+              x: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
+            }}
+            className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4 overflow-hidden"
+            style={{ 
+              willChange: 'transform, opacity',
+              transform: 'translate3d(0, 0, 0)',
+              contain: 'layout style paint',
+              isolation: 'isolate',
+              overscrollBehavior: 'none'
+            }}
+            onWheel={(e) => e.preventDefault()}
+            onTouchMove={(e) => e.preventDefault()}
+          >
           {/* Performance-Optimized Progress Indicator */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -826,7 +847,7 @@ export const WelcomeAnimation = ({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="absolute top-12 right-4 z-10"
+                className="absolute top-8 right-8 z-10"
               >
                 <Card className="bg-background/95 backdrop-blur-sm border-primary/20 shadow-lg">
                   <CardContent className="p-3 text-center">
@@ -848,7 +869,7 @@ export const WelcomeAnimation = ({
           </AnimatePresence>
           
           {/* Main Animation Container with Perfect Centering */}
-          <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-2xl h-32 sm:h-48 lg:h-64 flex items-center justify-center mb-8 mt-16"
+          <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-2xl h-48 sm:h-64 lg:h-80 flex items-center justify-center mb-8"
                style={{ contain: 'layout style' }}>
             {/* Enhanced Stick Figure Animation */}
             {phase >= 1 && phase <= 4 && (
@@ -1009,7 +1030,8 @@ export const WelcomeAnimation = ({
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );
