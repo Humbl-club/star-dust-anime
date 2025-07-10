@@ -464,4 +464,21 @@
   .password-checklist .invalid {
     @apply text-muted-foreground;
   }
+
+  /* Feature Muting for Unverified Users */
+  .feature-muted {
+    @apply opacity-60 pointer-events-none cursor-not-allowed;
+  }
+  
+  .feature-disabled {
+    @apply opacity-40 grayscale pointer-events-none cursor-not-allowed;
+  }
+  
+  .feature-muted-overlay {
+    @apply relative;
+  }
+  
+  .feature-muted-overlay:after {
+    @apply content-[''] absolute inset-0 bg-muted/20 backdrop-blur-[1px] rounded-lg pointer-events-none;
+  }
 }

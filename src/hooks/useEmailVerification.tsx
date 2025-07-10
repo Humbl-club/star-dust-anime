@@ -14,7 +14,11 @@ const RESTRICTED_FEATURES = [
   'rate_anime',
   'follow_users',
   'create_lists',
-  'sync_anilist'
+  'sync_anilist',
+  'my_lists',
+  'recommendations',
+  'gamification',
+  'analytics'
 ];
 
 export const useEmailVerification = (): EmailVerificationStatus => {

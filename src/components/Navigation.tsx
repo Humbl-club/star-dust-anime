@@ -33,6 +33,7 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { Switch } from "@/components/ui/switch";
 
 interface NavigationProps {
@@ -44,6 +45,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const { stats } = useSimpleGameification();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish } = useNamePreference();
+  const { canUseFeature } = useEmailVerification();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -304,11 +306,20 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
               <Link to="/my-lists">
                 <Button
                   variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
-                  className="w-full justify-start px-4"
+                  className={cn(
+                    "w-full justify-start px-4",
+                    !canUseFeature('my_lists') && "feature-muted"
+                  )}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  disabled={!canUseFeature('my_lists')}
                 >
                   <Heart className="w-4 h-4 mr-3" />
                   My Lists
+                  {!canUseFeature('my_lists') && (
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      Verify Email
+                    </Badge>
+                  )}
                 </Button>
               </Link>
               

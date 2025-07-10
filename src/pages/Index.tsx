@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { SignupWelcomePopup } from "@/components/SignupWelcomePopup";
-import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { EmailVerificationCornerPopup } from "@/components/EmailVerificationCornerPopup";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 
 import { LegalFooter } from "@/components/LegalFooter";
@@ -27,7 +27,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-  const [showVerificationBanner, setShowVerificationBanner] = useState(false);
+  const [showVerificationCornerPopup, setShowVerificationCornerPopup] = useState(false);
 
   // Check for just signed up flag
   useEffect(() => {
@@ -43,9 +43,9 @@ const Index = () => {
     }
   }, [user]);
 
-  // Show verification banner if user is not verified
+  // Show verification corner popup if user is not verified
   useEffect(() => {
-    setShowVerificationBanner(showVerificationPrompt);
+    setShowVerificationCornerPopup(showVerificationPrompt);
   }, [showVerificationPrompt]);
 
   // Get anime data from API
@@ -195,11 +195,6 @@ const Index = () => {
     <div className="min-h-screen relative">
       <Navigation onSearch={handleSearch} />
       
-      {/* Email Verification Banner */}
-      <EmailVerificationBanner 
-        isVisible={showVerificationBanner}
-        onDismiss={() => setShowVerificationBanner(false)}
-      />
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
@@ -311,6 +306,12 @@ const Index = () => {
       <SignupWelcomePopup
         isVisible={showWelcomePopup}
         onComplete={() => setShowWelcomePopup(false)}
+      />
+
+      {/* Email Verification Corner Popup */}
+      <EmailVerificationCornerPopup
+        isVisible={showVerificationCornerPopup}
+        onDismiss={() => setShowVerificationCornerPopup(false)}
       />
     </div>
   );

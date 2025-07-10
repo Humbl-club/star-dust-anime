@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingComponent } from "@/components/RatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
 import { Navigation } from "@/components/Navigation";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { 
   DndContext, 
   closestCenter,
@@ -56,11 +57,13 @@ import {
   X,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Heart
 } from "lucide-react";
 
 const MyLists = () => {
   const { user } = useAuth();
+  const { canUseFeature } = useEmailVerification();
   const { 
     animeList, 
     mangaList, 
@@ -252,6 +255,35 @@ const MyLists = () => {
           <CardContent>
             <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
             <p className="text-muted-foreground">You need to be signed in to view your lists.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!canUseFeature('my_lists')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
+        <Card className="p-8 text-center border-orange-200/50 bg-orange-50/90 dark:bg-orange-900/20">
+          <CardContent>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
+                <Heart className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold mb-2 text-orange-800 dark:text-orange-200">Email Verification Required</h2>
+                <p className="text-orange-700 dark:text-orange-300 mb-4">
+                  Please verify your email address to access your lists and save your progress.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="border-orange-200 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-800"
+                  onClick={() => window.location.href = '/'}
+                >
+                  Return Home
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
