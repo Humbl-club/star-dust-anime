@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
 import { useApiData } from "@/hooks/useApiData";
+import { useFillerData } from "@/hooks/useFillerData";
+import { FillerToggle } from "@/components/FillerToggle";
+import { FillerIndicator } from "@/components/FillerIndicator";
+import { AnimeListItem } from "@/components/AnimeListItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +49,7 @@ const MyLists = () => {
   const [activeTab, setActiveTab] = useState("anime");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [hideFillerContent, setHideFillerContent] = useState(false);
 
   // Fetch anime and manga data from database
   const { data: animeData, loading: animeLoading } = useApiData<Anime>({ 
@@ -200,6 +205,15 @@ const MyLists = () => {
           </TabsList>
 
           <TabsContent value="anime">
+            {filteredAnimeList.length > 0 && (
+              <div className="mb-4">
+                <FillerToggle
+                  hideFillerContent={hideFillerContent}
+                  onToggle={setHideFillerContent}
+                />
+              </div>
+            )}
+            
             {filteredAnimeList.length > 0 ? (
               <div className="space-y-4">
                 {filteredAnimeList.map(entry => {
@@ -208,59 +222,19 @@ const MyLists = () => {
                   
                   const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
                   const statusColor = statusColors[entry.status as keyof typeof statusColors];
+                  const statusLabel = listStatuses.anime.find(s => s.value === entry.status)?.label || '';
                   
                   return (
-                    <Card key={entry.id} className="border-border/50 bg-card/80 backdrop-blur-sm">
-                      <CardContent className="p-6">
-                        <div className="flex gap-4">
-                          <img 
-                            src={anime.image_url}
-                            alt={anime.title}
-                            className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
-                          />
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-2">
-                              <h3 className="text-lg font-semibold line-clamp-1">{anime.title}</h3>
-                              <AddToListButton item={anime} type="anime" />
-                            </div>
-                            
-                            <div className="flex items-center gap-2 mb-3">
-                              <Badge variant="secondary" className={`${statusColor} text-white`}>
-                                <StatusIcon className="w-3 h-3 mr-1" />
-                                {listStatuses.anime.find(s => s.value === entry.status)?.label}
-                              </Badge>
-                              
-                              <Badge variant="outline">
-                                {anime.type} • {anime.year}
-                              </Badge>
-                            </div>
-                            
-                            <div className="grid md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">
-                                  Episodes Watched
-                                </label>
-                                <div className="text-lg">
-                                  {entry.episodes_watched} / {anime.episodes || "?"}
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                                  Your Rating
-                                </label>
-                                <RatingComponent
-                                  value={entry.score || 0}
-                                  onChange={(rating) => updateAnimeListEntry(entry.id, { score: rating })}
-                                  size="sm"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <AnimeListItem
+                      key={entry.id}
+                      entry={entry}
+                      anime={anime}
+                      onUpdate={updateAnimeListEntry}
+                      StatusIcon={StatusIcon}
+                      statusColor={statusColor}
+                      statusLabel={statusLabel}
+                      hideFillerContent={hideFillerContent}
+                    />
                   );
                 })}
               </div>
