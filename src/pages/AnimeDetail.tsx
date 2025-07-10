@@ -30,6 +30,9 @@ import { SEOMetaTags } from "@/components/SEOMetaTags";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { ShareButton } from "@/components/ShareButton";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
+import { ParticleEffect } from "@/components/ParticleEffect";
+import { RichSynopsis } from "@/components/RichSynopsis";
+import { EnhancedTrailerPlayer } from "@/components/EnhancedTrailerPlayer";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,15 +85,30 @@ const AnimeDetail = () => {
     );
   }
 
+  // Determine particle theme based on genres
+  const getParticleTheme = (genres: string[]) => {
+    if (genres.some(g => g.toLowerCase().includes('action'))) return 'action';
+    if (genres.some(g => g.toLowerCase().includes('fantasy'))) return 'fantasy';
+    if (genres.some(g => g.toLowerCase().includes('sci-fi'))) return 'sci-fi';
+    if (genres.some(g => g.toLowerCase().includes('romance'))) return 'romance';
+    return 'default';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
       {/* SEO Meta Tags */}
       <AnimeMetaTags anime={anime} />
+      
+      {/* Particle Effect based on genre */}
+      <ParticleEffect 
+        theme={anime.genres ? getParticleTheme(anime.genres) : 'default'} 
+        className="z-0" 
+      />
       
       <Navigation />
       
       {/* Hero Background with blurred cover */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -185,10 +203,9 @@ const AnimeDetail = () => {
                 
                 {enhancedAnime?.trailer && (
                   <div className="w-full">
-                    <TrailerPreview
+                    <EnhancedTrailerPlayer
                       videoId={enhancedAnime.trailer.id}
-                      title={`${getDisplayName(anime)} Trailer`}
-                      size="lg"
+                      title={getDisplayName(anime)}
                       className="w-full"
                     />
                   </div>
@@ -322,18 +339,14 @@ const AnimeDetail = () => {
               </div>
             )}
 
-            {/* Synopsis */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-primary" />
-                  Synopsis
-                </h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">
-                  {anime.synopsis || "No synopsis available."}
-                </p>
-              </CardContent>
-            </Card>
+            {/* Enhanced Synopsis with Markdown support */}
+            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <RichSynopsis 
+                synopsis={anime.synopsis}
+                allowMarkdown={true}
+                maxLength={600}
+              />
+            </div>
 
             {/* Details Grid */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.5s' }}>

@@ -25,6 +25,8 @@ import { type Manga } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
 
 import { Navigation } from "@/components/Navigation";
+import { ParticleEffect } from "@/components/ParticleEffect";
+import { RichSynopsis } from "@/components/RichSynopsis";
 
 const MangaDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,8 +66,19 @@ const MangaDetail = () => {
     );
   }
 
+  const getParticleTheme = (genres: string[]) => {
+    if (genres.some(g => g.toLowerCase().includes('action'))) return 'action';
+    if (genres.some(g => g.toLowerCase().includes('fantasy'))) return 'fantasy';
+    if (genres.some(g => g.toLowerCase().includes('romance'))) return 'romance';
+    return 'default';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
+      <ParticleEffect 
+        theme={manga.genres ? getParticleTheme(manga.genres) : 'default'} 
+        className="z-0" 
+      />
       <Navigation />
       
       {/* Hero Background with blurred cover */}
@@ -262,18 +275,14 @@ const MangaDetail = () => {
               </div>
             )}
 
-            {/* Synopsis */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-primary" />
-                  Synopsis
-                </h3>
-                <p className="text-muted-foreground leading-relaxed text-lg">
-                  {manga.synopsis || "No synopsis available."}
-                </p>
-              </CardContent>
-            </Card>
+            {/* Enhanced Synopsis */}
+            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <RichSynopsis 
+                synopsis={manga.synopsis}
+                allowMarkdown={true}
+                maxLength={600}
+              />
+            </div>
 
             {/* Details Grid */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.5s' }}>

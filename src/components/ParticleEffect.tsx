@@ -1,129 +1,128 @@
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-  velocity: { x: number; y: number };
-  life: number;
-}
+import { useCallback, useMemo } from "react";
+import Particles from "react-particles";
+import { loadSlim } from "tsparticles-slim";
 
 interface ParticleEffectProps {
-  trigger: boolean;
-  type?: 'celebration' | 'points' | 'achievement';
-  intensity?: 'low' | 'medium' | 'high';
-  colors?: string[];
-  onComplete?: () => void;
+  className?: string;
+  theme?: "action" | "adventure" | "drama" | "fantasy" | "sci-fi" | "romance" | "default";
 }
 
-const particleConfigs = {
-  celebration: {
-    count: 30,
-    colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
-    size: { min: 4, max: 12 },
-    velocity: { min: -5, max: 5 },
-    life: 2000
-  },
-  points: {
-    count: 15,
-    colors: ['#10b981', '#059669', '#34d399'],
-    size: { min: 3, max: 8 },
-    velocity: { min: -3, max: 3 },
-    life: 1500
-  },
-  achievement: {
-    count: 50,
-    colors: ['#FFD700', '#FFA500', '#FF4500', '#8A2BE2'],
-    size: { min: 6, max: 16 },
-    velocity: { min: -8, max: 8 },
-    life: 3000
-  }
-};
+export const ParticleEffect = ({ className = "", theme = "default" }: ParticleEffectProps) => {
+  const particlesInit = useCallback(async (engine: any) => {
+    await loadSlim(engine);
+  }, []);
 
-export const ParticleEffect = ({
-  trigger,
-  type = 'celebration',
-  intensity = 'medium',
-  colors,
-  onComplete
-}: ParticleEffectProps) => {
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const particlesLoaded = useCallback(async (container: any) => {
+    // Optional: Handle particles loaded
+  }, []);
 
-  const config = particleConfigs[type];
-  const intensityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[intensity];
-  const particleCount = Math.floor(config.count * intensityMultiplier);
-  const particleColors = colors || config.colors;
-
-  useEffect(() => {
-    if (!trigger) return;
-
-    const newParticles: Particle[] = [];
-    
-    for (let i = 0; i < particleCount; i++) {
-      newParticles.push({
-        id: Math.random(),
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        size: Math.random() * (config.size.max - config.size.min) + config.size.min,
-        color: particleColors[Math.floor(Math.random() * particleColors.length)],
-        velocity: {
-          x: (Math.random() - 0.5) * (config.velocity.max - config.velocity.min),
-          y: (Math.random() - 0.5) * (config.velocity.max - config.velocity.min)
+  const particleConfig = useMemo(() => {
+    const baseConfig = {
+      background: {
+        color: { value: "transparent" },
+      },
+      fpsLimit: 120,
+      interactivity: {
+        events: {
+          onClick: { enable: true, mode: "push" },
+          onHover: { enable: true, mode: "repulse" },
+          resize: true,
         },
-        life: config.life
-      });
+        modes: {
+          push: { quantity: 4 },
+          repulse: { distance: 200, duration: 0.4 },
+        },
+      },
+      particles: {
+        color: { value: "#ffffff" },
+        links: {
+          color: "#ffffff",
+          distance: 150,
+          enable: false,
+          opacity: 0.5,
+          width: 1,
+        },
+        move: {
+          direction: "none" as const,
+          enable: true,
+          outModes: { default: "bounce" as const },
+          random: false,
+          speed: 2,
+          straight: false,
+        },
+        number: {
+          density: { enable: true, area: 800 },
+          value: 80,
+        },
+        opacity: {
+          value: 0.5,
+        },
+        shape: {
+          type: "circle" as const,
+        },
+        size: {
+          value: { min: 1, max: 5 },
+        },
+      },
+      detectRetina: true,
+    };
+
+    // Theme-specific configurations
+    switch (theme) {
+      case "action":
+        return {
+          ...baseConfig,
+          particles: {
+            ...baseConfig.particles,
+            color: { value: ["#ff4444", "#ff8800", "#ffaa00"] },
+            move: { ...baseConfig.particles.move, speed: 6 },
+            number: { ...baseConfig.particles.number, value: 120 },
+          },
+        };
+      case "fantasy":
+        return {
+          ...baseConfig,
+          particles: {
+            ...baseConfig.particles,
+            color: { value: ["#8844ff", "#aa44ff", "#cc66ff"] },
+            shape: { type: "star" as const },
+            move: { ...baseConfig.particles.move, speed: 1 },
+            number: { ...baseConfig.particles.number, value: 60 },
+          },
+        };
+      case "sci-fi":
+        return {
+          ...baseConfig,
+          particles: {
+            ...baseConfig.particles,
+            color: { value: ["#00ffff", "#0088ff", "#4400ff"] },
+            links: { ...baseConfig.particles.links, enable: true },
+            move: { ...baseConfig.particles.move, speed: 3 },
+          },
+        };
+      case "romance":
+        return {
+          ...baseConfig,
+          particles: {
+            ...baseConfig.particles,
+            color: { value: ["#ff88aa", "#ffaacc", "#ffccdd"] },
+            shape: { type: "heart" as const },
+            move: { ...baseConfig.particles.move, speed: 1.5 },
+            number: { ...baseConfig.particles.number, value: 40 },
+          },
+        };
+      default:
+        return baseConfig;
     }
-
-    setParticles(newParticles);
-
-    const cleanup = setTimeout(() => {
-      setParticles([]);
-      onComplete?.();
-    }, config.life);
-
-    return () => clearTimeout(cleanup);
-  }, [trigger, particleCount, config, particleColors, onComplete]);
+  }, [theme]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50">
-      <AnimatePresence>
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full"
-            style={{
-              width: particle.size,
-              height: particle.size,
-              backgroundColor: particle.color,
-              left: particle.x,
-              top: particle.y,
-            }}
-            initial={{
-              opacity: 1,
-              scale: 0,
-              x: 0,
-              y: 0,
-            }}
-            animate={{
-              opacity: [1, 1, 0],
-              scale: [0, 1, 0],
-              x: particle.velocity.x * 20,
-              y: particle.velocity.y * 20,
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0,
-            }}
-            transition={{
-              duration: particle.life / 1000,
-              ease: "easeOut",
-            }}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
+    <Particles
+      className={`absolute inset-0 pointer-events-none ${className}`}
+      id="tsparticles"
+      init={particlesInit}
+      loaded={particlesLoaded}
+      options={particleConfig}
+    />
   );
 };
