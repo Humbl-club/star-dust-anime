@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useUserInitialization } from '@/hooks/useUserInitialization';
 
 interface WelcomeAnimationProps {
   isFirstTime: boolean;
@@ -12,92 +13,85 @@ interface WelcomeAnimationProps {
   isVisible: boolean;
 }
 
-// Device capability detection
+// Performance-optimized device capabilities detection
 const useDeviceCapabilities = () => {
-  const [capabilities, setCapabilities] = useState({
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
-    supportsHaptics: false,
-    performanceLevel: 'high' as 'low' | 'medium' | 'high',
-    connectionSpeed: 'fast' as 'slow' | 'medium' | 'fast'
-  });
-
-  useEffect(() => {
-    const checkCapabilities = () => {
-      const width = window.innerWidth;
-      const isMobile = width < 768;
-      const isTablet = width >= 768 && width < 1024;
-      const isDesktop = width >= 1024;
-      
-      // Performance detection
-      const cores = navigator.hardwareConcurrency || 2;
-      const memory = (navigator as any).deviceMemory || 4;
-      let performanceLevel: 'low' | 'medium' | 'high' = 'high';
-      
-      if (cores < 4 || memory < 2 || isMobile) performanceLevel = 'low';
-      else if (cores < 8 || memory < 4) performanceLevel = 'medium';
-      
-      // Connection speed
-      const connection = (navigator as any).connection;
-      let connectionSpeed: 'slow' | 'medium' | 'fast' = 'fast';
-      if (connection) {
-        if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-          connectionSpeed = 'slow';
-        } else if (connection.effectiveType === '3g') {
-          connectionSpeed = 'medium';
-        }
-      }
-      
-      // Haptics detection
-      const supportsHaptics = 'vibrate' in navigator || 'hapticFeedback' in navigator;
-      
-      setCapabilities({
-        isMobile,
-        isTablet,
-        isDesktop,
-        supportsHaptics,
-        performanceLevel,
-        connectionSpeed
-      });
+  const capabilities = useMemo(() => {
+    if (typeof window === 'undefined') return {
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+      supportsHaptics: false,
+      performanceLevel: 'high' as const,
+      connectionSpeed: 'fast' as const
     };
 
-    checkCapabilities();
-    window.addEventListener('resize', checkCapabilities);
-    return () => window.removeEventListener('resize', checkCapabilities);
+    const width = window.innerWidth;
+    const isMobile = width < 768;
+    const isTablet = width >= 768 && width < 1024;
+    const isDesktop = width >= 1024;
+    
+    // Performance detection with fallbacks
+    const cores = navigator.hardwareConcurrency || 2;
+    const memory = (navigator as any).deviceMemory || 4;
+    let performanceLevel: 'low' | 'medium' | 'high' = 'high';
+    
+    if (cores < 4 || memory < 2 || isMobile) performanceLevel = 'low';
+    else if (cores < 8 || memory < 4) performanceLevel = 'medium';
+    
+    // Connection speed detection with fallbacks
+    const connection = (navigator as any).connection;
+    let connectionSpeed: 'slow' | 'medium' | 'fast' = 'fast';
+    if (connection?.effectiveType) {
+      if (['slow-2g', '2g'].includes(connection.effectiveType)) {
+        connectionSpeed = 'slow';
+      } else if (connection.effectiveType === '3g') {
+        connectionSpeed = 'medium';
+      }
+    }
+    
+    const supportsHaptics = 'vibrate' in navigator;
+    
+    return {
+      isMobile,
+      isTablet,
+      isDesktop,
+      supportsHaptics,
+      performanceLevel,
+      connectionSpeed
+    };
   }, []);
 
   return capabilities;
 };
 
-// Touch gesture detection hook
+// Optimized swipe gesture detection
 const useSwipeGesture = (onSwipeUp: () => void, threshold = 50) => {
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    setTouchStart({
+    touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY
-    });
+    };
   }, []);
 
   const handleTouchEnd = useCallback((e: TouchEvent) => {
-    if (!touchStart) return;
+    if (!touchStartRef.current) return;
     
     const touchEnd = {
       x: e.changedTouches[0].clientX,
       y: e.changedTouches[0].clientY
     };
     
-    const deltaY = touchStart.y - touchEnd.y;
-    const deltaX = Math.abs(touchStart.x - touchEnd.x);
+    const deltaY = touchStartRef.current.y - touchEnd.y;
+    const deltaX = Math.abs(touchStartRef.current.x - touchEnd.x);
     
     if (deltaY > threshold && deltaX < threshold) {
       onSwipeUp();
     }
     
-    setTouchStart(null);
-  }, [touchStart, threshold, onSwipeUp]);
+    touchStartRef.current = null;
+  }, [threshold, onSwipeUp]);
 
   useEffect(() => {
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -608,24 +602,52 @@ const CharacterReveal = ({
 
 export const WelcomeAnimation = ({ 
   isFirstTime, 
-  username, 
-  tier, 
+  username: propUsername, 
+  tier: propTier, 
   onComplete, 
   isVisible 
 }: WelcomeAnimationProps) => {
+  // Backend integration
+  const { initialization, isInitialized } = useUserInitialization();
+  
+  // Use backend data if available, fall back to props
+  const username = initialization?.username || propUsername || 'Unknown';
+  const tier = initialization?.tier || propTier || 'COMMON';
+  
   const [phase, setPhase] = useState(0);
   const [showExplosion, setShowExplosion] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [typewriterText, setTypewriterText] = useState('');
   const [screenShake, setScreenShake] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showSkipHint, setShowSkipHint] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number>();
   
   const reducedMotion = useReducedMotion();
   const capabilities = useDeviceCapabilities();
-  const totalDuration = reducedMotion ? 4 : capabilities.isMobile ? 6 : 8;
+  
+  // Performance-optimized timing calculation
+  const timingConfig = useMemo(() => {
+    const baseScale = reducedMotion ? 0.5 : 
+                     capabilities.performanceLevel === 'low' ? 0.7 : 
+                     capabilities.connectionSpeed === 'slow' ? 0.8 : 1;
+    
+    return {
+      scale: baseScale,
+      totalDuration: reducedMotion ? 4 : capabilities.isMobile ? 6 : 8,
+      baseTimings: {
+        arrival: 100,
+        mission: 2200,
+        looking: 3200,
+        exit: 4000,
+        explosion: 4800,
+        username: 5400,
+        welcome: 6200
+      }
+    };
+  }, [reducedMotion, capabilities]);
 
   const journeyQuote = "The start of your anime journey begins now, chosen one!";
 
@@ -659,19 +681,30 @@ export const WelcomeAnimation = ({
     setTimeout(() => setScreenShake(false), 400);
   }, []);
 
-  // Progress tracking
+  // Optimized progress tracking with RAF
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || !animationStarted) return;
 
-    const interval = setInterval(() => {
+    const updateProgress = () => {
       setProgress(prev => {
-        const increment = 100 / (totalDuration * 10);
-        return Math.min(prev + increment, 100);
+        const increment = 100 / (timingConfig.totalDuration * 60); // 60fps
+        const newProgress = Math.min(prev + increment, 100);
+        
+        if (newProgress < 100) {
+          animationFrameRef.current = requestAnimationFrame(updateProgress);
+        }
+        
+        return newProgress;
       });
-    }, 100);
+    };
 
-    return () => clearInterval(interval);
-  }, [isVisible, totalDuration]);
+    animationFrameRef.current = requestAnimationFrame(updateProgress);
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isVisible, animationStarted, timingConfig.totalDuration]);
 
   // Show skip hint after 2 seconds
   useEffect(() => {
@@ -684,52 +717,41 @@ export const WelcomeAnimation = ({
     return () => clearTimeout(timeout);
   }, [isVisible]);
 
+  // Main animation sequence with cleanup
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      // Reset state when not visible
+      setPhase(0);
+      setShowExplosion(false);
+      setShowUsername(false);
+      setShowWelcome(false);
+      setScreenShake(false);
+      setProgress(0);
+      setShowSkipHint(false);
+      setAnimationStarted(false);
+      return;
+    }
 
+    setAnimationStarted(true);
     const timeouts: NodeJS.Timeout[] = [];
+    const { scale, baseTimings } = timingConfig;
     
-    // Dynamic timing based on device capabilities
-    const timingScale = reducedMotion ? 0.5 : 
-                       capabilities.performanceLevel === 'low' ? 0.7 : 
-                       capabilities.connectionSpeed === 'slow' ? 0.8 : 1;
-    
-    const baseTimings = {
-      arrival: 100,
-      mission: 2200,
-      looking: 3200,
-      exit: 4000,
-      explosion: 4800,
-      username: 5400,
-      welcome: 6200,
-      shakeEnd: 5200
-    };
-    
-    // Phase 1: Agent arrival
+    // Optimized animation sequence
     timeouts.push(setTimeout(() => setPhase(1), baseTimings.arrival));
-    
-    // Phase 2: Mission execution - deposit briefcase
-    timeouts.push(setTimeout(() => setPhase(2), baseTimings.mission * timingScale));
-    
-    // Phase 3: Looking around
-    timeouts.push(setTimeout(() => setPhase(3), baseTimings.looking * timingScale));
-    
-    // Phase 4: Exit running
-    timeouts.push(setTimeout(() => setPhase(4), baseTimings.exit * timingScale));
-    
-    // Phase 5: Explosion with screen shake
-    timeouts.push(setTimeout(() => {
-      setShowExplosion(true);
-    }, baseTimings.explosion * timingScale));
-    
-    // Phase 6: Username reveal
-    timeouts.push(setTimeout(() => setShowUsername(true), baseTimings.username * timingScale));
-    
-    // Phase 7: Welcome message
-    timeouts.push(setTimeout(() => setShowWelcome(true), baseTimings.welcome * timingScale));
+    timeouts.push(setTimeout(() => setPhase(2), baseTimings.mission * scale));
+    timeouts.push(setTimeout(() => setPhase(3), baseTimings.looking * scale));
+    timeouts.push(setTimeout(() => setPhase(4), baseTimings.exit * scale));
+    timeouts.push(setTimeout(() => setShowExplosion(true), baseTimings.explosion * scale));
+    timeouts.push(setTimeout(() => setShowUsername(true), baseTimings.username * scale));
+    timeouts.push(setTimeout(() => setShowWelcome(true), baseTimings.welcome * scale));
 
-    return () => timeouts.forEach(clearTimeout);
-  }, [isVisible, reducedMotion, capabilities]);
+    return () => {
+      timeouts.forEach(clearTimeout);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isVisible, timingConfig]);
 
   const getTierColor = (tier?: string) => {
     switch (tier) {
@@ -772,27 +794,32 @@ export const WelcomeAnimation = ({
             x: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] },
             scale: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
           }}
-          className="relative w-full max-w-4xl mx-auto flex flex-col items-center justify-start pt-8 pb-8 px-4"
+          className="relative w-full max-w-4xl mx-auto flex flex-col items-center justify-start pt-4 pb-8 px-4 min-h-[80vh]"
           style={{ 
             willChange: 'transform, opacity',
             transform: 'translate3d(0, 0, 0)',
-            contain: 'layout style paint'
+            contain: 'layout style paint',
+            isolation: 'isolate'
           }}
         >
-          {/* Progress Indicator */}
+          {/* Performance-Optimized Progress Indicator */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: showSkipHint ? 1 : 0, y: showSkipHint ? 0 : -10 }}
-            className="absolute top-2 left-4 right-4 z-10"
+            className="absolute top-2 left-4 right-4 z-10 backdrop-blur-sm"
           >
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
               <span>Animation Progress</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <Progress value={progress} className="h-1" />
+            <Progress 
+              value={progress} 
+              className="h-1 bg-background/50" 
+              style={{ contain: 'layout style' }}
+            />
           </motion.div>
 
-          {/* Skip Hints */}
+          {/* Enhanced Skip Hints with Backend Integration */}
           <AnimatePresence>
             {showSkipHint && (
               <motion.div
@@ -801,22 +828,28 @@ export const WelcomeAnimation = ({
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="absolute top-12 right-4 z-10"
               >
-                <Card className="bg-background/95 backdrop-blur-sm border-primary/20">
+                <Card className="bg-background/95 backdrop-blur-sm border-primary/20 shadow-lg">
                   <CardContent className="p-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">Skip animation:</p>
                     <div className="flex flex-wrap gap-1 text-xs">
-                      <span className="px-2 py-1 bg-muted rounded">Space</span>
-                      <span className="px-2 py-1 bg-muted rounded">Enter</span>
+                      <span className="px-2 py-1 bg-muted rounded transition-colors hover:bg-muted/80">Space</span>
+                      <span className="px-2 py-1 bg-muted rounded transition-colors hover:bg-muted/80">Enter</span>
                       {capabilities.isMobile && (
-                        <span className="px-2 py-1 bg-muted rounded">Swipe up</span>
+                        <span className="px-2 py-1 bg-muted rounded transition-colors hover:bg-muted/80">Swipe up</span>
                       )}
                     </div>
+                    {isInitialized && (
+                      <p className="text-xs text-primary/80 mt-1">Welcome back, {username}!</p>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-2xl h-32 sm:h-48 lg:h-64 flex items-center justify-center mb-8">
+          
+          {/* Main Animation Container with Perfect Centering */}
+          <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-2xl h-32 sm:h-48 lg:h-64 flex items-center justify-center mb-8 mt-16"
+               style={{ contain: 'layout style' }}>
             {/* Enhanced Stick Figure Animation */}
             {phase >= 1 && phase <= 4 && (
               <StickFigureAgent 
@@ -877,7 +910,7 @@ export const WelcomeAnimation = ({
                         </motion.span>
                         <div className="text-2xl font-bold">
                           <CharacterReveal 
-                            text={username || 'Unknown'}
+                            text={username}
                             isVisible={showUsername}
                             tier={tier}
                           />
@@ -885,7 +918,7 @@ export const WelcomeAnimation = ({
                       </motion.div>
                       <div className={`text-sm ${getTierColor(tier)} font-medium`}>
                         <CharacterReveal 
-                          text={`${tier || 'COMMON'} TIER`}
+                          text={`${tier} TIER`}
                           isVisible={showUsername}
                           delay={500}
                         />
@@ -944,7 +977,7 @@ export const WelcomeAnimation = ({
                       }}
                     >
                       <CharacterReveal 
-                        text="Welcome to your anime adventure!"
+                        text={`Welcome to your anime adventure, ${username}!`}
                         isVisible={showWelcome}
                         tier={tier}
                       />
