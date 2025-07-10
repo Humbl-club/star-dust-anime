@@ -9,6 +9,7 @@ import { Star, Heart, ThumbsUp, Laugh, AlertTriangle, Edit } from 'lucide-react'
 import EmojiPicker from 'emoji-picker-react';
 import { useReviews } from '@/hooks/useReviews';
 import { useToast } from '@/hooks/use-toast';
+import { FeatureWrapper } from '@/components/FeatureWrapper';
 
 interface EnhancedRatingComponentProps {
   contentId: string;
@@ -102,38 +103,42 @@ export const EnhancedRatingComponent: React.FC<EnhancedRatingComponentProps> = (
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Star Rating */}
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-            <Button
-              key={value}
-              variant="ghost"
-              size="sm"
-              className="p-1 h-8 w-8"
-              onMouseEnter={() => setHoverRating(value)}
-              onMouseLeave={() => setHoverRating(0)}
-              onClick={() => handleRatingClick(value)}
-            >
-              <Star
-                className={`h-4 w-4 ${
-                  value <= (hoverRating || rating)
-                    ? 'fill-primary text-primary'
-                    : 'text-muted-foreground'
-                }`}
-              />
-            </Button>
-          ))}
-          <span className="ml-2 text-sm text-muted-foreground">
-            {rating > 0 ? `${rating}/10` : 'Rate this'}
-          </span>
-        </div>
+        <FeatureWrapper feature="rate_anime">
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+              <Button
+                key={value}
+                variant="ghost"
+                size="sm"
+                className="p-1 h-8 w-8"
+                onMouseEnter={() => setHoverRating(value)}
+                onMouseLeave={() => setHoverRating(0)}
+                onClick={() => handleRatingClick(value)}
+              >
+                <Star
+                  className={`h-4 w-4 ${
+                    value <= (hoverRating || rating)
+                      ? 'fill-primary text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                />
+              </Button>
+            ))}
+            <span className="ml-2 text-sm text-muted-foreground">
+              {rating > 0 ? `${rating}/10` : 'Rate this'}
+            </span>
+          </div>
+        </FeatureWrapper>
 
         {/* Write Review Button */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Edit className="h-4 w-4 mr-2" />
-              Write a Review
-            </Button>
+            <FeatureWrapper feature="create_review">
+              <Button variant="outline" className="w-full">
+                <Edit className="h-4 w-4 mr-2" />
+                Write a Review
+              </Button>
+            </FeatureWrapper>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>

@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Home, Search, Bookmark, User, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { FeatureWrapper } from '@/components/FeatureWrapper';
 import { cn } from '@/lib/utils';
 
 interface MobileNavigationProps {
@@ -28,6 +29,7 @@ export const MobileNavigation = ({ className }: MobileNavigationProps) => {
       icon: Bookmark,
       label: 'Lists',
       requiresAuth: true,
+      feature: 'my_lists',
     },
     {
       to: user ? '/dashboard' : '/auth',
@@ -49,7 +51,7 @@ export const MobileNavigation = ({ className }: MobileNavigationProps) => {
           
           if (item.requiresAuth && !user) return null;
 
-          return (
+          const navLink = (
             <NavLink
               key={item.to}
               to={item.to}
@@ -80,6 +82,12 @@ export const MobileNavigation = ({ className }: MobileNavigationProps) => {
               )}
             </NavLink>
           );
+
+          return item.feature ? (
+            <FeatureWrapper key={item.to} feature={item.feature} showTooltip={false}>
+              {navLink}
+            </FeatureWrapper>
+          ) : navLink;
         })}
       </div>
     </nav>

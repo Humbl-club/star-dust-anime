@@ -21,8 +21,8 @@ import {
   Lock
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { useUserLists, type UserAnimeListEntry, type UserMangaListEntry } from "@/hooks/useUserLists";
+import { FeatureWrapper } from "@/components/FeatureWrapper";
 import { type Anime, type Manga } from "@/data/animeData";
 import { toast } from "sonner";
 
@@ -59,7 +59,6 @@ export const AddToListButton = ({
   className = ""
 }: AddToListButtonProps) => {
   const { user } = useAuth();
-  const { canUseFeature } = useEmailVerification();
   const { 
     addToAnimeList, 
     addToMangaList, 
@@ -72,8 +71,6 @@ export const AddToListButton = ({
   } = useUserLists();
   
   const [loading, setLoading] = useState(false);
-  
-  const canAddToList = canUseFeature('add_to_list');
 
   const listEntry = type === "anime" 
     ? getAnimeListEntry(item.id) 
@@ -81,11 +78,6 @@ export const AddToListButton = ({
 
   const handleAddToList = async (status: UserAnimeListEntry['status'] | UserMangaListEntry['status']) => {
     if (!user) return;
-    
-    if (!canAddToList) {
-      toast.error('Please verify your email to add items to your list');
-      return;
-    }
     
     setLoading(true);
     try {
@@ -138,77 +130,64 @@ export const AddToListButton = ({
     );
   }
 
-  if (!canAddToList) {
-    return (
-      <Button variant={variant} size={size} className={`${className} opacity-60`} disabled>
-        <Lock className="w-4 h-4 mr-2" />
-        Verify Email
-      </Button>
-    );
-  }
-
   const statusOptions = statusConfig[type];
 
-  if (listEntry) {
-    const currentStatus = statusOptions[listEntry.status as keyof typeof statusOptions];
-    const StatusIcon = currentStatus.icon;
-
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant={variant} 
-            size={size} 
-            className={`${className} gap-2`}
-            disabled={loading}
-          >
-            <Badge variant="secondary" className={`${currentStatus.color} text-white text-xs`}>
-              <StatusIcon className="w-3 h-3 mr-1" />
-              {currentStatus.label}
-            </Badge>
-            <Edit className="w-3 h-3" />
-          </Button>
-        </DropdownMenuTrigger>
+  const content = listEntry ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant={variant} 
+          size={size} 
+          className={`${className} gap-2`}
+          disabled={loading}
+        >
+          <Badge variant="secondary" className={`${statusOptions[listEntry.status as keyof typeof statusOptions].color} text-white text-xs`}>
+            {(() => {
+              const StatusIcon = statusOptions[listEntry.status as keyof typeof statusOptions].icon;
+              return <StatusIcon className="w-3 h-3 mr-1" />;
+            })()}
+            {statusOptions[listEntry.status as keyof typeof statusOptions].label}
+          </Badge>
+          <Edit className="w-3 h-3" />
+        </Button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">
+        <div className="p-2 text-sm font-medium text-muted-foreground">
+          Change Status
+        </div>
+        <DropdownMenuSeparator />
         
-        <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">{/* Fixed positioning and background */}
-          <div className="p-2 text-sm font-medium text-muted-foreground">
-            Change Status
-          </div>
-          <DropdownMenuSeparator />
+        {Object.entries(statusOptions).map(([status, config]) => {
+          const Icon = config.icon;
+          const isActive = listEntry.status === status;
           
-          {Object.entries(statusOptions).map(([status, config]) => {
-            const Icon = config.icon;
-            const isActive = listEntry.status === status;
-            
-            return (
-              <DropdownMenuItem
-                key={status}
-                onClick={() => handleUpdateStatus(status as any)}
-                className={`cursor-pointer ${isActive ? 'bg-primary/10' : ''}`}
-              >
-                <div className={`w-3 h-3 rounded-full ${config.color} mr-2`} />
-                <Icon className="w-4 h-4 mr-2" />
-                {config.label}
-                {isActive && <Check className="w-4 h-4 ml-auto" />}
-              </DropdownMenuItem>
-            );
-          })}
-          
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuItem
-            onClick={handleRemoveFromList}
-            className="cursor-pointer text-destructive focus:text-destructive"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Remove from List
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  return (
+          return (
+            <DropdownMenuItem
+              key={status}
+              onClick={() => handleUpdateStatus(status as any)}
+              className={`cursor-pointer ${isActive ? 'bg-primary/10' : ''}`}
+            >
+              <div className={`w-3 h-3 rounded-full ${config.color} mr-2`} />
+              <Icon className="w-4 h-4 mr-2" />
+              {config.label}
+              {isActive && <Check className="w-4 h-4 ml-auto" />}
+            </DropdownMenuItem>
+          );
+        })}
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem
+          onClick={handleRemoveFromList}
+          className="cursor-pointer text-destructive focus:text-destructive"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Remove from List
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -222,7 +201,7 @@ export const AddToListButton = ({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">{/* Fixed positioning and background */}
+      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">
         <div className="p-2 text-sm font-medium text-muted-foreground">
           Add to {type === "anime" ? "Anime" : "Manga"} List
         </div>
@@ -245,5 +224,11 @@ export const AddToListButton = ({
         })}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+
+  return (
+    <FeatureWrapper feature="add_to_list">
+      {content}
+    </FeatureWrapper>
   );
 };

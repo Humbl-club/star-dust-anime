@@ -33,8 +33,8 @@ import { ProfileMenu } from "@/components/ProfileMenu";
 import { AnimatedLogo } from "@/components/AnimatedLogo";
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
-import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { Switch } from "@/components/ui/switch";
+import { FeatureWrapper } from "@/components/FeatureWrapper";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -45,7 +45,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const { stats } = useSimpleGameification();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish } = useNamePreference();
-  const { canUseFeature } = useEmailVerification();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -303,25 +302,18 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
               ))}
               
               {/* Additional Mobile Nav Items */}
-              <Link to="/my-lists">
-                <Button
-                  variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start px-4",
-                    !canUseFeature('my_lists') && "feature-muted"
-                  )}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  disabled={!canUseFeature('my_lists')}
-                >
-                  <Heart className="w-4 h-4 mr-3" />
-                  My Lists
-                  {!canUseFeature('my_lists') && (
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      Verify Email
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
+              <FeatureWrapper feature="my_lists" showTooltip={false}>
+                <Link to="/my-lists">
+                  <Button
+                    variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
+                    className="w-full justify-start px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Heart className="w-4 h-4 mr-3" />
+                    My Lists
+                  </Button>
+                </Link>
+              </FeatureWrapper>
               
               <Link to="/sync-dashboard">
                 <Button
@@ -334,27 +326,31 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
 
-              <Link to="/analytics">
-                <Button
-                  variant={window.location.pathname === "/analytics" ? "default" : "ghost"}
-                  className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <BarChart3 className="w-4 h-4 mr-3" />
-                  Analytics
-                </Button>
-              </Link>
+              <FeatureWrapper feature="analytics" showTooltip={false}>
+                <Link to="/analytics">
+                  <Button
+                    variant={window.location.pathname === "/analytics" ? "default" : "ghost"}
+                    className="w-full justify-start px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <BarChart3 className="w-4 h-4 mr-3" />
+                    Analytics
+                  </Button>
+                </Link>
+              </FeatureWrapper>
 
-              <Link to="/gamification">
-                <Button
-                  variant={window.location.pathname === "/gamification" ? "default" : "ghost"}
-                  className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Sparkles className="w-4 h-4 mr-3" />
-                  Gamification
-                </Button>
-              </Link>
+              <FeatureWrapper feature="gamification" showTooltip={false}>
+                <Link to="/gamification">
+                  <Button
+                    variant={window.location.pathname === "/gamification" ? "default" : "ghost"}
+                    className="w-full justify-start px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Sparkles className="w-4 h-4 mr-3" />
+                    Gamification
+                  </Button>
+                </Link>
+              </FeatureWrapper>
 
               <Link to="/settings">
                 <Button
