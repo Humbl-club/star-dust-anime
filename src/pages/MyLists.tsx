@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
 import { useApiData } from "@/hooks/useApiData";
 import { useFillerData } from "@/hooks/useFillerData";
-import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
+import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useBulkOperations } from "@/hooks/useBulkOperations";
 import { FillerToggle } from "@/components/FillerToggle";
@@ -122,16 +122,20 @@ const MyLists = () => {
     ...getMangaDetails(entry.manga_id),
   })).filter(item => item.title);
 
-  // Advanced search with Fuse.js
-  const searchedAnimeList = useAdvancedSearch(enhancedAnimeList, searchQuery, {
-    keys: ['title', 'title_english', 'title_japanese', 'synopsis'],
-    threshold: 0.3
-  });
+  // Filter by search query
+  const searchedAnimeList = enhancedAnimeList.filter(item => 
+    !searchQuery || 
+    item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.title_english?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.title_japanese?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const searchedMangaList = useAdvancedSearch(enhancedMangaList, searchQuery, {
-    keys: ['title', 'title_english', 'title_japanese', 'synopsis'],
-    threshold: 0.3
-  });
+  const searchedMangaList = enhancedMangaList.filter(item => 
+    !searchQuery || 
+    item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.title_english?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.title_japanese?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Filter by status
   const filteredAnimeList = searchedAnimeList.filter(entry => 

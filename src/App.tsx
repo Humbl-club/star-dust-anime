@@ -25,7 +25,7 @@ import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
 import Gamification from "./pages/Gamification";
-import TemplateManager from "./pages/TemplateManager";
+
 
 import SyncDashboard from "./pages/SyncDashboard";
 import LegalPages from "./pages/LegalPages";
@@ -142,13 +142,6 @@ const AppContent = () => {
           <ProtectedRoute>
             <InitializationWrapper>
               <Gamification />
-            </InitializationWrapper>
-          </ProtectedRoute>
-        } />
-        <Route path="/template-manager" element={
-          <ProtectedRoute>
-            <InitializationWrapper>
-              <TemplateManager />
             </InitializationWrapper>
           </ProtectedRoute>
         } />
