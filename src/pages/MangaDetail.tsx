@@ -95,19 +95,6 @@ const MangaDetail = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/90" />
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 bg-gradient-primary/90 backdrop-blur-sm text-primary-foreground py-6">
-        <div className="container mx-auto px-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/manga')}
-            className="text-primary-foreground hover:bg-primary-foreground/10 mb-4 animate-fade-in"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Manga List
-          </Button>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="grid lg:grid-cols-5 gap-8">

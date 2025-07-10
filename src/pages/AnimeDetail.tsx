@@ -24,7 +24,6 @@ import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
 import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
-import { AnimeStats } from "@/components/AnimeStats";
 import { AddToListButton } from "@/components/AddToListButton";
 
 import { Navigation } from "@/components/Navigation";
@@ -129,19 +128,6 @@ const AnimeDetail = () => {
         />
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 bg-gradient-primary/90 backdrop-blur-sm text-primary-foreground py-6">
-        <div className="container mx-auto px-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/anime')}
-            className="text-primary-foreground hover:bg-primary-foreground/10 mb-4 animate-fade-in"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Anime List
-          </Button>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="grid lg:grid-cols-5 gap-8">
@@ -473,14 +459,13 @@ const AnimeDetail = () => {
               </Card>
             )}
 
-            {/* Enhanced Rating and Stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Enhanced Rating Component */}
+            <div className="mb-8">
               <EnhancedRatingComponent
                 contentId={anime.id}
                 contentType="anime"
                 className="w-full"
               />
-              <AnimeStats className="w-full" />
             </div>
           </div>
         </div>
