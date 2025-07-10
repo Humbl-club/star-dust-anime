@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, CheckCircle, AlertCircle, Send, Sparkles, Star } from 'lucide-react';
+import { X, Mail, CheckCircle, AlertCircle, Send, Sparkles, Star, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { toast } from '@/hooks/use-toast';
+
+// Email provider detection utility
+const getEmailProvider = (email: string) => {
+  const domain = email.toLowerCase().split('@')[1];
+  
+  if (domain?.includes('gmail')) {
+    return { name: 'Gmail', url: 'https://mail.google.com', icon: '📧' };
+  } else if (domain?.includes('outlook') || domain?.includes('hotmail') || domain?.includes('live')) {
+    return { name: 'Outlook', url: 'https://outlook.live.com', icon: '📨' };
+  } else if (domain?.includes('yahoo')) {
+    return { name: 'Yahoo Mail', url: 'https://mail.yahoo.com', icon: '📮' };
+  } else if (domain?.includes('icloud') || domain?.includes('me.com')) {
+    return { name: 'iCloud Mail', url: 'https://www.icloud.com/mail', icon: '📧' };
+  }
+  
+  return { name: 'Email', url: `https://${domain}`, icon: '📬' };
+};
 
 interface EmailVerificationPopupProps {
   triggerShow?: boolean;
@@ -43,18 +60,27 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
 
   // No auto-dismiss - popup stays until manually dismissed for perfect visibility
 
-  const handleResendConfirmation = async () => {
+  const handleVerifyNow = async () => {
     if (!user) return;
     
     setIsResending(true);
     try {
+      // Send verification email
       await resendConfirmation(user.email!);
       setResendSuccess(true);
       
+      // Get email provider and open it
+      const provider = getEmailProvider(user.email!);
+      
       toast({
-        title: "✨ Verification email sent!",
-        description: "Check your inbox and click the magic link to unlock all features.",
+        title: `✨ Verification email sent to ${provider.name}!`,
+        description: `Opening ${provider.name} to help you verify quickly.`,
       });
+      
+      // Open email provider in new tab
+      setTimeout(() => {
+        window.open(provider.url, '_blank', 'noopener,noreferrer');
+      }, 1000);
       
       setTimeout(() => setResendSuccess(false), 3000);
     } catch (error) {
@@ -77,9 +103,9 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, x: 100, scale: 0.9 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 100, scale: 0.9 }}
+          initial={{ opacity: 0, y: -100, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -100, scale: 0.9 }}
           transition={{ 
             duration: 0.5, 
             ease: [0.175, 0.885, 0.32, 1.275],
@@ -87,7 +113,7 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
             damping: 20,
             stiffness: 200
           }}
-          className="fixed top-1 right-4 z-[150] w-80 max-w-[calc(100vw-2rem)]"
+          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[150] w-96 max-w-[calc(100vw-2rem)] md:w-96"
           style={{ willChange: 'transform, opacity' }}
         >
           {/* Floating particles for premium effect */}
@@ -163,8 +189,13 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
                     <span className="font-semibold text-primary">Your anime journey awaits!</span>
                     <br />
                     Verify your email to unlock exclusive features and join our legendary community.
+                    {user && user.email && (
+                      <span className="block mt-2 text-muted-foreground text-xs">
+                        {getEmailProvider(user.email).icon} We'll open {getEmailProvider(user.email).name} for you
+                      </span>
+                    )}
                     {daysRemaining && (
-                      <span className="block mt-2 text-accent font-medium text-xs">
+                      <span className="block mt-1 text-accent font-medium text-xs">
                         ⏰ {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
                       </span>
                     )}
@@ -174,7 +205,7 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
                 {/* Enhanced action buttons */}
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleResendConfirmation}
+                    onClick={handleVerifyNow}
                     disabled={isResending || resendSuccess}
                     size="sm"
                     className={`
@@ -206,12 +237,13 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
                           >
                             <CheckCircle className="w-3 h-3 mr-2" />
                           </motion.div>
-                          Sent! ✨
+                          Opening {user && user.email ? getEmailProvider(user.email).name : 'Email'} ✨
                         </>
                       ) : (
                         <>
                           <Send className="w-3 h-3 mr-2" />
                           Verify Now 🎯
+                          <ExternalLink className="w-3 h-3 ml-1" />
                         </>
                       )}
                     </span>
