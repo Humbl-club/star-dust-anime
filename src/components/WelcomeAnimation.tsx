@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
 interface WelcomeAnimationProps {
   isFirstTime: boolean;
@@ -11,13 +12,125 @@ interface WelcomeAnimationProps {
   isVisible: boolean;
 }
 
-// Enhanced Stick Figure Secret Agent Component
-const StickFigureAgent = ({ phase, reducedMotion }: { phase: number; reducedMotion: boolean }) => {
+// Device capability detection
+const useDeviceCapabilities = () => {
+  const [capabilities, setCapabilities] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    supportsHaptics: false,
+    performanceLevel: 'high' as 'low' | 'medium' | 'high',
+    connectionSpeed: 'fast' as 'slow' | 'medium' | 'fast'
+  });
+
+  useEffect(() => {
+    const checkCapabilities = () => {
+      const width = window.innerWidth;
+      const isMobile = width < 768;
+      const isTablet = width >= 768 && width < 1024;
+      const isDesktop = width >= 1024;
+      
+      // Performance detection
+      const cores = navigator.hardwareConcurrency || 2;
+      const memory = (navigator as any).deviceMemory || 4;
+      let performanceLevel: 'low' | 'medium' | 'high' = 'high';
+      
+      if (cores < 4 || memory < 2 || isMobile) performanceLevel = 'low';
+      else if (cores < 8 || memory < 4) performanceLevel = 'medium';
+      
+      // Connection speed
+      const connection = (navigator as any).connection;
+      let connectionSpeed: 'slow' | 'medium' | 'fast' = 'fast';
+      if (connection) {
+        if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+          connectionSpeed = 'slow';
+        } else if (connection.effectiveType === '3g') {
+          connectionSpeed = 'medium';
+        }
+      }
+      
+      // Haptics detection
+      const supportsHaptics = 'vibrate' in navigator || 'hapticFeedback' in navigator;
+      
+      setCapabilities({
+        isMobile,
+        isTablet,
+        isDesktop,
+        supportsHaptics,
+        performanceLevel,
+        connectionSpeed
+      });
+    };
+
+    checkCapabilities();
+    window.addEventListener('resize', checkCapabilities);
+    return () => window.removeEventListener('resize', checkCapabilities);
+  }, []);
+
+  return capabilities;
+};
+
+// Touch gesture detection hook
+const useSwipeGesture = (onSwipeUp: () => void, threshold = 50) => {
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    });
+  }, []);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY
+    };
+    
+    const deltaY = touchStart.y - touchEnd.y;
+    const deltaX = Math.abs(touchStart.x - touchEnd.x);
+    
+    if (deltaY > threshold && deltaX < threshold) {
+      onSwipeUp();
+    }
+    
+    setTouchStart(null);
+  }, [touchStart, threshold, onSwipeUp]);
+
+  useEffect(() => {
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchEnd]);
+};
+
+// Enhanced Stick Figure Secret Agent Component with Performance Optimization
+const StickFigureAgent = ({ 
+  phase, 
+  reducedMotion, 
+  performanceLevel 
+}: { 
+  phase: number; 
+  reducedMotion: boolean;
+  performanceLevel: 'low' | 'medium' | 'high';
+}) => {
+  const optimizedParticles = performanceLevel === 'low' ? 6 : performanceLevel === 'medium' ? 12 : 18;
+  
   return (
     <motion.svg
       viewBox="0 0 800 400"
       className="w-full h-32 sm:h-48 lg:h-64 max-w-xs sm:max-w-md lg:max-w-2xl"
-      style={{ willChange: 'transform' }}
+      style={{ 
+        willChange: 'transform, opacity', 
+        transform: 'translate3d(0, 0, 0)',
+        contain: 'layout style paint'
+      }}
     >
       {/* Agent Body with Enhanced Animations */}
       <motion.g
@@ -197,42 +310,123 @@ const StickFigureAgent = ({ phase, reducedMotion }: { phase: number; reducedMoti
   );
 };
 
-// Enhanced Cinematic Explosion Effect
-const ExplosionEffect = ({ trigger, reducedMotion }: { trigger: boolean; reducedMotion: boolean }) => {
-  const particles = Array.from({ length: reducedMotion ? 12 : 24 }, (_, i) => i);
+// Ultra-Cinematic Multi-Layered Explosion Effect
+const ExplosionEffect = ({ 
+  trigger, 
+  reducedMotion, 
+  performanceLevel,
+  onScreenShake 
+}: { 
+  trigger: boolean; 
+  reducedMotion: boolean;
+  performanceLevel: 'low' | 'medium' | 'high';
+  onScreenShake: () => void;
+}) => {
+  const particleCount = 
+    performanceLevel === 'low' ? 8 : 
+    performanceLevel === 'medium' ? 16 : 
+    reducedMotion ? 12 : 32;
+  
+  const particles = Array.from({ length: particleCount }, (_, i) => i);
+  const debris = Array.from({ length: performanceLevel === 'low' ? 2 : 4 }, (_, i) => i);
+  
+  useEffect(() => {
+    if (trigger && !reducedMotion) {
+      onScreenShake();
+    }
+  }, [trigger, reducedMotion, onScreenShake]);
   
   return (
     <AnimatePresence>
       {trigger && (
-        <motion.div className="absolute inset-0 pointer-events-none">
-          {/* Multi-layered Explosion Core */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ 
+            willChange: 'transform, opacity',
+            transform: 'translate3d(0, 0, 0)',
+            contain: 'layout style paint'
+          }}
+        >
+          {/* Inner White-Hot Core */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ 
-              opacity: [0, 1, 0.8, 0],
+              opacity: [0, 1, 0.9, 0],
+              scale: [0, 0.3, 1.5, 3]
+            }}
+            transition={{ duration: reducedMotion ? 0.6 : 1, times: [0, 0.1, 0.4, 1] }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full blur-sm"
+            style={{ transform: 'translate3d(-50%, -50%, 0)' }}
+          />
+          
+          {/* Yellow Burst Layer */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0, 0.9, 0.7, 0],
               scale: [0, 0.5, 2, 4]
             }}
-            transition={{ duration: reducedMotion ? 0.8 : 1.2, times: [0, 0.2, 0.6, 1] }}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-radial from-white via-yellow-300 to-transparent rounded-full"
+            transition={{ duration: reducedMotion ? 0.8 : 1.2, times: [0, 0.15, 0.5, 1], delay: 0.05 }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-radial from-yellow-300 via-yellow-500 to-transparent rounded-full"
+            style={{ transform: 'translate3d(-50%, -50%, 0)' }}
           />
           
-          {/* Shockwave Ring */}
+          {/* Orange Shockwave */}
           <motion.div
             initial={{ opacity: 0, scale: 0 }}
             animate={{ 
-              opacity: [0, 0.8, 0],
-              scale: [0, 3]
+              opacity: [0, 0.8, 0.4, 0],
+              scale: [0, 1, 3, 5]
             }}
-            transition={{ duration: reducedMotion ? 0.6 : 1, delay: 0.1 }}
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-4 border-orange-400 rounded-full"
+            transition={{ duration: reducedMotion ? 0.9 : 1.4, times: [0, 0.2, 0.6, 1], delay: 0.1 }}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-radial from-orange-400 via-orange-600 to-transparent rounded-full"
+            style={{ transform: 'translate3d(-50%, -50%, 0)' }}
           />
           
-          {/* Screen Flash */}
+          {/* Purple Sparkle Ring */}
+          {performanceLevel !== 'low' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0, rotate: 0 }}
+              animate={{ 
+                opacity: [0, 0.7, 0],
+                scale: [0, 2, 4],
+                rotate: 360
+              }}
+              transition={{ duration: reducedMotion ? 1 : 1.6, delay: 0.15 }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-conic from-purple-400 via-pink-500 to-purple-400 rounded-full opacity-30"
+              style={{ transform: 'translate3d(-50%, -50%, 0)' }}
+            />
+          )}
+          
+          {/* Multiple Shockwave Rings */}
+          {[0, 1, 2].map(i => (
+            <motion.div
+              key={`shockwave-${i}`}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: [0, 0.6 - i * 0.2, 0],
+                scale: [0, 2 + i, 4 + i * 2]
+              }}
+              transition={{ 
+                duration: reducedMotion ? 0.8 : 1.2, 
+                delay: 0.1 + i * 0.1,
+                ease: "easeOut"
+              }}
+              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 rounded-full ${
+                i === 0 ? 'border-orange-400' : 
+                i === 1 ? 'border-red-400' : 
+                'border-purple-400'
+              }`}
+              style={{ transform: 'translate3d(-50%, -50%, 0)' }}
+            />
+          ))}
+          
+          {/* Intense Screen Flash */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.4, 0] }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-white/30 rounded-lg"
+            animate={{ opacity: [0, 0.7, 0.3, 0] }}
+            transition={{ duration: 0.4, times: [0, 0.1, 0.3, 1] }}
+            className="absolute inset-0 bg-white/50 rounded-lg backdrop-blur-sm"
           />
           
           {/* Enhanced Particles */}
@@ -271,35 +465,144 @@ const ExplosionEffect = ({ trigger, reducedMotion }: { trigger: boolean; reduced
             );
           })}
           
-          {/* Briefcase Debris */}
-          {!reducedMotion && [0, 1, 2].map((i) => (
+          {/* Realistic Briefcase Debris with Physics */}
+          {!reducedMotion && debris.map((i) => {
+            const angle = (i * 90 + Math.random() * 45) * Math.PI / 180;
+            const velocity = 80 + Math.random() * 40;
+            const gravity = 0.5;
+            
+            return (
+              <motion.div
+                key={`debris-${i}`}
+                initial={{ 
+                  x: "50%", 
+                  y: "50%", 
+                  scale: 1,
+                  opacity: 1,
+                  rotate: 0
+                }}
+                animate={{
+                  x: `calc(50% + ${Math.cos(angle) * velocity}px)`,
+                  y: `calc(50% + ${Math.sin(angle) * velocity + gravity * 50}px)`,
+                  scale: [1, 0.9, 0.7, 0],
+                  opacity: [1, 0.8, 0.4, 0],
+                  rotate: [0, 180 + i * 90, 360 + i * 180]
+                }}
+                transition={{
+                  duration: reducedMotion ? 1 : 2,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                  delay: 0.15 + i * 0.05
+                }}
+                className={`absolute rounded-sm ${
+                  i % 2 === 0 ? 'w-5 h-3 bg-gradient-to-r from-gray-700 to-gray-900' :
+                  'w-3 h-4 bg-gradient-to-br from-primary/80 to-primary/40'
+                }`}
+                style={{ transform: 'translate3d(-50%, -50%, 0)' }}
+              />
+            );
+          })}
+          
+          {/* Floating Sparkles */}
+          {performanceLevel === 'high' && !reducedMotion && Array.from({ length: 8 }, (_, i) => (
             <motion.div
-              key={`debris-${i}`}
+              key={`sparkle-${i}`}
               initial={{ 
                 x: "50%", 
                 y: "50%", 
-                scale: 1,
-                opacity: 1,
-                rotate: 0
+                scale: 0,
+                opacity: 0
               }}
               animate={{
-                x: `calc(50% + ${(i - 1) * 60}px)`,
-                y: `calc(50% + ${Math.random() * 40 - 20}px)`,
-                scale: [1, 0.8, 0],
-                opacity: [1, 0.7, 0],
-                rotate: [0, 180 + i * 120]
+                x: `calc(50% + ${(Math.random() - 0.5) * 200}px)`,
+                y: `calc(50% + ${(Math.random() - 0.5) * 200}px)`,
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0],
+                rotate: [0, 180]
               }}
               transition={{
                 duration: 1.5,
                 ease: "easeOut",
-                delay: 0.2
+                delay: 0.3 + i * 0.1
               }}
-              className="absolute w-4 h-2 bg-gradient-to-r from-gray-600 to-gray-800 rounded-sm"
+              className="absolute w-1 h-1 bg-yellow-400 rounded-full"
+              style={{ transform: 'translate3d(-50%, -50%, 0)' }}
             />
           ))}
         </motion.div>
       )}
     </AnimatePresence>
+  );
+};
+
+// Character-by-character reveal component
+const CharacterReveal = ({ 
+  text, 
+  isVisible, 
+  tier,
+  delay = 0 
+}: { 
+  text: string; 
+  isVisible: boolean; 
+  tier?: string;
+  delay?: number;
+}) => {
+  const [visibleChars, setVisibleChars] = useState(0);
+  const reducedMotion = useReducedMotion();
+  
+  useEffect(() => {
+    if (!isVisible) {
+      setVisibleChars(0);
+      return;
+    }
+    
+    const timeout = setTimeout(() => {
+      let current = 0;
+      const interval = setInterval(() => {
+        current++;
+        setVisibleChars(current);
+        
+        if (current >= text.length) {
+          clearInterval(interval);
+        }
+      }, reducedMotion ? 20 : 30);
+      
+      return () => clearInterval(interval);
+    }, delay);
+    
+    return () => clearTimeout(timeout);
+  }, [isVisible, text.length, delay, reducedMotion]);
+  
+  const getTierGradient = (tier?: string) => {
+    switch (tier) {
+      case 'GOD': return 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent';
+      case 'LEGENDARY': return 'bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent';
+      case 'EPIC': return 'bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 bg-clip-text text-transparent';
+      case 'RARE': return 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent';
+      case 'UNCOMMON': return 'bg-gradient-to-r from-green-400 via-green-500 to-green-600 bg-clip-text text-transparent';
+      default: return 'text-foreground';
+    }
+  };
+  
+  return (
+    <span className={getTierGradient(tier)}>
+      {text.split('').map((char, index) => (
+        <motion.span
+          key={index}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{
+            opacity: index < visibleChars ? 1 : 0,
+            y: index < visibleChars ? 0 : 20
+          }}
+          transition={{
+            duration: 0.1,
+            ease: "easeOut"
+          }}
+          style={{ display: 'inline-block' }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </span>
   );
 };
 
@@ -316,69 +619,117 @@ export const WelcomeAnimation = ({
   const [showWelcome, setShowWelcome] = useState(false);
   const [typewriterText, setTypewriterText] = useState('');
   const [screenShake, setScreenShake] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showSkipHint, setShowSkipHint] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const reducedMotion = useReducedMotion();
-  const isMobile = window.innerWidth < 768;
-  const animationDuration = reducedMotion ? 4 : isMobile ? 6 : 8;
+  const capabilities = useDeviceCapabilities();
+  const totalDuration = reducedMotion ? 4 : capabilities.isMobile ? 6 : 8;
 
   const journeyQuote = "The start of your anime journey begins now, chosen one!";
 
-  // Typewriter effect for the journey quote
-  useEffect(() => {
-    if (showWelcome) {
-      let currentChar = 0;
-      setTypewriterText('');
-      
-      const typeInterval = setInterval(() => {
-        if (currentChar <= journeyQuote.length) {
-          setTypewriterText(journeyQuote.slice(0, currentChar));
-          currentChar++;
-        } else {
-          clearInterval(typeInterval);
-        }
-      }, 40);
-      
-      return () => clearInterval(typeInterval);
+  // Enhanced skip functionality
+  const handleSkip = useCallback(() => {
+    if (capabilities.supportsHaptics) {
+      navigator.vibrate?.(50);
     }
-  }, [showWelcome]);
+    onComplete();
+  }, [capabilities.supportsHaptics, onComplete]);
+
+  // Swipe to skip
+  useSwipeGesture(handleSkip);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
+        e.preventDefault();
+        handleSkip();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [handleSkip]);
+
+  // Screen shake handler
+  const handleScreenShake = useCallback(() => {
+    setScreenShake(true);
+    setTimeout(() => setScreenShake(false), 400);
+  }, []);
+
+  // Progress tracking
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const increment = 100 / (totalDuration * 10);
+        return Math.min(prev + increment, 100);
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isVisible, totalDuration]);
+
+  // Show skip hint after 2 seconds
+  useEffect(() => {
+    if (!isVisible) return;
+    
+    const timeout = setTimeout(() => {
+      setShowSkipHint(true);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [isVisible]);
 
   useEffect(() => {
     if (!isVisible) return;
 
     const timeouts: NodeJS.Timeout[] = [];
     
-    // Dynamic timing based on device and preferences
-    const timingScale = reducedMotion ? 0.6 : isMobile ? 0.75 : 1;
+    // Dynamic timing based on device capabilities
+    const timingScale = reducedMotion ? 0.5 : 
+                       capabilities.performanceLevel === 'low' ? 0.7 : 
+                       capabilities.connectionSpeed === 'slow' ? 0.8 : 1;
+    
+    const baseTimings = {
+      arrival: 100,
+      mission: 2200,
+      looking: 3200,
+      exit: 4000,
+      explosion: 4800,
+      username: 5400,
+      welcome: 6200,
+      shakeEnd: 5200
+    };
     
     // Phase 1: Agent arrival
-    timeouts.push(setTimeout(() => setPhase(1), 100));
+    timeouts.push(setTimeout(() => setPhase(1), baseTimings.arrival));
     
     // Phase 2: Mission execution - deposit briefcase
-    timeouts.push(setTimeout(() => setPhase(2), 2200 * timingScale));
+    timeouts.push(setTimeout(() => setPhase(2), baseTimings.mission * timingScale));
     
     // Phase 3: Looking around
-    timeouts.push(setTimeout(() => setPhase(3), 3200 * timingScale));
+    timeouts.push(setTimeout(() => setPhase(3), baseTimings.looking * timingScale));
     
     // Phase 4: Exit running
-    timeouts.push(setTimeout(() => setPhase(4), 4000 * timingScale));
+    timeouts.push(setTimeout(() => setPhase(4), baseTimings.exit * timingScale));
     
     // Phase 5: Explosion with screen shake
     timeouts.push(setTimeout(() => {
       setShowExplosion(true);
-      if (!reducedMotion) setScreenShake(true);
-    }, 4800 * timingScale));
+    }, baseTimings.explosion * timingScale));
     
     // Phase 6: Username reveal
-    timeouts.push(setTimeout(() => setShowUsername(true), 5400 * timingScale));
+    timeouts.push(setTimeout(() => setShowUsername(true), baseTimings.username * timingScale));
     
     // Phase 7: Welcome message
-    timeouts.push(setTimeout(() => setShowWelcome(true), 6200 * timingScale));
-    
-    // Stop screen shake
-    timeouts.push(setTimeout(() => setScreenShake(false), 5200 * timingScale));
+    timeouts.push(setTimeout(() => setShowWelcome(true), baseTimings.welcome * timingScale));
 
     return () => timeouts.forEach(clearTimeout);
-  }, [isVisible, reducedMotion, isMobile]);
+  }, [isVisible, reducedMotion, capabilities]);
 
   const getTierColor = (tier?: string) => {
     switch (tier) {
@@ -406,29 +757,82 @@ export const WelcomeAnimation = ({
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          ref={containerRef}
           initial={{ opacity: 0, y: -20 }}
           animate={{ 
             opacity: 1, 
             y: 0,
-            x: screenShake && !reducedMotion ? [0, -2, 2, -1, 1, 0] : 0
+            x: screenShake && !reducedMotion ? [0, -4, 4, -2, 2, 0] : 0,
+            scale: screenShake && !reducedMotion ? [1, 1.005, 0.995, 1.002, 0.998, 1] : 1
           }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ 
             duration: 0.4, 
             ease: 'easeOut',
-            x: { duration: 0.4, times: [0, 0.2, 0.4, 0.6, 0.8, 1] }
+            x: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] },
+            scale: { duration: 0.4, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
           }}
-          className="relative w-full flex flex-col items-center justify-start pt-16 pb-8 px-4 min-h-screen"
-          style={{ willChange: 'transform, opacity' }}
+          className="relative w-full max-w-4xl mx-auto flex flex-col items-center justify-start pt-8 pb-8 px-4"
+          style={{ 
+            willChange: 'transform, opacity',
+            transform: 'translate3d(0, 0, 0)',
+            contain: 'layout style paint'
+          }}
         >
+          {/* Progress Indicator */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: showSkipHint ? 1 : 0, y: showSkipHint ? 0 : -10 }}
+            className="absolute top-2 left-4 right-4 z-10"
+          >
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+              <span>Animation Progress</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-1" />
+          </motion.div>
+
+          {/* Skip Hints */}
+          <AnimatePresence>
+            {showSkipHint && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute top-12 right-4 z-10"
+              >
+                <Card className="bg-background/95 backdrop-blur-sm border-primary/20">
+                  <CardContent className="p-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Skip animation:</p>
+                    <div className="flex flex-wrap gap-1 text-xs">
+                      <span className="px-2 py-1 bg-muted rounded">Space</span>
+                      <span className="px-2 py-1 bg-muted rounded">Enter</span>
+                      {capabilities.isMobile && (
+                        <span className="px-2 py-1 bg-muted rounded">Swipe up</span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-2xl h-32 sm:h-48 lg:h-64 flex items-center justify-center mb-8">
-            {/* Stick Figure Animation */}
+            {/* Enhanced Stick Figure Animation */}
             {phase >= 1 && phase <= 4 && (
-              <StickFigureAgent phase={phase} reducedMotion={reducedMotion} />
+              <StickFigureAgent 
+                phase={phase} 
+                reducedMotion={reducedMotion} 
+                performanceLevel={capabilities.performanceLevel}
+              />
             )}
             
-            {/* Explosion Effect */}
-            <ExplosionEffect trigger={showExplosion} reducedMotion={reducedMotion} />
+            {/* Ultra-Cinematic Explosion Effect */}
+            <ExplosionEffect 
+              trigger={showExplosion} 
+              reducedMotion={reducedMotion}
+              performanceLevel={capabilities.performanceLevel}
+              onScreenShake={handleScreenShake}
+            />
             
             {/* Username Reveal */}
             <AnimatePresence>
@@ -444,94 +848,131 @@ export const WelcomeAnimation = ({
                   }}
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                 >
-                  <Card className="glass-card border-primary/30 glow-card bg-background/95">
+                  <Card className="glass-card border-primary/30 glow-card bg-background/95 backdrop-blur-lg">
                     <CardContent className="p-6 text-center">
-                      <div className="flex items-center justify-center gap-3 mb-2">
-                        <span className="text-4xl">{getTierEmoji(tier)}</span>
-                        <span className="text-2xl font-bold text-gradient-primary">
-                          {username}
-                        </span>
+                      <motion.div 
+                        className="flex items-center justify-center gap-3 mb-2"
+                        animate={{
+                          y: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, -2, 0] : 0
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        <motion.span 
+                          className="text-4xl"
+                          animate={{
+                            scale: capabilities.performanceLevel === 'high' && !reducedMotion ? [1, 1.1, 1] : 1,
+                            rotate: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, 5, -5, 0] : 0
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          {getTierEmoji(tier)}
+                        </motion.span>
+                        <div className="text-2xl font-bold">
+                          <CharacterReveal 
+                            text={username || 'Unknown'}
+                            isVisible={showUsername}
+                            tier={tier}
+                          />
+                        </div>
+                      </motion.div>
+                      <div className={`text-sm ${getTierColor(tier)} font-medium`}>
+                        <CharacterReveal 
+                          text={`${tier || 'COMMON'} TIER`}
+                          isVisible={showUsername}
+                          delay={500}
+                        />
                       </div>
-                      <p className={`text-sm ${getTierColor(tier)} font-medium`}>
-                        {tier} TIER
-                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
               )}
             </AnimatePresence>
             
-            {/* Welcome Message from Above */}
-            <AnimatePresence>
-              {showWelcome && (
-                <motion.div
-                  initial={{ opacity: 0, y: -100 }}
-                  animate={{ opacity: 1, y: -120 }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 150, 
-                    damping: 20 
-                  }}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                >
-                  <Card className="glass-card border-primary/20 bg-background/90">
-                    <CardContent className="p-4 text-center">
-                      <h2 className="text-xl font-bold text-gradient-primary mb-2">
-                        Welcome, Protagonist! 🌟
-                      </h2>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* Anime Journey Quote Below */}
-            <AnimatePresence>
-              {showWelcome && (
-                <motion.div
-                  initial={{ opacity: 0, y: 100 }}
-                  animate={{ opacity: 1, y: 120 }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 150, 
-                    damping: 20,
-                    delay: 0.3 
-                  }}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                >
-                  <Card className="glass-card border-accent/20 bg-background/90 max-w-md">
-                    <CardContent className="p-4 text-center">
-                      <p className="text-muted-foreground font-medium">
-                        {typewriterText}
-                        <span className="animate-pulse ml-1 text-primary">|</span>
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
           
-          {/* Completion Button */}
+          {/* Enhanced Welcome Message */}
           <AnimatePresence>
-            {showWelcome && typewriterText.length >= journeyQuote.length - 5 && (
+            {showWelcome && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ 
-                  delay: 1.5, 
-                  type: "spring", 
-                  stiffness: 200 
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  rotateX: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, 2, -2, 0] : 0
                 }}
-                className="mt-8"
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 150, 
+                  damping: 12,
+                  delay: 0.8,
+                  rotateX: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="mt-8 text-center max-w-lg"
+                style={{ perspective: '1000px' }}
               >
-                <Button 
-                  onClick={onComplete}
-                  className="glass-button gradient-primary hover:glow-primary transition-all duration-300 transform hover:scale-105 relative overflow-hidden px-8 py-3"
-                >
-                  <span className="relative z-10">Begin Your Anime Journey ✨</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                </Button>
+                <Card className="glass-card border-primary/20 bg-background/95 backdrop-blur-lg shadow-2xl">
+                  <CardContent className="p-6">
+                    <motion.h2 
+                      className="text-xl font-semibold mb-4"
+                      animate={{
+                        backgroundPosition: capabilities.performanceLevel === 'high' && !reducedMotion ? ['0%', '100%'] : ['0%']
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      style={{
+                        background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-foreground)), hsl(var(--primary)))',
+                        backgroundSize: '200% 100%',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}
+                    >
+                      <CharacterReveal 
+                        text="Welcome to your anime adventure!"
+                        isVisible={showWelcome}
+                        tier={tier}
+                      />
+                    </motion.h2>
+                    
+                    <div className="text-lg leading-relaxed text-foreground mb-6 font-medium">
+                      <CharacterReveal 
+                        text={journeyQuote}
+                        isVisible={showWelcome}
+                        delay={1000}
+                      />
+                    </div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 2.5, type: "spring", stiffness: 200 }}
+                    >
+                      <Button 
+                        onClick={handleSkip}
+                        className="w-full sm:w-auto px-8 py-3 text-lg font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        style={{ willChange: 'transform' }}
+                      >
+                        Begin Your Journey! 🚀
+                      </Button>
+                    </motion.div>
+                  </CardContent>
+                </Card>
               </motion.div>
             )}
           </AnimatePresence>
