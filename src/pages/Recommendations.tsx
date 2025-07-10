@@ -91,7 +91,7 @@ const Recommendations = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
       {/* Enhanced Header with animated background */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground pt-20 pb-12">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground pt-24 pb-12">
         <div className="absolute inset-0 opacity-30">
           <div className="w-full h-full bg-repeat bg-center" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M20 20c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20zm-5 0c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15z'/%3E%3C/g%3E%3C/svg%3E")`

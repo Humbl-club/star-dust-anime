@@ -107,7 +107,7 @@ const Settings = () => {
       <Navigation />
       
       {/* Header */}
-      <div className="relative pt-20 pb-12 mb-8">
+      <div className="relative pt-24 pb-12 mb-8">
         <div className="absolute inset-0 bg-gradient-hero"></div>
         <div className="relative container mx-auto px-4">
           <div className="glass-card p-8 border border-primary/20 glow-primary">
