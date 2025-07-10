@@ -1,268 +1,236 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Users, 
-  Play, 
-  Heart, 
-  Star, 
-  TrendingUp,
-  BarChart3,
-  Clock,
-  Calendar,
-  Award,
-  Zap
-} from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Star, Clock, Calendar } from 'lucide-react';
 
 interface AnimeStatsProps {
-  anime: any;
-  detailedStats?: any;
+  userAnimeData?: any[];
+  userMangaData?: any[];
+  className?: string;
 }
 
-const SCORE_COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e'];
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
 
-export const AnimeStats = ({ anime, detailedStats }: AnimeStatsProps) => {
-  // If no detailed stats available, create basic stats from anime data
-  const generateBasicStats = () => {
-    const baseStats = {
-      watching_count: Math.floor((anime.members || 10000) * 0.15),
-      completed_count: Math.floor((anime.members || 10000) * 0.65),
-      on_hold_count: Math.floor((anime.members || 10000) * 0.08),
-      dropped_count: Math.floor((anime.members || 10000) * 0.05),
-      plan_to_watch_count: Math.floor((anime.members || 10000) * 0.25),
-      score_distribution: {
-        "10": Math.floor((anime.scored_by || 5000) * 0.12),
-        "9": Math.floor((anime.scored_by || 5000) * 0.18),
-        "8": Math.floor((anime.scored_by || 5000) * 0.25),
-        "7": Math.floor((anime.scored_by || 5000) * 0.22),
-        "6": Math.floor((anime.scored_by || 5000) * 0.12),
-        "5": Math.floor((anime.scored_by || 5000) * 0.06),
-        "4": Math.floor((anime.scored_by || 5000) * 0.03),
-        "3": Math.floor((anime.scored_by || 5000) * 0.01),
-        "2": Math.floor((anime.scored_by || 5000) * 0.005),
-        "1": Math.floor((anime.scored_by || 5000) * 0.005)
-      },
-      age_demographics: {
-        "13-17": 18.5,
-        "18-24": 42.3,
-        "25-34": 28.7,
-        "35-44": 8.2,
-        "45+": 2.3
-      },
-      gender_demographics: {
-        "Male": 65.4,
-        "Female": 32.1,
-        "Other": 2.5
-      },
-      seasonal_popularity: {
-        "Previous Season": (anime.score || 7.5) - 0.3,
-        "Current Season": anime.score || 7.5,
-        "Predicted Next": (anime.score || 7.5) + 0.1
-      }
-    };
-    return baseStats;
-  };
-
-  const stats = detailedStats || generateBasicStats();
-
+export const AnimeStats: React.FC<AnimeStatsProps> = ({ 
+  userAnimeData = [], 
+  userMangaData = [], 
+  className = "" 
+}) => {
+  // Mock data for demonstration - replace with real user data
   const statusData = [
-    { name: 'Completed', value: stats.completed_count, color: '#22c55e' },
-    { name: 'Watching', value: stats.watching_count, color: '#3b82f6' },
-    { name: 'Plan to Watch', value: stats.plan_to_watch_count, color: '#eab308' },
-    { name: 'On Hold', value: stats.on_hold_count, color: '#f97316' },
-    { name: 'Dropped', value: stats.dropped_count, color: '#ef4444' },
+    { name: 'Completed', value: 45, color: COLORS[0] },
+    { name: 'Watching', value: 12, color: COLORS[1] },
+    { name: 'Plan to Watch', value: 28, color: COLORS[2] },
+    { name: 'Dropped', value: 5, color: COLORS[3] }
   ];
 
-  const scoreData = Object.entries(stats.score_distribution).map(([score, count]) => ({
-    score: `${score}/10`,
-    count: count as number
-  })).reverse();
+  const yearlyData = [
+    { year: '2020', anime: 15, manga: 8 },
+    { year: '2021', anime: 22, manga: 12 },
+    { year: '2022', anime: 28, manga: 15 },
+    { year: '2023', anime: 31, manga: 18 },
+    { year: '2024', anime: 24, manga: 14 }
+  ];
 
-  const ageData = Object.entries(stats.age_demographics).map(([age, percentage]) => ({
-    age,
-    percentage: percentage as number
-  }));
+  const genreData = [
+    { genre: 'Action', count: 25 },
+    { genre: 'Romance', count: 18 },
+    { genre: 'Comedy', count: 22 },
+    { genre: 'Drama', count: 15 },
+    { genre: 'Fantasy', count: 20 },
+    { genre: 'Sci-Fi', count: 12 }
+  ];
 
-  const genderData = Object.entries(stats.gender_demographics).map(([gender, percentage]) => ({
-    gender,
-    percentage: percentage as number,
-    color: gender === 'Male' ? '#3b82f6' : gender === 'Female' ? '#ec4899' : '#8b5cf6'
-  }));
-
-  const totalUsers = statusData.reduce((sum, item) => sum + item.value, 0);
+  const ratingDistribution = [
+    { rating: '10', count: 8 },
+    { rating: '9', count: 15 },
+    { rating: '8', count: 22 },
+    { rating: '7', count: 18 },
+    { rating: '6', count: 12 },
+    { rating: '5', count: 5 }
+  ];
 
   return (
-    <div className="space-y-8">
-      {/* Overview Stats */}
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            Community Statistics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {statusData.map((item) => (
-              <div key={item.name} className="text-center p-4 rounded-lg bg-muted/20">
-                <div className="text-2xl font-bold mb-1" style={{ color: item.color }}>
-                  {(item.value / 1000).toFixed(0)}K
-                </div>
-                <div className="text-sm text-muted-foreground">{item.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {((item.value / totalUsers) * 100).toFixed(1)}%
-                </div>
+    <div className={`space-y-6 ${className}`}>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Star className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Total Anime</p>
+                <p className="text-2xl font-bold">90</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Hours Watched</p>
+                <p className="text-2xl font-bold">2,160</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Avg. Rating</p>
+                <p className="text-2xl font-bold">7.8</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium">This Month</p>
+                <p className="text-2xl font-bold">6</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Tabs defaultValue="scores" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="scores">Score Distribution</TabsTrigger>
-          <TabsTrigger value="status">Watch Status</TabsTrigger>
-          <TabsTrigger value="demographics">Demographics</TabsTrigger>
-          <TabsTrigger value="trends">Popularity Trends</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="genres">Genres</TabsTrigger>
+          <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsTrigger value="ratings">Ratings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="scores" className="space-y-4">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Score Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={scoreData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="score" stroke="hsl(var(--foreground))" />
-                    <YAxis stroke="hsl(var(--foreground))" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }} 
-                    />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="status" className="space-y-4">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Watch Status Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Watch Status Distribution</CardTitle>
+                <CardDescription>Your anime watching progress</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={statusData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name} ${percentage?.toFixed(1)}%`}
-                      outerRadius={100}
+                      outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
                     >
                       {statusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [(value / 1000).toFixed(0) + 'K', '']} />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="demographics" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle>Age Demographics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {ageData.map((item) => (
-                    <div key={item.age} className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">{item.age}</span>
-                        <span className="text-sm text-muted-foreground">{item.percentage}%</span>
-                      </div>
-                      <Progress value={item.percentage} className="h-2" />
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card>
               <CardHeader>
-                <CardTitle>Gender Distribution</CardTitle>
+                <CardTitle>Yearly Progress</CardTitle>
+                <CardDescription>Anime and manga consumption over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={genderData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="percentage"
-                        label={({ gender, percentage }) => `${gender} ${percentage}%`}
-                      >
-                        {genderData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: number) => [value.toFixed(1) + '%', '']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={yearlyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="anime" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="manga" stroke="hsl(var(--secondary))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="trends" className="space-y-4">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <TabsContent value="genres" className="space-y-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Seasonal Popularity Trends</CardTitle>
+              <CardTitle>Favorite Genres</CardTitle>
+              <CardDescription>Your most watched genres</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={Object.entries(stats.seasonal_popularity).map(([season, score]) => ({ season, score }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="season" stroke="hsl(var(--foreground))" />
-                    <YAxis stroke="hsl(var(--foreground))" domain={[0, 10]} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }} 
-                    />
-                    <Bar dataKey="score" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={genreData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="genre" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Watching Trends</CardTitle>
+              <CardDescription>Your anime and manga consumption patterns</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={yearlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="anime" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="manga" 
+                    stroke="hsl(var(--secondary))" 
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--secondary))', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ratings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rating Distribution</CardTitle>
+              <CardDescription>How you rate your anime</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={ratingDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="rating" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>

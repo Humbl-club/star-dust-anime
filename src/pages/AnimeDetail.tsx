@@ -23,6 +23,8 @@ import {
 import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Anime } from "@/data/animeData";
+import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
+import { AnimeStats } from "@/components/AnimeStats";
 import { AddToListButton } from "@/components/AddToListButton";
 
 import { Navigation } from "@/components/Navigation";
@@ -471,7 +473,15 @@ const AnimeDetail = () => {
               </Card>
             )}
 
-            {/* Note: Character and cast data removed in lean database restructure */}
+            {/* Enhanced Rating and Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <EnhancedRatingComponent
+                contentId={anime.id}
+                contentType="anime"
+                className="w-full"
+              />
+              <AnimeStats className="w-full" />
+            </div>
           </div>
         </div>
       </div>

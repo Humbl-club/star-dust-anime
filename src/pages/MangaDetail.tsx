@@ -23,6 +23,7 @@ import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { type Manga } from "@/data/animeData";
 import { AddToListButton } from "@/components/AddToListButton";
+import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
 
 import { Navigation } from "@/components/Navigation";
 import { ParticleEffect } from "@/components/ParticleEffect";
@@ -408,6 +409,15 @@ const MangaDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Enhanced Rating Component */}
+            <div className="mb-8">
+              <EnhancedRatingComponent
+                contentId={manga.id}
+                contentType="manga"
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </div>
