@@ -21,39 +21,60 @@ export const WelcomeAnimation = ({
 }: WelcomeAnimationProps) => {
   const [step, setStep] = useState(0);
   const [showComplete, setShowComplete] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState(0);
+  const [typewriterText, setTypewriterText] = useState('');
+
+  // Legendary anime quotes
+  const animeQuotes = [
+    "Your anime journey begins now, protagonist!",
+    "Every legend starts with a single episode!",
+    "Believe in the me that believes in you!",
+    "This is your story arc - make it legendary!",
+    "The adventure of a lifetime awaits, chosen one!"
+  ];
+
+  // Typewriter effect for quotes
+  useEffect(() => {
+    if (step === 1) {
+      const quote = animeQuotes[currentQuote];
+      let currentChar = 0;
+      setTypewriterText('');
+      
+      const typeInterval = setInterval(() => {
+        if (currentChar <= quote.length) {
+          setTypewriterText(quote.slice(0, currentChar));
+          currentChar++;
+        } else {
+          clearInterval(typeInterval);
+        }
+      }, 50); // 50ms per character for smooth typewriter effect
+      
+      return () => clearInterval(typeInterval);
+    }
+  }, [step, currentQuote, animeQuotes]);
 
   useEffect(() => {
     if (!isVisible) {
       return;
     }
 
-    // Ultra-smooth 60fps animation using requestAnimationFrame
-    const sequence = [
-      () => setStep(1), // Welcome
-      () => setStep(2), // Username assignment  
-      () => setShowComplete(true) // Complete
-    ];
-
-    let animationIds: number[] = [];
-    let startTime = performance.now();
+    // Ultra-smooth animation sequence with reliable setTimeout
+    const timeouts: NodeJS.Timeout[] = [];
     
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const stepIndex = Math.floor(elapsed / 250); // 250ms per step
-      
-      if (stepIndex < sequence.length) {
-        sequence[stepIndex]();
-        startTime = currentTime;
-        animationIds.push(requestAnimationFrame(animate));
-      }
-    };
+    // Step 1: Welcome with quote (1000ms)
+    timeouts.push(setTimeout(() => {
+      setStep(1);
+      setCurrentQuote(Math.floor(Math.random() * animeQuotes.length));
+    }, 100));
+    
+    // Step 2: Username assignment (600ms)  
+    timeouts.push(setTimeout(() => setStep(2), 1100));
+    
+    // Step 3: Complete (400ms)
+    timeouts.push(setTimeout(() => setShowComplete(true), 1700));
 
-    // Start immediately with first step
-    setStep(1);
-    animationIds.push(requestAnimationFrame(animate));
-
-    return () => animationIds.forEach(id => cancelAnimationFrame(id));
-  }, [isVisible]);
+    return () => timeouts.forEach(clearTimeout);
+  }, [isVisible, animeQuotes.length]);
 
   const getTierColor = (tier?: string) => {
     switch (tier) {
@@ -82,10 +103,10 @@ export const WelcomeAnimation = ({
       {isVisible && (
         <motion.div
           initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+          animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4"
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="fixed inset-0 z-50 bg-gradient-to-br from-background/60 via-primary/5 to-accent/5 flex items-center justify-center p-4"
           style={{ willChange: 'opacity, backdrop-filter' }}
         >
           <AnimatePresence mode="wait">
@@ -116,12 +137,15 @@ export const WelcomeAnimation = ({
                           </div>
                         </div>
                         <div>
-                          <h2 className="text-2xl font-bold text-gradient-primary mb-2">
-                            Welcome to AniTracker!
+                          <h2 className="text-2xl font-bold text-gradient-primary mb-4">
+                            Welcome, Protagonist!
                           </h2>
-                          <p className="text-muted-foreground">
-                            Let's set up your legendary anime profile...
-                          </p>
+                          <div className="min-h-[60px] flex items-center justify-center">
+                            <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+                              {typewriterText}
+                              <span className="animate-pulse ml-1 text-primary">|</span>
+                            </p>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -185,21 +209,38 @@ export const WelcomeAnimation = ({
                         </div>
                       </div>
                       
-                      <div>
-                        <h2 className="text-2xl font-bold text-gradient-primary mb-2">
-                          All Set!
-                        </h2>
-                        <p className="text-muted-foreground mb-6">
-                          Your anime journey begins now. Ready to explore?
-                        </p>
-                        
-                        <Button 
-                          onClick={onComplete}
-                          className="w-full glass-button gradient-primary hover:glow-primary transition-all duration-300 transform hover:scale-105"
-                        >
-                          Start Exploring
-                        </Button>
-                      </div>
+                        <div>
+                          <motion.h2 
+                            className="text-2xl font-bold text-gradient-primary mb-2"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            🎉 All Set, Legend!
+                          </motion.h2>
+                          <motion.p 
+                            className="text-muted-foreground mb-6"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                          >
+                            Your anime destiny awaits. Time to become the protagonist of your own story!
+                          </motion.p>
+                          
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                          >
+                            <Button 
+                              onClick={onComplete}
+                              className="w-full glass-button gradient-primary hover:glow-primary transition-all duration-300 transform hover:scale-105 relative overflow-hidden"
+                            >
+                              <span className="relative z-10">Start Your Legend ✨</span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                            </Button>
+                          </motion.div>
+                        </div>
                     </motion.div>
                   </CardContent>
                 </Card>

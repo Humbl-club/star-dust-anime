@@ -27,6 +27,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+  const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
 
   const { 
     initialization, 
@@ -306,12 +307,16 @@ const Index = () => {
         tier={initialization?.tier}
         onComplete={() => {
           setShowWelcomeAnimation(false);
+          // Trigger email popup 1 second after welcome animation completes
+          setTimeout(() => {
+            setTriggerEmailPopup(true);
+          }, 1000);
         }}
         isVisible={showWelcomeAnimation}
       />
 
-      {/* Unified Email Verification Popup */}
-      <EmailVerificationPopup />
+      {/* Coordinated Email Verification Popup */}
+      <EmailVerificationPopup triggerShow={triggerEmailPopup} />
     </div>
   );
 };
