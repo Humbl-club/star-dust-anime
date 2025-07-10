@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useUserInitialization } from '@/hooks/useUserInitialization';
@@ -667,24 +668,35 @@ export const WelcomeAnimation = ({
     }
   };
 
-  return (
+  // Render via Portal to ensure top-level positioning
+  if (typeof window === 'undefined') return null;
+
+  const animationContent = (
     <AnimatePresence>
       {isVisible && (
         <>
-          {/* Full-screen backdrop */}
+          {/* Full-screen backdrop with maximum z-index */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="fixed inset-0 bg-background/95 backdrop-blur-xl z-[9998]"
+            className="fixed inset-0 bg-background/95 backdrop-blur-xl"
             style={{
+              zIndex: 2147483647, // Maximum safe z-index
               backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)'
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              position: 'fixed !important' as any,
+              top: '0 !important' as any,
+              left: '0 !important' as any,
+              right: '0 !important' as any,
+              bottom: '0 !important' as any,
+              width: '100vw !important' as any,
+              height: '100vh !important' as any
             }}
           />
           
-          {/* Main animation container - Perfect overlay positioning */}
+          {/* Main animation container with Portal positioning */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ 
@@ -698,11 +710,20 @@ export const WelcomeAnimation = ({
               ease: 'easeOut',
               x: { duration: 0.5, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
             }}
-            className="fixed inset-0 z-[9999] overflow-hidden"
+            className="fixed inset-0 overflow-hidden"
             style={{ 
+              zIndex: 2147483647, // Maximum safe z-index
               willChange: 'transform, opacity',
               transform: 'translate3d(0, 0, 0)',
-              contain: 'layout style paint'
+              contain: 'layout style paint',
+              position: 'fixed !important' as any,
+              top: '0 !important' as any,
+              left: '0 !important' as any,
+              right: '0 !important' as any,
+              bottom: '0 !important' as any,
+              width: '100vw !important' as any,
+              height: '100vh !important' as any,
+              pointerEvents: 'auto' as any
             }}
           >
             {/* Skip hints */}
@@ -860,4 +881,6 @@ export const WelcomeAnimation = ({
       )}
     </AnimatePresence>
   );
+
+  return createPortal(animationContent, document.body);
 };
