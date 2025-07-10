@@ -302,7 +302,7 @@ const Index = () => {
 
       {/* Welcome Animation */}
       <WelcomeAnimation
-        isFirstTime={true}
+        isFirstTime={isFirstTime}
         username={initialization?.username}
         tier={initialization?.tier}
         onComplete={() => {
