@@ -68,6 +68,7 @@ export const authService = {
       // Check if email confirmation is required
       if (data.user && !data.session) {
         // Set flag for popup display
+        console.log('Signup requires confirmation, setting flag and redirecting to home');
         sessionStorage.setItem('justSignedUp', 'true');
         return { 
           error: null,
@@ -77,6 +78,7 @@ export const authService = {
       }
 
       // Set flag for popup display (immediate login)
+      console.log('Signup successful with immediate login, setting flag');
       sessionStorage.setItem('justSignedUp', 'true');
       return { error: null, data };
     } catch (err) {

@@ -24,9 +24,13 @@ const ANIME_QUOTES = [
 export const SignupWelcomePopup = ({ isVisible, onComplete }: SignupWelcomePopupProps) => {
   const [quote] = useState(() => ANIME_QUOTES[Math.floor(Math.random() * ANIME_QUOTES.length)]);
 
+  console.log('SignupWelcomePopup rendered with isVisible:', isVisible);
+
   useEffect(() => {
     if (isVisible) {
+      console.log('Welcome popup is visible, setting 3 second timer');
       const timer = setTimeout(() => {
+        console.log('Timer completed, calling onComplete');
         onComplete();
       }, 3000);
 

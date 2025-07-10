@@ -31,8 +31,13 @@ const Index = () => {
 
   // Check for just signed up flag
   useEffect(() => {
+    console.log('Checking for justSignedUp flag...');
     const justSignedUp = sessionStorage.getItem('justSignedUp');
-    if (justSignedUp && user) {
+    console.log('justSignedUp flag:', justSignedUp);
+    console.log('user:', user);
+    
+    if (justSignedUp) {
+      console.log('Setting welcome popup to true (regardless of user session)');
       setShowWelcomePopup(true);
       sessionStorage.removeItem('justSignedUp');
     }

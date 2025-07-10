@@ -103,6 +103,8 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submitted. isSignUp:', isSignUp, 'isFormValid:', isFormValid);
+    
     if (!isFormValid) {
       toast.error('Please complete all required fields correctly.');
       return;
@@ -118,10 +120,14 @@ const Auth = () => {
           return;
         }
 
+        console.log('Calling signUp with email:', watchedValues.email);
         const result = await signUp(watchedValues.email, watchedValues.password);
+        
+        console.log('Signup result:', result);
         
         if (result.error) {
           const errorMessage = result.error.message || 'An error occurred during signup';
+          console.log('Signup error:', errorMessage);
           if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
             toast.error('This email is already registered. Try signing in instead.');
             setShowResendConfirmation(true);
@@ -130,9 +136,11 @@ const Auth = () => {
             toast.error(errorMessage);
           }
         } else if (result.needsConfirmation) {
+          console.log('Signup needs confirmation, redirecting to home');
           // Redirect to home page to show welcome popup
           window.location.href = '/';
         } else {
+          console.log('Signup successful, redirecting to home');
           // Redirect to home page to show welcome popup  
           window.location.href = '/';
         }
