@@ -165,18 +165,6 @@ const Index = () => {
     );
   }
 
-  // Show personalized dashboard for logged-in users
-  if (user) {
-    return (
-      <div className="min-h-screen relative">
-        <Navigation onSearch={handleSearch} />
-        <div className="container mx-auto mobile-safe-padding py-8">
-          <PersonalizedDashboard />
-        </div>
-        <LegalFooter />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen relative">
