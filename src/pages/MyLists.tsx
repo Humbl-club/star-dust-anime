@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
 import { useApiData } from "@/hooks/useApiData";
 import { useFillerData } from "@/hooks/useFillerData";
+import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useBulkOperations } from "@/hooks/useBulkOperations";
 import { FillerToggle } from "@/components/FillerToggle";
 import { FillerIndicator } from "@/components/FillerIndicator";
 import { AnimeListItem } from "@/components/AnimeListItem";
+import { BulkActionsToolbar } from "@/components/BulkActionsToolbar";
+import { VirtualizedList } from "@/components/VirtualizedList";
+import { DragDropListItem } from "@/components/DragDropListItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +21,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingComponent } from "@/components/RatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
 import { Navigation } from "@/components/Navigation";
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  restrictToVerticalAxis,
+  restrictToWindowEdges,
+} from '@dnd-kit/modifiers';
 
 import { useToast } from "@/hooks/use-toast";
 import { listStatuses, type Anime, type Manga } from "@/data/animeData";
@@ -50,6 +75,21 @@ const MyLists = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [hideFillerContent, setHideFillerContent] = useState(false);
+  const [useVirtualization, setUseVirtualization] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Bulk operations
+  const bulkOperations = useBulkOperations();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Fetch anime and manga data from database
   const { data: animeData, loading: animeLoading } = useApiData<Anime>({ 
@@ -71,28 +111,36 @@ const MyLists = () => {
     return mangaData.find(manga => manga.id === mangaId);
   };
 
-  // Filter lists
-  const filteredAnimeList = animeList.filter(entry => {
-    const anime = getAnimeDetails(entry.anime_id);
-    if (!anime) return false;
-    
-    const matchesSearch = searchQuery === "" || 
-      anime.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  // Get enhanced anime/manga data for search
+  const enhancedAnimeList = animeList.map(entry => ({
+    ...entry,
+    ...getAnimeDetails(entry.anime_id),
+  })).filter(item => item.title);
+
+  const enhancedMangaList = mangaList.map(entry => ({
+    ...entry,
+    ...getMangaDetails(entry.manga_id),
+  })).filter(item => item.title);
+
+  // Advanced search with Fuse.js
+  const searchedAnimeList = useAdvancedSearch(enhancedAnimeList, searchQuery, {
+    keys: ['title', 'title_english', 'title_japanese', 'synopsis'],
+    threshold: 0.3
   });
 
-  const filteredMangaList = mangaList.filter(entry => {
-    const manga = getMangaDetails(entry.manga_id);
-    if (!manga) return false;
-    
-    const matchesSearch = searchQuery === "" || 
-      manga.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  const searchedMangaList = useAdvancedSearch(enhancedMangaList, searchQuery, {
+    keys: ['title', 'title_english', 'title_japanese', 'synopsis'],
+    threshold: 0.3
   });
+
+  // Filter by status
+  const filteredAnimeList = searchedAnimeList.filter(entry => 
+    statusFilter === "all" || entry.status === statusFilter
+  );
+
+  const filteredMangaList = searchedMangaList.filter(entry => 
+    statusFilter === "all" || entry.status === statusFilter
+  );
 
   const statusIcons = {
     watching: Play,
@@ -113,6 +161,85 @@ const MyLists = () => {
     plan_to_watch: "bg-gray-500",
     plan_to_read: "bg-gray-500"
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onSearch: () => searchInputRef.current?.focus(),
+    onToggleView: () => setUseVirtualization(!useVirtualization),
+    onSelectAll: () => {
+      const currentList = activeTab === 'anime' ? filteredAnimeList : filteredMangaList;
+      bulkOperations.selectAll(currentList);
+    },
+    onClearSelection: bulkOperations.clearSelection,
+    onRefresh: () => {
+      animeData && mangaData && window.location.reload();
+    },
+    onToggleFilters: () => setShowFilters(!showFilters),
+    enabledScopes: ['lists']
+  });
+
+  // Drag and drop handler
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      // Handle reordering logic here
+      // For now, just a placeholder since we'd need to implement custom ordering in the backend
+      console.log('Reorder:', active.id, 'to', over?.id);
+    }
+  }, []);
+
+  // Bulk operations handlers
+  const handleBulkStatusUpdate = (status: string) => {
+    const updateFn = activeTab === 'anime' ? updateAnimeListEntry : updateMangaListEntry;
+    bulkOperations.bulkUpdateStatus(status, updateFn);
+  };
+
+  const handleBulkRatingUpdate = (rating: number) => {
+    const updateFn = activeTab === 'anime' ? updateAnimeListEntry : updateMangaListEntry;
+    bulkOperations.bulkUpdateRating(rating, updateFn);
+  };
+
+  const handleBulkDelete = () => {
+    const deleteFn = activeTab === 'anime' ? removeFromAnimeList : removeFromMangaList;
+    bulkOperations.bulkDelete(deleteFn);
+  };
+
+  // Render list item
+  const renderAnimeListItem = useCallback((entry: any, index: number) => {
+    const anime = getAnimeDetails(entry.anime_id);
+    if (!anime) return null;
+    
+    const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
+    const statusColor = statusColors[entry.status as keyof typeof statusColors];
+    const statusLabel = listStatuses.anime.find(s => s.value === entry.status)?.label || '';
+    
+    return (
+      <DragDropListItem
+        key={entry.id}
+        id={entry.id}
+        isSelected={bulkOperations.isSelected(entry.id)}
+        onSelect={(selected) => {
+          if (selected) {
+            bulkOperations.selectItem(entry.id);
+          } else {
+            bulkOperations.deselectItem(entry.id);
+          }
+        }}
+        className="mb-4"
+      >
+        <AnimeListItem
+          entry={entry}
+          anime={anime}
+          onUpdate={updateAnimeListEntry}
+          StatusIcon={StatusIcon}
+          statusColor={statusColor}
+          statusLabel={statusLabel}
+          hideFillerContent={hideFillerContent}
+        />
+      </DragDropListItem>
+    );
+  }, [bulkOperations, hideFillerContent, updateAnimeListEntry, statusIcons, statusColors]);
 
   if (!user) {
     return (
@@ -160,7 +287,8 @@ const MyLists = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Find something in your collection..."
+                  ref={searchInputRef}
+                  placeholder="Find something in your collection... (Ctrl+K)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -187,6 +315,28 @@ const MyLists = () => {
                   }
                 </SelectContent>
               </Select>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUseVirtualization(!useVirtualization)}
+                  className="text-xs"
+                >
+                  {useVirtualization ? 'Grid View' : 'Virtual View'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => bulkOperations.toggleSelectAll(
+                    activeTab === 'anime' ? filteredAnimeList : filteredMangaList
+                  )}
+                  className="text-xs"
+                >
+                  {bulkOperations.selectedCount > 0 ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -215,29 +365,31 @@ const MyLists = () => {
             )}
             
             {filteredAnimeList.length > 0 ? (
-              <div className="space-y-4">
-                {filteredAnimeList.map(entry => {
-                  const anime = getAnimeDetails(entry.anime_id);
-                  if (!anime) return null;
-                  
-                  const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
-                  const statusColor = statusColors[entry.status as keyof typeof statusColors];
-                  const statusLabel = listStatuses.anime.find(s => s.value === entry.status)?.label || '';
-                  
-                  return (
-                    <AnimeListItem
-                      key={entry.id}
-                      entry={entry}
-                      anime={anime}
-                      onUpdate={updateAnimeListEntry}
-                      StatusIcon={StatusIcon}
-                      statusColor={statusColor}
-                      statusLabel={statusLabel}
-                      hideFillerContent={hideFillerContent}
+              <DndContext 
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
+              >
+                <SortableContext 
+                  items={filteredAnimeList.map(entry => entry.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {useVirtualization ? (
+                    <VirtualizedList
+                      items={filteredAnimeList}
+                      renderItem={renderAnimeListItem}
+                      itemHeight={280}
+                      containerHeight={600}
+                      className="space-y-4"
                     />
-                  );
-                })}
-              </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredAnimeList.map((entry, index) => renderAnimeListItem(entry, index))}
+                    </div>
+                  )}
+                </SortableContext>
+              </DndContext>
             ) : (
               <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
                 <CardContent>
@@ -348,6 +500,16 @@ const MyLists = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Bulk Operations Toolbar */}
+        <BulkActionsToolbar
+          selectedCount={bulkOperations.selectedCount}
+          contentType={activeTab as 'anime' | 'manga'}
+          onStatusUpdate={handleBulkStatusUpdate}
+          onRatingUpdate={handleBulkRatingUpdate}
+          onDelete={handleBulkDelete}
+          onClearSelection={bulkOperations.clearSelection}
+        />
       </div>
     </div>
   );
