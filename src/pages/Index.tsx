@@ -319,7 +319,7 @@ const Index = () => {
           console.log('Welcome animation completed');
           setShowWelcomeAnimation(false);
         }}
-        isVisible={showWelcomeAnimation && (isFirstTime || needsWelcome)}
+        isVisible={showWelcomeAnimation && needsWelcome}
       />
 
       {/* Email Verification Corner Popup */}
