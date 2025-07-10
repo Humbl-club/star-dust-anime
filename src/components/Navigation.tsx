@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
-import { useOptimizedSearch } from "@/hooks/useOptimizedSearch";
+import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
@@ -48,7 +48,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { debouncedSearch, isSearching, searchResults, lastSearchInfo, clearSearch, recentSearches } = useOptimizedSearch();
+  const { performSearch, isSearching, searchResults, clearSearch } = useConsolidatedSearch();
   const { isNative, keyboardVisible } = useNativeSetup();
   const { triggerHaptic } = useNativeActions();
 
@@ -67,7 +67,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
         onSearch(searchQuery.trim());
       } else {
         setShowResults(true);
-        await debouncedSearch(searchQuery.trim(), 'anime', 12, 100);
+        await performSearch(searchQuery.trim(), 'both');
       }
     }
   };
@@ -85,7 +85,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     if (value.trim().length > 2) {
       console.log('Triggering search for:', value.trim());
       setShowResults(true);
-      debouncedSearch(value.trim(), 'anime', 12);
+      performSearch(value.trim(), 'both');
     } else if (value.trim().length === 0) {
       setShowResults(false);
       clearSearch();

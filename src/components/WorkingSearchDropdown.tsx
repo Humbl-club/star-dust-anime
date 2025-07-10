@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSimpleSearch } from "@/hooks/useSimpleSearch";
+import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { SearchInput, SearchResults } from "@/components/search";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ export const WorkingSearchDropdown = ({
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   
-  const { query, isSearching, searchResults, handleInputChange, clearSearch } = useSimpleSearch();
+  const { query, isSearching, searchResults, handleInputChange, clearSearch } = useConsolidatedSearch();
 
   // Close dropdown when clicking outside
   useEffect(() => {

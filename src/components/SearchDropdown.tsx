@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2 } from "lucide-react";
-import { useRealTimeSearch } from "@/hooks/useRealTimeSearch";
+import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { cn } from "@/lib/utils";
 
 interface SearchDropdownProps {
@@ -17,7 +17,7 @@ export const SearchDropdown = ({ className, placeholder = "Search anime..." }: S
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const { query, isSearching, searchResults, handleInputChange, clearSearch } = useRealTimeSearch();
+  const { query, isSearching, searchResults, handleInputChange, clearSearch } = useConsolidatedSearch();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,8 +41,9 @@ export const SearchDropdown = ({ className, placeholder = "Search anime..." }: S
     setIsOpen(value.length >= 2);
   };
 
-  const handleResultClick = (anime: any) => {
-    navigate(`/anime/${anime.id}`);
+  const handleResultClick = (item: any) => {
+    const path = item.contentType === 'manga' ? `/manga/${item.id}` : `/anime/${item.id}`;
+    navigate(path);
     setIsOpen(false);
     clearSearch();
     inputRef.current?.blur();
@@ -87,16 +88,16 @@ export const SearchDropdown = ({ className, placeholder = "Search anime..." }: S
               <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border/50">
                 {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
               </div>
-              {searchResults.map((anime) => (
+              {searchResults.map((item) => (
                 <div 
-                  key={anime.id}
+                  key={item.id}
                   className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors border-b border-border/20 last:border-b-0"
-                  onClick={() => handleResultClick(anime)}
+                  onClick={() => handleResultClick(item)}
                 >
-                  {anime.image_url && (
+                  {item.image_url && (
                     <img 
-                      src={anime.image_url} 
-                      alt={anime.title}
+                      src={item.image_url} 
+                      alt={item.title}
                       className="w-12 h-16 object-cover rounded flex-shrink-0"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
@@ -105,24 +106,27 @@ export const SearchDropdown = ({ className, placeholder = "Search anime..." }: S
                   )}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm line-clamp-1 text-foreground">
-                      {anime.title}
+                      {item.title}
                     </h4>
-                    {anime.title_english && anime.title_english !== anime.title && (
+                    {item.title_english && item.title_english !== item.title && (
                       <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                        {anime.title_english}
+                        {item.title_english}
                       </p>
                     )}
                     <div className="flex items-center gap-2 mt-2">
-                      {anime.score && (
+                      {item.score && (
                         <Badge variant="secondary" className="text-xs">
-                          ★ {anime.score}
+                          ★ {item.score}
                         </Badge>
                       )}
-                      {anime.type && (
+                      {item.type && (
                         <Badge variant="outline" className="text-xs">
-                          {anime.type}
+                          {item.type}
                         </Badge>
                       )}
+                      <Badge variant="outline" className={`text-xs ${item.contentType === 'anime' ? 'text-blue-500' : 'text-green-500'}`}>
+                        {item.contentType}
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -130,7 +134,7 @@ export const SearchDropdown = ({ className, placeholder = "Search anime..." }: S
             </div>
           ) : (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              No anime found for "{query}"
+              No results found for "{query}"
               <div className="mt-2 text-xs">
                 Try searching for popular titles like "Naruto", "Attack on Titan", or "One Piece"
               </div>

@@ -265,24 +265,31 @@ const MyLists = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
-      {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+      {/* Header with animated background */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground py-20">
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full bg-repeat bg-center" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }} />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              My Lists
-            </h1>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Manage your anime and manga collections. Track your progress and ratings.
-            </p>
+            <div className="animate-fade-in">
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                My Lists
+              </h1>
+              <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
+                Manage your anime and manga collections. Track your progress and ratings.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Search and Filters */}
-        <Card className="mb-8 border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
+        {/* Enhanced Search and Filters */}
+        <Card className="mb-8 border-border/30 bg-gradient-to-r from-card/90 to-card/70 backdrop-blur-lg shadow-2xl">
+          <CardHeader className="pb-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -291,15 +298,15 @@ const MyLists = () => {
                   placeholder="Find something in your collection... (Ctrl+K)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-300"
                 />
               </div>
               
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-48 bg-background/50 border-border/50">
                   <SelectValue placeholder="Show all statuses" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background/95 backdrop-blur-md border-border/50">
                   <SelectItem value="all">All Status</SelectItem>
                   {activeTab === "anime" 
                     ? listStatuses.anime.map(status => (
@@ -321,7 +328,7 @@ const MyLists = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setUseVirtualization(!useVirtualization)}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-border/50 hover:bg-primary/10"
                 >
                   {useVirtualization ? 'Grid View' : 'Virtual View'}
                 </Button>
@@ -332,7 +339,7 @@ const MyLists = () => {
                   onClick={() => bulkOperations.toggleSelectAll(
                     activeTab === 'anime' ? filteredAnimeList : filteredMangaList
                   )}
-                  className="text-xs"
+                  className="text-xs bg-background/50 border-border/50 hover:bg-primary/10"
                 >
                   {bulkOperations.selectedCount > 0 ? 'Deselect All' : 'Select All'}
                 </Button>
@@ -391,16 +398,20 @@ const MyLists = () => {
                 </SortableContext>
               </DndContext>
             ) : (
-              <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+              <Card className="text-center py-16 border-border/30 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-lg shadow-xl">
                 <CardContent>
-                  <div className="flex flex-col items-center gap-4">
-                    <Play className="w-16 h-16 text-muted-foreground" />
+                  <div className="flex flex-col items-center gap-6 animate-fade-in">
+                    <div className="p-6 bg-primary/10 rounded-full">
+                      <Play className="w-16 h-16 text-primary" />
+                    </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">No anime in your list</h3>
-                      <p className="text-muted-foreground mb-4">
+                      <h3 className="text-2xl font-bold mb-3 text-gradient-primary">No anime in your list</h3>
+                      <p className="text-muted-foreground mb-6 text-lg leading-relaxed max-w-md">
                         Start building your anime collection by browsing and adding titles.
                       </p>
-                      <Button>Browse Anime</Button>
+                      <Button className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg px-8 py-3">
+                        Browse Anime
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

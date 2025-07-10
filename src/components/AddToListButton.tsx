@@ -33,18 +33,18 @@ interface AddToListButtonProps {
 
 const statusConfig = {
   anime: {
-    watching: { label: "Watching", icon: Play, color: "bg-green-500" },
-    completed: { label: "Completed", icon: Check, color: "bg-blue-500" },
-    on_hold: { label: "On Hold", icon: Pause, color: "bg-yellow-500" },
-    dropped: { label: "Dropped", icon: X, color: "bg-red-500" },
-    plan_to_watch: { label: "Plan to Watch", icon: Clock, color: "bg-gray-500" }
+    watching: { label: "Watching", icon: Play, color: "bg-green-500/90" },
+    completed: { label: "Completed", icon: Check, color: "bg-blue-500/90" },
+    on_hold: { label: "On Hold", icon: Pause, color: "bg-yellow-500/90" },
+    dropped: { label: "Dropped", icon: X, color: "bg-red-500/90" },
+    plan_to_watch: { label: "Plan to Watch", icon: Clock, color: "bg-muted/90" }
   },
   manga: {
-    reading: { label: "Reading", icon: Eye, color: "bg-green-500" },
-    completed: { label: "Completed", icon: Check, color: "bg-blue-500" },
-    on_hold: { label: "On Hold", icon: Pause, color: "bg-yellow-500" },
-    dropped: { label: "Dropped", icon: X, color: "bg-red-500" },
-    plan_to_read: { label: "Plan to Read", icon: Clock, color: "bg-gray-500" }
+    reading: { label: "Reading", icon: Eye, color: "bg-green-500/90" },
+    completed: { label: "Completed", icon: Check, color: "bg-blue-500/90" },
+    on_hold: { label: "On Hold", icon: Pause, color: "bg-yellow-500/90" },
+    dropped: { label: "Dropped", icon: X, color: "bg-red-500/90" },
+    plan_to_read: { label: "Plan to Read", icon: Clock, color: "bg-muted/90" }
   }
 };
 
@@ -150,7 +150,7 @@ export const AddToListButton = ({
           </Button>
         </DropdownMenuTrigger>
         
-        <DropdownMenuContent className="w-48">
+        <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">{/* Fixed positioning and background */}
           <div className="p-2 text-sm font-medium text-muted-foreground">
             Change Status
           </div>
@@ -202,7 +202,7 @@ export const AddToListButton = ({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-48">
+      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">{/* Fixed positioning and background */}
         <div className="p-2 text-sm font-medium text-muted-foreground">
           Add to {type === "anime" ? "Anime" : "Manga"} List
         </div>

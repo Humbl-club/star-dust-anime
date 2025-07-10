@@ -90,43 +90,53 @@ const Recommendations = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
-      {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-4">
+      {/* Enhanced Header with animated background */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground py-20">
+        <div className="absolute inset-0 opacity-30">
+          <div className="w-full h-full bg-repeat bg-center" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M20 20c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20zm-5 0c0-8.3-6.7-15-15-15s-15 6.7-15 15 6.7 15 15 15 15-6.7 15-15z'/%3E%3C/g%3E%3C/svg%3E")`
+          }} />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Sparkles className="w-8 h-8" />
-              <h1 className="text-4xl md:text-6xl font-bold">
-                Recommendations
-              </h1>
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="p-3 bg-white/10 rounded-full backdrop-blur-sm">
+                  <Sparkles className="w-8 h-8 animate-pulse" />
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                  Recommendations
+                </h1>
+              </div>
+              <p className="text-xl text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
+                Discover your next favorite anime and manga with AI-powered suggestions tailored just for you.
+              </p>
             </div>
-            <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Discover your next favorite anime and manga with AI-powered suggestions.
-            </p>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Generation Controls */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-purple-500" />
+        {/* Enhanced Generation Controls */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <Card className="border-border/30 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 group">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                  <Brain className="w-5 h-5 text-purple-500" />
+                </div>
                 AI-Powered Recommendations
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">
+            <CardContent className="space-y-6">
+              <p className="text-muted-foreground leading-relaxed">
                 Get personalized recommendations based on your watching history and preferences using advanced AI.
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button 
                   onClick={() => handleGenerateAI('anime')}
                   disabled={generatingAI || loading}
-                  className="flex-1"
-                  variant="outline"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg"
                 >
                   {generatingAI ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -138,8 +148,7 @@ const Recommendations = () => {
                 <Button 
                   onClick={() => handleGenerateAI('manga')}
                   disabled={generatingAI || loading}
-                  className="flex-1"
-                  variant="outline"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg"
                 >
                   {generatingAI ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -152,23 +161,24 @@ const Recommendations = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-blue-500" />
+          <Card className="border-border/30 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-lg shadow-2xl hover:shadow-3xl transition-all duration-300 group">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                  <Target className="w-5 h-5 text-blue-500" />
+                </div>
                 Genre-Based Recommendations
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">
+            <CardContent className="space-y-6">
+              <p className="text-muted-foreground leading-relaxed">
                 Find content similar to your favorites based on genres and themes you love.
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button 
                   onClick={() => handleGenerateGenre('anime')}
                   disabled={generatingGenre || loading}
-                  className="flex-1"
-                  variant="outline"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
                 >
                   {generatingGenre ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -180,8 +190,7 @@ const Recommendations = () => {
                 <Button 
                   onClick={() => handleGenerateGenre('manga')}
                   disabled={generatingGenre || loading}
-                  className="flex-1"
-                  variant="outline"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
                 >
                   {generatingGenre ? (
                     <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -195,12 +204,27 @@ const Recommendations = () => {
           </Card>
         </div>
 
-        {/* Recommendations */}
+        {/* Enhanced Recommendations Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-8">
-            <TabsTrigger value="all">All ({recommendations.length})</TabsTrigger>
-            <TabsTrigger value="anime">Anime ({animeRecommendations.length})</TabsTrigger>
-            <TabsTrigger value="manga">Manga ({mangaRecommendations.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto mb-10 bg-card/50 backdrop-blur-md border border-border/30 p-2 rounded-xl">
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg transition-all duration-300"
+            >
+              All ({recommendations.length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="anime"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg transition-all duration-300"
+            >
+              Anime ({animeRecommendations.length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="manga"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground rounded-lg transition-all duration-300"
+            >
+              Manga ({mangaRecommendations.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
@@ -255,13 +279,15 @@ const RecommendationsList = ({ recommendations, onDismiss }: RecommendationsList
 
   if (recommendations.length === 0) {
     return (
-      <Card className="text-center py-12 border-border/50 bg-card/80 backdrop-blur-sm">
+      <Card className="text-center py-16 border-border/30 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-lg shadow-xl">
         <CardContent>
-          <div className="flex flex-col items-center gap-4">
-            <Sparkles className="w-16 h-16 text-muted-foreground" />
+          <div className="flex flex-col items-center gap-6 animate-fade-in">
+            <div className="p-6 bg-primary/10 rounded-full">
+              <Sparkles className="w-16 h-16 text-primary animate-pulse" />
+            </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">No recommendations yet</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className="text-2xl font-bold mb-3 text-gradient-primary">No recommendations yet</h3>
+              <p className="text-muted-foreground mb-6 text-lg leading-relaxed max-w-md">
                 Generate some recommendations using the controls above to get personalized suggestions.
               </p>
             </div>
@@ -274,7 +300,7 @@ const RecommendationsList = ({ recommendations, onDismiss }: RecommendationsList
   return (
     <div className="space-y-4">
       {recommendations.map((rec) => (
-        <Card key={rec.id} className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card key={rec.id} className="border-border/30 bg-gradient-to-r from-card/90 to-card/70 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300">{/* Enhanced card styling */}
           <CardContent className="p-6">
             <div className="flex gap-4">
               <img 
