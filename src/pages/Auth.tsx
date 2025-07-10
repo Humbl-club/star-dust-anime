@@ -45,7 +45,12 @@ const Auth = () => {
 
   // Validation states
   const emailValidation = watchedValues.email ? validateEmailFormat(watchedValues.email) : { isValid: false, errors: [] };
-  const passwordValidation = watchedValues.password ? validatePasswordStrength(watchedValues.password) : { isValid: false, score: 0, errors: [] };
+  
+  // Different password validation for sign-up vs sign-in
+  const passwordValidation = isSignUp 
+    ? (watchedValues.password ? validatePasswordStrength(watchedValues.password) : { isValid: false, score: 0, errors: [] })
+    : { isValid: watchedValues.password.length > 0, score: 0, errors: [] }; // Sign-in: just check if not empty
+    
   const passwordsMatch = isSignUp ? watchedValues.password === watchedValues.confirmPassword && watchedValues.confirmPassword.length > 0 : true;
 
   // Form completion state for dynamic button
@@ -56,19 +61,6 @@ const Auth = () => {
                      watchedValues.password.length > 0 &&
                      (!isSignUp || watchedValues.confirmPassword.length > 0) &&
                      (!isSignUp || !emailExists); // Prevent signup if email exists
-
-  // Debug logging
-  console.log('Form validation debug:', {
-    emailValid: emailValidation.isValid,
-    passwordValid: passwordValidation.isValid,
-    passwordsMatch,
-    emailLength: watchedValues.email.length,
-    passwordLength: watchedValues.password.length,
-    confirmPasswordLength: watchedValues.confirmPassword.length,
-    isSignUp,
-    emailExists,
-    isFormValid
-  });
 
   // Check if email exists when user is signing up
   useEffect(() => {
