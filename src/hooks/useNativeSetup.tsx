@@ -10,7 +10,10 @@ export const useNativeSetup = () => {
 
   useEffect(() => {
     const setupNative = async () => {
-      if (!Capacitor.isNativePlatform()) return;
+      if (!Capacitor.isNativePlatform()) {
+        setIsReady(true);
+        return;
+      }
 
       try {
         // Configure status bar for iOS
