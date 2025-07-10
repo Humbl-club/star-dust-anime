@@ -102,12 +102,12 @@ export const WelcomeAnimation = ({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed inset-0 z-50 bg-gradient-to-br from-background/60 via-primary/5 to-accent/5 flex items-center justify-center p-4"
-          style={{ willChange: 'opacity, backdrop-filter' }}
+          initial={{ opacity: 0, backdropFilter: 'blur(0px)', background: 'hsl(var(--background))' }}
+          animate={{ opacity: 1, backdropFilter: 'blur(12px)', background: 'linear-gradient(135deg, hsl(var(--background) / 0.95), hsl(var(--primary) / 0.05), hsl(var(--accent) / 0.05))' }}
+          exit={{ opacity: 0, backdropFilter: 'blur(0px)', background: 'hsl(var(--background))' }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ willChange: 'opacity, backdrop-filter, background' }}
         >
           <AnimatePresence mode="wait">
             {step >= 1 && !showComplete && (
@@ -116,13 +116,13 @@ export const WelcomeAnimation = ({
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center space-y-6"
-                style={{ willChange: 'transform, opacity' }}
+                style={{ willChange: 'transform, opacity', background: 'transparent' }}
               >
-                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-primary opacity-5" />
-                  <CardContent className="relative p-8 space-y-6">
+                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden bg-background/95">
+                  <div className="absolute inset-0 bg-gradient-primary opacity-10" />
+                  <CardContent className="relative p-8 space-y-6 bg-transparent">
                     {step === 1 && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -191,11 +191,11 @@ export const WelcomeAnimation = ({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center space-y-6"
-                style={{ willChange: 'transform, opacity' }}
+                style={{ willChange: 'transform, opacity', background: 'transparent' }}
               >
-                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-primary opacity-5" />
-                  <CardContent className="relative p-8 space-y-6">
+                <Card className="glass-card border-primary/30 glow-card max-w-md overflow-hidden bg-background/95">
+                  <div className="absolute inset-0 bg-gradient-primary opacity-10" />
+                  <CardContent className="relative p-8 space-y-6 bg-transparent">
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
