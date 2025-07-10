@@ -106,7 +106,7 @@ export const WelcomeAnimation = ({
           animate={{ opacity: 1, backdropFilter: 'blur(12px)', background: 'linear-gradient(135deg, hsl(var(--background) / 0.95), hsl(var(--primary) / 0.05), hsl(var(--accent) / 0.05))' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)', background: 'hsl(var(--background))' }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] flex items-start justify-center pt-20 md:pt-24 lg:pt-32 p-4"
           style={{ willChange: 'opacity, backdrop-filter, background' }}
         >
           <AnimatePresence mode="wait">
