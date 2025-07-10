@@ -25,6 +25,7 @@ import MyLists from "./pages/MyLists";
 import Recommendations from "./pages/Recommendations";
 import Analytics from "./pages/Analytics";
 import Gamification from "./pages/Gamification";
+import Settings from "./pages/Settings";
 
 
 import SyncDashboard from "./pages/SyncDashboard";
@@ -142,6 +143,13 @@ const AppContent = () => {
           <ProtectedRoute>
             <InitializationWrapper>
               <Gamification />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <Settings />
             </InitializationWrapper>
           </ProtectedRoute>
         } />

@@ -345,14 +345,14 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 </Button>
               </Link>
 
-              <Link to="/template-manager">
+              <Link to="/settings">
                 <Button
-                  variant={window.location.pathname === "/template-manager" ? "default" : "ghost"}
+                  variant={window.location.pathname === "/settings" ? "default" : "ghost"}
                   className="w-full justify-start px-4"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Palette className="w-4 h-4 mr-3" />
-                  Templates
+                  <Settings className="w-4 h-4 mr-3" />
+                  Settings
                 </Button>
               </Link>
 
