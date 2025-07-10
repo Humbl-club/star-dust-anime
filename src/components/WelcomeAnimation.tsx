@@ -23,39 +23,24 @@ export const WelcomeAnimation = ({
   const [showComplete, setShowComplete] = useState(false);
 
   useEffect(() => {
-    console.log('WelcomeAnimation useEffect:', { isVisible, isFirstTime, username, tier });
-    
     if (!isVisible) {
-      console.log('Animation not visible, exiting');
       return;
     }
 
-    console.log('Starting welcome animation sequence');
-
     const sequence = [
-      () => {
-        console.log('Setting step to 1');
-        setStep(1);
-      }, // Welcome
-      () => {
-        console.log('Setting step to 2');
-        setStep(2);
-      }, // Username assignment
-      () => {
-        console.log('Setting showComplete to true');
-        setShowComplete(true);
-      } // Complete
+      () => setStep(1), // Welcome
+      () => setStep(2), // Username assignment  
+      () => setShowComplete(true) // Complete
     ];
 
     let timeouts: NodeJS.Timeout[] = [];
-    
-    sequence.forEach((fn, index) => {
-      const timeout = setTimeout(fn, (index + 1) * 2000);
+    sequence.forEach((action, index) => {
+      const timeout = setTimeout(action, (index + 1) * 2000);
       timeouts.push(timeout);
     });
 
     return () => timeouts.forEach(clearTimeout);
-  }, [isVisible, isFirstTime, onComplete, username, tier]);
+  }, [isVisible]);
 
   const getTierColor = (tier?: string) => {
     switch (tier) {

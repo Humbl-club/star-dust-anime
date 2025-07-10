@@ -425,6 +425,8 @@ export type Database = {
           role: string | null
           updated_at: string | null
           username: string | null
+          verification_required_until: string | null
+          verification_status: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -437,6 +439,8 @@ export type Database = {
           role?: string | null
           updated_at?: string | null
           username?: string | null
+          verification_required_until?: string | null
+          verification_status?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -449,6 +453,8 @@ export type Database = {
           role?: string | null
           updated_at?: string | null
           username?: string | null
+          verification_required_until?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }
@@ -1070,6 +1076,10 @@ export type Database = {
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
       }
+      check_verification_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_gamification_summary: {
         Args: { user_id_param: string }
         Returns: {
@@ -1107,6 +1117,10 @@ export type Database = {
       safe_date_cast: {
         Args: { date_string: string }
         Returns: string
+      }
+      verify_user_email: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
     }
     Enums: {

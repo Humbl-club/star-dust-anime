@@ -14,6 +14,7 @@ import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { WelcomeAnimation } from "@/components/WelcomeAnimation";
 import { EmailVerificationCornerPopup } from "@/components/EmailVerificationCornerPopup";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { useUserInitialization } from "@/hooks/useUserInitialization";
 
@@ -37,24 +38,15 @@ const Index = () => {
     isInitialized
   } = useUserInitialization();
 
-  // Check for just signed up flag and show welcome animation
   useEffect(() => {
-    console.log('Checking for justSignedUp flag...');
+    // Check for justSignedUp flag to trigger welcome animation
     const justSignedUp = sessionStorage.getItem('justSignedUp');
-    console.log('justSignedUp flag:', justSignedUp);
-    console.log('user:', user, 'isInitialized:', isInitialized);
-    
     if (justSignedUp && user && isInitialized) {
-      console.log('Setting welcome animation to true');
       setShowWelcomeAnimation(true);
+      // Clear the flag so animation doesn't show again
       sessionStorage.removeItem('justSignedUp');
     }
   }, [user, isInitialized]);
-
-  // Show verification corner popup if user is not verified
-  useEffect(() => {
-    setShowVerificationCornerPopup(showVerificationPrompt);
-  }, [showVerificationPrompt]);
 
   // Get anime data from API
   const { data: allAnime, loading } = useSimpleNewApiData({ 
@@ -201,6 +193,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative">
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner />
+      
       <Navigation onSearch={handleSearch} />
       
       
@@ -312,20 +307,19 @@ const Index = () => {
 
       {/* Welcome Animation */}
       <WelcomeAnimation
-        isFirstTime={isFirstTime}
+        isFirstTime={true}
         username={initialization?.username}
         tier={initialization?.tier}
         onComplete={() => {
-          console.log('Welcome animation completed');
           setShowWelcomeAnimation(false);
         }}
-        isVisible={showWelcomeAnimation && needsWelcome}
+        isVisible={showWelcomeAnimation}
       />
 
       {/* Email Verification Corner Popup */}
       <EmailVerificationCornerPopup
-        isVisible={showVerificationCornerPopup}
-        onDismiss={() => setShowVerificationCornerPopup(false)}
+        isVisible={showVerificationPrompt}
+        onDismiss={() => {}}
       />
     </div>
   );

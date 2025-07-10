@@ -65,11 +65,12 @@ export const authService = {
         return { error: { message: error.message || 'Failed to create account' } };
       }
 
-      // Check if email confirmation is required
+      // Always set justSignedUp flag for new users
+      sessionStorage.setItem('justSignedUp', 'true');
+      
       if (data.user && !data.session) {
-        // Set flag for popup display
-        console.log('Signup requires confirmation, setting flag and redirecting to home');
-        sessionStorage.setItem('justSignedUp', 'true');
+        // User created but needs email confirmation
+        sessionStorage.setItem('pendingEmail', email);
         return { 
           error: null,
           needsConfirmation: true,
@@ -77,9 +78,7 @@ export const authService = {
         };
       }
 
-      // Set flag for popup display (immediate login)
-      console.log('Signup successful with immediate login, setting flag');
-      sessionStorage.setItem('justSignedUp', 'true');
+      // User created and confirmed (confirmations disabled)
       return { error: null, data };
     } catch (err) {
       console.error('Signup exception:', err);
