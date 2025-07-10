@@ -107,11 +107,12 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
     setLoading(true);
     try {
       for (let i = 1; i <= pages; i++) {
-        const { data: response, error } = await supabase.functions.invoke('fetch-anime-data', {
+        // Use the consolidated ultra-fast-sync function instead
+        const { data: response, error } = await supabase.functions.invoke('ultra-fast-sync', {
           body: {
-            type: contentType,
-            page: i,
-            limit: 25
+            contentType: contentType,
+            maxPages: 1,
+            startPage: i
           }
         });
 

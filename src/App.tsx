@@ -146,8 +146,14 @@ const AppContent = () => {
           </ProtectedRoute>
         } />
         
-        {/* Public Routes */}
-        <Route path="/sync-dashboard" element={<SyncDashboard />} />
+        {/* Admin Routes - Make sync dashboard admin only */}
+        <Route path="/sync-dashboard" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <SyncDashboard />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
         <Route path="/legal/:pageType" element={<LegalPages />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

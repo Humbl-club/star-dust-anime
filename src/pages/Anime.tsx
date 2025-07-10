@@ -58,6 +58,11 @@ const Anime = () => {
     navigate(`/anime/${anime.id}`);
   };
 
+  const handleAddToList = (animeId: string) => {
+    // Navigate to anime detail page where AddToListButton handles the functionality
+    navigate(`/anime/${animeId}`);
+  };
+
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
@@ -265,10 +270,7 @@ const Anime = () => {
                   genres={anime.genres}
                   status={anime.status}
                   onView={() => handleAnimeView(anime)}
-                  onAddToList={() => {
-                    // TODO: Implement add to list functionality
-                    console.log('Add to list:', anime.title);
-                  }}
+                  onAddToList={() => handleAddToList(anime.id)}
                 />
               ))}
             </div>
