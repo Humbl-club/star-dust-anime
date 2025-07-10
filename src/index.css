@@ -447,4 +447,21 @@
       backdrop-filter: blur(10px);
     }
   }
+
+  /* Password Checklist Styling */
+  .password-checklist {
+    @apply space-y-1;
+  }
+
+  .password-checklist li {
+    @apply flex items-center gap-2 text-xs;
+  }
+
+  .password-checklist .valid {
+    @apply text-green-600;
+  }
+
+  .password-checklist .invalid {
+    @apply text-muted-foreground;
+  }
 }

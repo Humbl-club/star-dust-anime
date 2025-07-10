@@ -2,20 +2,21 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User, Sparkles, Crown } from "lucide-react";
+import { Sparkles, Crown } from "lucide-react";
+import EnhancedEmailInput from "@/components/auth/EnhancedEmailInput";
+import EnhancedPasswordInput from "@/components/auth/EnhancedPasswordInput";
 
 const Auth = () => {
   const { user, signUp, signIn, signInWithGoogle, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
+    confirmPassword: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,6 +31,13 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
+        // Validate password confirmation for signup
+        if (formData.password !== formData.confirmPassword) {
+          toast.error('Passwords do not match. Please confirm your password correctly.');
+          setIsSubmitting(false);
+          return;
+        }
+
         const result = await signUp(formData.email, formData.password);
         
         if (result.error) {
@@ -89,11 +97,16 @@ const Auth = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+  const handleEmailChange = (value: string) => {
+    setFormData(prev => ({ ...prev, email: value }));
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setFormData(prev => ({ ...prev, password: value }));
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setFormData(prev => ({ ...prev, confirmPassword: value }));
   };
 
   if (loading) {
@@ -193,45 +206,40 @@ const Auth = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="pl-10 glass-input"
-                    required
-                  />
-                </div>
+                <EnhancedEmailInput
+                  value={formData.email}
+                  onChange={handleEmailChange}
+                  placeholder="your@email.com"
+                  className="glass-input"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a secure password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="pl-10 pr-10 glass-input"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                <EnhancedPasswordInput
+                  value={formData.password}
+                  onChange={handlePasswordChange}
+                  placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
+                  showStrength={isSignUp}
+                  showChecklist={isSignUp}
+                  confirmPassword={isSignUp ? formData.confirmPassword : undefined}
+                  className="glass-input"
+                />
               </div>
+
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <EnhancedPasswordInput
+                    value={formData.confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    placeholder="Confirm your password"
+                    showStrength={false}
+                    showChecklist={false}
+                    className="glass-input"
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"
