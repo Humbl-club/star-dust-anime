@@ -2,18 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
+import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
+import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Index = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   const { stats, formatCount } = useStats();
@@ -158,6 +161,19 @@ const Index = () => {
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p>Loading anime...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show personalized dashboard for logged-in users
+  if (user) {
+    return (
+      <div className="min-h-screen relative">
+        <Navigation onSearch={handleSearch} />
+        <div className="container mx-auto mobile-safe-padding py-8">
+          <PersonalizedDashboard />
+        </div>
+        <LegalFooter />
       </div>
     );
   }

@@ -811,6 +811,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_filter_presets: {
+        Row: {
+          content_type: string
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          filters: Json
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_follows: {
         Row: {
           created_at: string | null
