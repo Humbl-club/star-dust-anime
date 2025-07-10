@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDebounce } from "use-debounce";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sparkles, Crown, CheckCircle, AlertCircle, Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import EnhancedEmailInput from "@/components/auth/EnhancedEmailInput";
 import EnhancedPasswordInput from "@/components/auth/EnhancedPasswordInput";
 
@@ -24,6 +26,8 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const [lastSignupEmail, setLastSignupEmail] = useState("");
+  const [emailExists, setEmailExists] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const { watch, setValue, getValues } = useForm<FormData>({
     defaultValues: {
@@ -35,6 +39,9 @@ const Auth = () => {
   });
 
   const watchedValues = watch();
+  
+  // Debounce email for checking existence
+  const [debouncedEmail] = useDebounce(watchedValues.email, 500);
 
   // Validation states
   const emailValidation = watchedValues.email ? validateEmailFormat(watchedValues.email) : { isValid: false, errors: [] };
@@ -47,7 +54,41 @@ const Auth = () => {
                      passwordsMatch &&
                      watchedValues.email.length > 0 &&
                      watchedValues.password.length > 0 &&
-                     (!isSignUp || watchedValues.confirmPassword.length > 0);
+                     (!isSignUp || watchedValues.confirmPassword.length > 0) &&
+                     (!isSignUp || !emailExists); // Prevent signup if email exists
+
+  // Check if email exists when user is signing up
+  useEffect(() => {
+    const checkEmailExists = async () => {
+      if (!isSignUp || !debouncedEmail || !emailValidation.isValid) {
+        setEmailExists(false);
+        setCheckingEmail(false);
+        return;
+      }
+
+      setCheckingEmail(true);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('check-email-exists', {
+          body: { email: debouncedEmail }
+        });
+
+        if (error) {
+          console.error('Error checking email:', error);
+          setEmailExists(false);
+        } else {
+          setEmailExists(data.exists);
+        }
+      } catch (error) {
+        console.error('Error checking email existence:', error);
+        setEmailExists(false);
+      } finally {
+        setCheckingEmail(false);
+      }
+    };
+
+    checkEmailExists();
+  }, [debouncedEmail, emailValidation.isValid, isSignUp]);
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -252,7 +293,17 @@ const Auth = () => {
                     className="glass-input"
                   />
                   <AnimatePresence>
-                    {watchedValues.email && emailValidation.isValid && (
+                    {checkingEmail && watchedValues.email && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      >
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      </motion.div>
+                    )}
+                    {!checkingEmail && watchedValues.email && emailValidation.isValid && !emailExists && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -262,8 +313,33 @@ const Auth = () => {
                         <CheckCircle className="w-4 h-4 text-green-500" />
                       </motion.div>
                     )}
+                    {!checkingEmail && watchedValues.email && emailValidation.isValid && emailExists && isSignUp && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      >
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                      </motion.div>
+                    )}
                   </AnimatePresence>
                 </div>
+                
+                {/* Email exists error message */}
+                <AnimatePresence>
+                  {!checkingEmail && emailExists && isSignUp && emailValidation.isValid && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-sm text-red-500 mt-1 flex items-center gap-2"
+                    >
+                      <AlertCircle className="w-3 h-3" />
+                      This email already has an account. Try signing in instead.
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="space-y-2">
