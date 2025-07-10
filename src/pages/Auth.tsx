@@ -97,7 +97,7 @@ const Auth = () => {
 
   // Redirect if already authenticated
   if (user && !loading) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,11 +130,11 @@ const Auth = () => {
             toast.error(errorMessage);
           }
         } else if (result.needsConfirmation) {
-          toast.success(result.message || "Check your email to verify your account and get your legendary username!");
-          setShowResendConfirmation(true);
-          setLastSignupEmail(watchedValues.email);
+          // Redirect to home page to show welcome popup
+          window.location.href = '/';
         } else {
-          toast.success("Welcome to AnimeHub! Your legendary username has been assigned automatically!");
+          // Redirect to home page to show welcome popup  
+          window.location.href = '/';
         }
       } else {
         const { error } = await signIn(watchedValues.email, watchedValues.password);

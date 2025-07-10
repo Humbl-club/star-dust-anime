@@ -17,11 +17,14 @@ import {
   Pause,
   Clock,
   X,
-  Eye
+  Eye,
+  Lock
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { useUserLists, type UserAnimeListEntry, type UserMangaListEntry } from "@/hooks/useUserLists";
 import { type Anime, type Manga } from "@/data/animeData";
+import { toast } from "sonner";
 
 interface AddToListButtonProps {
   item: Anime | Manga;
@@ -56,6 +59,7 @@ export const AddToListButton = ({
   className = ""
 }: AddToListButtonProps) => {
   const { user } = useAuth();
+  const { canUseFeature } = useEmailVerification();
   const { 
     addToAnimeList, 
     addToMangaList, 
@@ -68,6 +72,8 @@ export const AddToListButton = ({
   } = useUserLists();
   
   const [loading, setLoading] = useState(false);
+  
+  const canAddToList = canUseFeature('add_to_list');
 
   const listEntry = type === "anime" 
     ? getAnimeListEntry(item.id) 
@@ -75,6 +81,11 @@ export const AddToListButton = ({
 
   const handleAddToList = async (status: UserAnimeListEntry['status'] | UserMangaListEntry['status']) => {
     if (!user) return;
+    
+    if (!canAddToList) {
+      toast.error('Please verify your email to add items to your list');
+      return;
+    }
     
     setLoading(true);
     try {
@@ -123,6 +134,15 @@ export const AddToListButton = ({
       <Button variant={variant} size={size} className={className} disabled>
         <Plus className="w-4 h-4 mr-2" />
         Sign in to Add
+      </Button>
+    );
+  }
+
+  if (!canAddToList) {
+    return (
+      <Button variant={variant} size={size} className={`${className} opacity-60`} disabled>
+        <Lock className="w-4 h-4 mr-2" />
+        Verify Email
       </Button>
     );
   }

@@ -31,7 +31,7 @@ export const authService = {
 
       // More robust redirect URL handling for mobile/iPad
       const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/dashboard`;
+      const redirectUrl = `${baseUrl}/`;
       
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,
@@ -67,6 +67,8 @@ export const authService = {
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
+        // Set flag for popup display
+        sessionStorage.setItem('justSignedUp', 'true');
         return { 
           error: null,
           needsConfirmation: true,
@@ -74,6 +76,8 @@ export const authService = {
         };
       }
 
+      // Set flag for popup display (immediate login)
+      sessionStorage.setItem('justSignedUp', 'true');
       return { error: null, data };
     } catch (err) {
       console.error('Signup exception:', err);
@@ -159,7 +163,7 @@ export const authService = {
         type: 'signup',
         email: sanitizeInput(email),
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 

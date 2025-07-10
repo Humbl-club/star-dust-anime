@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
@@ -12,6 +12,9 @@ import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
+import { SignupWelcomePopup } from "@/components/SignupWelcomePopup";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 
 import { LegalFooter } from "@/components/LegalFooter";
 
@@ -20,8 +23,25 @@ const Index = () => {
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   const { stats, formatCount } = useStats();
+  const { showVerificationPrompt } = useEmailVerification();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showVerificationBanner, setShowVerificationBanner] = useState(false);
+
+  // Check for just signed up flag
+  useEffect(() => {
+    const justSignedUp = sessionStorage.getItem('justSignedUp');
+    if (justSignedUp && user) {
+      setShowWelcomePopup(true);
+      sessionStorage.removeItem('justSignedUp');
+    }
+  }, [user]);
+
+  // Show verification banner if user is not verified
+  useEffect(() => {
+    setShowVerificationBanner(showVerificationPrompt);
+  }, [showVerificationPrompt]);
 
   // Get anime data from API
   const { data: allAnime, loading } = useSimpleNewApiData({ 
@@ -170,6 +190,12 @@ const Index = () => {
     <div className="min-h-screen relative">
       <Navigation onSearch={handleSearch} />
       
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner 
+        isVisible={showVerificationBanner}
+        onDismiss={() => setShowVerificationBanner(false)}
+      />
+      
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
       
@@ -275,6 +301,12 @@ const Index = () => {
       </section>
 
       <LegalFooter />
+
+      {/* Welcome Popup */}
+      <SignupWelcomePopup
+        isVisible={showWelcomePopup}
+        onComplete={() => setShowWelcomePopup(false)}
+      />
     </div>
   );
 };
