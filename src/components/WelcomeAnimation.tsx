@@ -27,20 +27,32 @@ export const WelcomeAnimation = ({
       return;
     }
 
-    // Lightning-fast animation: 300ms per step (total ~1 second)
+    // Ultra-smooth 60fps animation using requestAnimationFrame
     const sequence = [
       () => setStep(1), // Welcome
       () => setStep(2), // Username assignment  
       () => setShowComplete(true) // Complete
     ];
 
-    let timeouts: NodeJS.Timeout[] = [];
-    sequence.forEach((action, index) => {
-      const timeout = setTimeout(action, (index + 1) * 300);
-      timeouts.push(timeout);
-    });
+    let animationIds: number[] = [];
+    let startTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const stepIndex = Math.floor(elapsed / 250); // 250ms per step
+      
+      if (stepIndex < sequence.length) {
+        sequence[stepIndex]();
+        startTime = currentTime;
+        animationIds.push(requestAnimationFrame(animate));
+      }
+    };
 
-    return () => timeouts.forEach(clearTimeout);
+    // Start immediately with first step
+    setStep(1);
+    animationIds.push(requestAnimationFrame(animate));
+
+    return () => animationIds.forEach(id => cancelAnimationFrame(id));
   }, [isVisible]);
 
   const getTierColor = (tier?: string) => {
@@ -69,20 +81,21 @@ export const WelcomeAnimation = ({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-          style={{ willChange: 'opacity' }}
+          initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+          animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4"
+          style={{ willChange: 'opacity, backdrop-filter' }}
         >
           <AnimatePresence mode="wait">
             {step >= 1 && !showComplete && (
               <motion.div
                 key="welcome"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2, ease: [0.175, 0.885, 0.32, 1.275] }}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center space-y-6"
                 style={{ willChange: 'transform, opacity' }}
               >
@@ -150,9 +163,9 @@ export const WelcomeAnimation = ({
             {showComplete && (
               <motion.div
                 key="complete"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, ease: [0.175, 0.885, 0.32, 1.275] }}
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                 className="text-center space-y-6"
                 style={{ willChange: 'transform, opacity' }}
               >

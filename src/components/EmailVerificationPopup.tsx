@@ -84,7 +84,7 @@ export const EmailVerificationPopup = () => {
             damping: 25,
             stiffness: 300
           }}
-          className="fixed top-20 right-4 z-45 w-80 max-w-[calc(100vw-2rem)]"
+          className="fixed top-4 right-4 z-[60] w-80 max-w-[calc(100vw-2rem)]"
           style={{ willChange: 'transform, opacity' }}
         >
           {/* Glass-morphism card with gradient border */}
