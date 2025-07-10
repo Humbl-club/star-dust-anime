@@ -12,14 +12,22 @@ interface WelcomeAnimationProps {
   isVisible: boolean;
 }
 
-// Screen-aware positioning hook
-const useScreenAwarePositioning = () => {
+// Search bar targeting hook
+const useSearchBarTargeting = () => {
   const [dimensions, setDimensions] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768,
     isMobile: false,
     isTablet: false,
     isDesktop: true
+  });
+
+  const [searchBarPosition, setSearchBarPosition] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    found: false
   });
 
   useEffect(() => {
@@ -38,16 +46,74 @@ const useScreenAwarePositioning = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Calculate responsive entry/exit points and figure size
+  // Find search bar position
+  useEffect(() => {
+    const findSearchBar = () => {
+      // Multiple selectors to find the search input
+      const selectors = [
+        '[contenteditable="true"]', // SearchInput component uses contenteditable
+        'input[type="text"]',
+        'input[placeholder*="Search"]',
+        '[placeholder*="anime"]',
+        '.search-input',
+        '[data-search="true"]'
+      ];
+
+      let searchElement: Element | null = null;
+      
+      for (const selector of selectors) {
+        searchElement = document.querySelector(selector);
+        if (searchElement) break;
+      }
+
+      if (searchElement) {
+        const rect = searchElement.getBoundingClientRect();
+        setSearchBarPosition({
+          x: rect.left,
+          y: rect.top,
+          width: rect.width,
+          height: rect.height,
+          found: true
+        });
+      } else {
+        // Fallback to center if search bar not found
+        setSearchBarPosition({
+          x: dimensions.width / 2,
+          y: dimensions.height / 2,
+          width: 300,
+          height: 40,
+          found: false
+        });
+      }
+    };
+
+    // Initial search
+    const initialTimeout = setTimeout(findSearchBar, 100);
+    
+    // Update on resize
+    const resizeTimeout = setTimeout(findSearchBar, 200);
+    
+    // Retry finding search bar periodically (in case it loads later)
+    const retryInterval = setInterval(findSearchBar, 1000);
+    
+    return () => {
+      clearTimeout(initialTimeout);
+      clearTimeout(resizeTimeout);
+      clearInterval(retryInterval);
+    };
+  }, [dimensions.width, dimensions.height]);
+
+  // Calculate responsive entry/exit points and figure size relative to search bar
   const positioning = useMemo(() => {
     const { width, height, isMobile, isTablet } = dimensions;
+    const { x: searchX, y: searchY, width: searchWidth, height: searchHeight, found } = searchBarPosition;
     
     // Entry point (left side)
     const entryX = -100;
     
-    // Center point for briefcase deposit
-    const centerX = width / 2 - 50; // Adjust for figure width
-    const centerY = height / 2 - 50; // Adjust for figure height
+    // Target point for briefcase deposit (search bar center)
+    const targetX = found ? searchX + (searchWidth / 2) - 50 : width / 2 - 50; // Adjust for figure width
+    const targetY = found ? searchY + (searchHeight / 2) - 50 : height / 2 - 50; // Adjust for figure height
     
     // Exit point (right side)
     const exitX = width + 100;
@@ -55,22 +121,24 @@ const useScreenAwarePositioning = () => {
     // Figure scale based on screen size
     const figureScale = isMobile ? 0.6 : isTablet ? 0.8 : 1;
     
-    // Briefcase position (center of screen)
-    const briefcaseX = width / 2 - 15; // Adjust for briefcase width
-    const briefcaseY = height / 2 - 10; // Adjust for briefcase height
+    // Briefcase position (at search bar center)
+    const briefcaseX = found ? searchX + (searchWidth / 2) - 15 : width / 2 - 15; // Adjust for briefcase width
+    const briefcaseY = found ? searchY + (searchHeight / 2) - 10 : height / 2 - 10; // Adjust for briefcase height
 
     return {
       entryX,
-      centerX,
-      centerY,
+      centerX: targetX, // Rename for compatibility
+      centerY: targetY, // Rename for compatibility
       exitX,
       figureScale,
       briefcaseX,
       briefcaseY,
       screenWidth: width,
-      screenHeight: height
+      screenHeight: height,
+      searchBarFound: found,
+      searchBarRect: { x: searchX, y: searchY, width: searchWidth, height: searchHeight }
     };
-  }, [dimensions]);
+  }, [dimensions, searchBarPosition]);
 
   return { dimensions, positioning };
 };
@@ -550,7 +618,7 @@ export const WelcomeAnimation = ({
   
   const reducedMotion = useReducedMotion();
   const capabilities = useDeviceCapabilities();
-  const { dimensions, positioning } = useScreenAwarePositioning();
+  const { dimensions, positioning } = useSearchBarTargeting();
   
   // Enhanced timing configuration (slower, more cinematic)
   const timingConfig = useMemo(() => {
@@ -745,6 +813,32 @@ export const WelcomeAnimation = ({
               )}
             </AnimatePresence>
             
+            {/* Search Bar Highlight Effect */}
+            {positioning.searchBarFound && phase >= 2 && phase <= 3 && (
+              <motion.div
+                className="absolute border-2 border-primary/60 rounded-lg pointer-events-none"
+                style={{
+                  left: positioning.searchBarRect.x - 4,
+                  top: positioning.searchBarRect.y - 4,
+                  width: positioning.searchBarRect.width + 8,
+                  height: positioning.searchBarRect.height + 8,
+                  zIndex: 15
+                }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ 
+                  opacity: [0, 0.8, 0.4, 0.8, 0],
+                  scale: [0.9, 1.02, 1, 1.02, 0.9]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <div className="absolute inset-0 bg-primary/10 rounded-lg animate-pulse" />
+              </motion.div>
+            )}
+
             {/* Secret Agent Animation */}
             <SecretAgentWithBriefcase 
               phase={phase} 
