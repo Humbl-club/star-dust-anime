@@ -55,10 +55,18 @@ export const useNativeActions = () => {
     }
   };
 
+  // Alias methods for compatibility with new components
+  const hapticFeedback = triggerHaptic;
+  const nativeShare = async (options: { title: string; text: string; url: string }) => {
+    await shareContent(options.title, options.text, options.url);
+  };
+
   return {
     shareContent,
     copyToClipboard,
     triggerHaptic,
+    hapticFeedback,
+    nativeShare,
     isNative: Capacitor.isNativePlatform()
   };
 };

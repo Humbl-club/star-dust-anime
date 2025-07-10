@@ -10,6 +10,7 @@ import { AgeVerificationModal } from "@/components/AgeVerificationModal";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { InitializationWrapper } from "@/components/InitializationWrapper";
+import { MobileNavigation } from "@/components/MobileNavigation";
 import { HelmetProvider } from "react-helmet-async";
 import { Shield } from "lucide-react";
 
@@ -47,9 +48,17 @@ const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const App = () => {
-  const { isNative } = useNativeSetup();
+const AppContent = () => {
+  const { isReady } = useNativeSetup();
   const { isVerified, loading, showModal, setVerified } = useAgeVerification();
+
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   
   // Render age verification modal at the very top level
   if (showModal) {
@@ -90,77 +99,86 @@ const App = () => {
   }
   
   return (
+    <div className="min-h-screen bg-background pb-16 lg:pb-0">
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/anime" element={<Anime />} />
+        <Route path="/anime/:id" element={<AnimeDetail />} />
+        <Route path="/manga" element={<Manga />} />
+        <Route path="/manga/:id" element={<MangaDetail />} />
+        <Route path="/trending" element={<Trending />} />
+        
+        {/* Protected Routes - Require Authentication */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <Dashboard />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        <Route path="/my-lists" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <MyLists />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />            
+        <Route path="/recommendations" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <Recommendations />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <Analytics />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        <Route path="/gamification" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <Gamification />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        <Route path="/template-manager" element={
+          <ProtectedRoute>
+            <InitializationWrapper>
+              <TemplateManager />
+            </InitializationWrapper>
+          </ProtectedRoute>
+        } />
+        
+        {/* Public Routes */}
+        <Route path="/sync-dashboard" element={<SyncDashboard />} />
+        <Route path="/legal/:pageType" element={<LegalPages />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <MobileNavigation />
+    </div>
+  );
+};
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
         <AuthProvider>
           <AutoSyncProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <DeepLinkHandler />
-            <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/anime" element={<Anime />} />
-            <Route path="/anime/:id" element={<AnimeDetail />} />
-            <Route path="/manga" element={<Manga />} />
-            <Route path="/manga/:id" element={<MangaDetail />} />
-            <Route path="/trending" element={<Trending />} />
-            
-            {/* Protected Routes - Require Authentication */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <Dashboard />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
-            <Route path="/my-lists" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <MyLists />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />            
-            <Route path="/recommendations" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <Recommendations />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <Analytics />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
-            <Route path="/gamification" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <Gamification />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
-            <Route path="/template-manager" element={
-              <ProtectedRoute>
-                <InitializationWrapper>
-                  <TemplateManager />
-                </InitializationWrapper>
-              </ProtectedRoute>
-            } />
-            
-            {/* Public Routes */}
-            <Route path="/sync-dashboard" element={<SyncDashboard />} />
-            <Route path="/legal/:pageType" element={<LegalPages />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        </TooltipProvider>
-        </AutoSyncProvider>
-      </AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <DeepLinkHandler />
+                <AppContent />
+              </BrowserRouter>
+            </TooltipProvider>
+          </AutoSyncProvider>
+        </AuthProvider>
       </HelmetProvider>
     </QueryClientProvider>
   );

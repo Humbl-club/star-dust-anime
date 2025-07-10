@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 
 export const useNativeSetup = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const setupNative = async () => {
@@ -31,6 +32,8 @@ export const useNativeSetup = () => {
       } catch (error) {
         console.log('Native setup error:', error);
       }
+      
+      setIsReady(true);
     };
 
     setupNative();
@@ -46,6 +49,7 @@ export const useNativeSetup = () => {
   return {
     isNative: Capacitor.isNativePlatform(),
     platform: Capacitor.getPlatform(),
-    keyboardVisible
+    keyboardVisible,
+    isReady
   };
 };

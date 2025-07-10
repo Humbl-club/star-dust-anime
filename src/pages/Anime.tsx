@@ -19,6 +19,8 @@ import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
+import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -37,12 +39,20 @@ const Anime = () => {
   const { isVerified } = useAgeVerification();
 
   // Get anime data from API
-  const { data: animeList, loading } = useSimpleNewApiData({ 
+  const { data: animeList, loading, refetch } = useSimpleNewApiData({ 
     contentType: 'anime',
     limit: 100,
     sort_by: 'score',
     order: 'desc'
   });
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  const handleAnimeView = (anime: Anime) => {
+    navigate(`/anime/${anime.id}`);
+  };
 
   const handleAnimeClick = (anime: Anime) => {
     navigate(`/anime/${anime.id}`);
@@ -121,10 +131,10 @@ const Anime = () => {
         <div className="relative container mx-auto px-4">
           <div className="glass-card p-8 border border-primary/20 glow-primary">
             <div className="text-center">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gradient-primary">
+              <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-4 text-gradient-primary">
                 Discover Anime
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
                 Explore thousands of anime series and movies. Find your next favorite story.
               </p>
             </div>
@@ -132,7 +142,8 @@ const Anime = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 lg:py-8 py-4">
+        <PullToRefresh onRefresh={handleRefresh}>
         {/* Search and Filters */}
         <Card className="anime-card mb-8 glow-card">
           <CardHeader>
@@ -230,15 +241,38 @@ const Anime = () => {
             </div>
           </div>
         ) : filteredAnime.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {filteredAnime.map((anime) => (
-              <AnimeCard 
-                key={anime.id} 
-                anime={anime} 
-                onClick={() => handleAnimeClick(anime)}
-              />
-            ))}
-          </div>
+          <>
+            {/* Desktop Grid */}
+            <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {filteredAnime.map((anime) => (
+                <AnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  onClick={() => handleAnimeClick(anime)}
+                />
+              ))}
+            </div>
+
+            {/* Mobile Grid */}
+            <div className="grid lg:hidden grid-cols-2 gap-3">
+              {filteredAnime.map((anime) => (
+                <MobileOptimizedCard
+                  key={anime.id}
+                  title={anime.title}
+                  imageUrl={anime.image_url}
+                  rating={anime.score}
+                  year={anime.year}
+                  genres={anime.genres}
+                  status={anime.status}
+                  onView={() => handleAnimeView(anime)}
+                  onAddToList={() => {
+                    // TODO: Implement add to list functionality
+                    console.log('Add to list:', anime.title);
+                  }}
+                />
+              ))}
+            </div>
+          </>
         ) : (
           <Card className="anime-card text-center py-12 glow-card">
             <CardContent>
@@ -259,6 +293,7 @@ const Anime = () => {
             </CardContent>
           </Card>
         )}
+        </PullToRefresh>
       </div>
       
       <LegalFooter />
