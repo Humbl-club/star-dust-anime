@@ -1,24 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sparkles, Crown } from "lucide-react";
+import { Sparkles, Crown, CheckCircle, AlertCircle, Mail } from "lucide-react";
 import EnhancedEmailInput from "@/components/auth/EnhancedEmailInput";
 import EnhancedPasswordInput from "@/components/auth/EnhancedPasswordInput";
 
+interface FormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
 const Auth = () => {
-  const { user, signUp, signIn, signInWithGoogle, loading } = useAuth();
+  const { user, signUp, signIn, signInWithGoogle, resendConfirmation, validateEmailFormat, validatePasswordStrength, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: ""
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
+  const [lastSignupEmail, setLastSignupEmail] = useState("");
+
+  const { watch, setValue, getValues } = useForm<FormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: ""
+    },
+    mode: "onChange"
+  });
+
+  const watchedValues = watch();
+
+  // Validation states
+  const emailValidation = watchedValues.email ? validateEmailFormat(watchedValues.email) : { isValid: false, errors: [] };
+  const passwordValidation = watchedValues.password ? validatePasswordStrength(watchedValues.password) : { isValid: false, score: 0, errors: [] };
+  const passwordsMatch = isSignUp ? watchedValues.password === watchedValues.confirmPassword && watchedValues.confirmPassword.length > 0 : true;
+
+  // Form completion state for dynamic button
+  const isFormValid = emailValidation.isValid && 
+                     passwordValidation.isValid && 
+                     passwordsMatch &&
+                     watchedValues.email.length > 0 &&
+                     watchedValues.password.length > 0 &&
+                     (!isSignUp || watchedValues.confirmPassword.length > 0);
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -27,46 +56,51 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isFormValid) {
+      toast.error('Please complete all required fields correctly.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       if (isSignUp) {
-        // Validate password confirmation for signup
-        if (formData.password !== formData.confirmPassword) {
+        if (watchedValues.password !== watchedValues.confirmPassword) {
           toast.error('Passwords do not match. Please confirm your password correctly.');
           setIsSubmitting(false);
           return;
         }
 
-        const result = await signUp(formData.email, formData.password);
+        const result = await signUp(watchedValues.email, watchedValues.password);
         
         if (result.error) {
-          // Handle specific error cases for better UX
           const errorMessage = result.error.message || 'An error occurred during signup';
-          if (errorMessage.includes('already registered')) {
+          if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
             toast.error('This email is already registered. Try signing in instead.');
-          } else if (errorMessage.includes('invalid email')) {
-            toast.error('Please enter a valid email address.');
-          } else if (errorMessage.includes('password')) {
-            toast.error('Password must be at least 6 characters long.');
+            setShowResendConfirmation(true);
+            setLastSignupEmail(watchedValues.email);
           } else {
             toast.error(errorMessage);
           }
         } else if (result.needsConfirmation) {
           toast.success(result.message || "Check your email to verify your account and get your legendary username!");
+          setShowResendConfirmation(true);
+          setLastSignupEmail(watchedValues.email);
         } else {
           toast.success("Welcome to AnimeHub! Your legendary username has been assigned automatically!");
         }
       } else {
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(watchedValues.email, watchedValues.password);
         
         if (error) {
-          // Handle specific signin error cases
           const errorMessage = error.message || 'An error occurred during signin';
           if (errorMessage.includes('Invalid login credentials')) {
             toast.error('Invalid email or password. Please check your credentials.');
           } else if (errorMessage.includes('Email not confirmed')) {
             toast.error('Please check your email and click the confirmation link first.');
+            setShowResendConfirmation(true);
+            setLastSignupEmail(watchedValues.email);
           } else {
             toast.error(errorMessage);
           }
@@ -97,16 +131,19 @@ const Auth = () => {
     }
   };
 
-  const handleEmailChange = (value: string) => {
-    setFormData(prev => ({ ...prev, email: value }));
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setFormData(prev => ({ ...prev, password: value }));
-  };
-
-  const handleConfirmPasswordChange = (value: string) => {
-    setFormData(prev => ({ ...prev, confirmPassword: value }));
+  const handleResendConfirmation = async () => {
+    if (!lastSignupEmail) return;
+    
+    try {
+      const result = await resendConfirmation(lastSignupEmail);
+      if (result.error) {
+        toast.error(result.error.message);
+      } else {
+        toast.success(result.message);
+      }
+    } catch (error: any) {
+      toast.error("Failed to resend confirmation email");
+    }
   };
 
   if (loading) {
@@ -119,7 +156,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Mobile-optimized viewport */}
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -130,7 +166,6 @@ const Auth = () => {
           <h1 className="text-4xl font-bold text-gradient-primary mb-2">Welcome to Anithing</h1>
           <p className="text-muted-foreground mb-6">Your ultimate anime & manga tracking platform</p>
           
-          {/* Gamification teaser */}
           <div className="glass-card p-4 border border-primary/20 glow-primary">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Crown className="w-5 h-5 text-yellow-500" />
@@ -163,7 +198,6 @@ const Auth = () => {
           </CardHeader>
 
           <CardContent>
-            {/* Google Sign In - Mobile optimized */}
             <div className="space-y-4 mb-6">
               <Button 
                 type="button"
@@ -193,7 +227,11 @@ const Auth = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
-                <div className="glass-card p-4 border border-primary/20 glow-card mb-4">
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card p-4 border border-primary/20 glow-card mb-4"
+                >
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-gradient-primary">Automatic Username Assignment</span>
@@ -201,62 +239,154 @@ const Auth = () => {
                   <p className="text-xs text-muted-foreground">
                     You'll receive a random anime character username automatically!
                   </p>
-                </div>
+                </motion.div>
               )}
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <EnhancedEmailInput
-                  value={formData.email}
-                  onChange={handleEmailChange}
-                  placeholder="your@email.com"
-                  className="glass-input"
-                />
+                <div className="relative">
+                  <EnhancedEmailInput
+                    value={watchedValues.email}
+                    onChange={(value) => setValue("email", value)}
+                    placeholder="your@email.com"
+                    className="glass-input"
+                  />
+                  <AnimatePresence>
+                    {watchedValues.email && emailValidation.isValid && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <EnhancedPasswordInput
-                  value={formData.password}
-                  onChange={handlePasswordChange}
-                  placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
-                  showStrength={isSignUp}
-                  showChecklist={isSignUp}
-                  confirmPassword={isSignUp ? formData.confirmPassword : undefined}
-                  className="glass-input"
-                />
-              </div>
-
-              {isSignUp && (
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
                   <EnhancedPasswordInput
-                    value={formData.confirmPassword}
-                    onChange={handleConfirmPasswordChange}
-                    placeholder="Confirm your password"
-                    showStrength={false}
-                    showChecklist={false}
+                    value={watchedValues.password}
+                    onChange={(value) => setValue("password", value)}
+                    placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
+                    showStrength={isSignUp}
+                    showChecklist={isSignUp}
+                    confirmPassword={isSignUp ? watchedValues.confirmPassword : undefined}
                     className="glass-input"
                   />
+                  <AnimatePresence>
+                    {watchedValues.password && passwordValidation.isValid && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
+              </div>
 
-              <Button
-                type="submit"
-                variant="hero"
-                className="w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
-                    {isSignUp ? "Creating Account..." : "Signing In..."}
-                  </div>
-                ) : (
-                  isSignUp ? "Create Account" : "Sign In"
+              <AnimatePresence>
+                {isSignUp && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <div className="relative">
+                      <EnhancedPasswordInput
+                        value={watchedValues.confirmPassword}
+                        onChange={(value) => setValue("confirmPassword", value)}
+                        placeholder="Confirm your password"
+                        showStrength={false}
+                        showChecklist={false}
+                        className="glass-input"
+                      />
+                      <AnimatePresence>
+                        {watchedValues.confirmPassword && passwordsMatch && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                          >
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
                 )}
-              </Button>
+              </AnimatePresence>
+
+              <motion.div
+                animate={{
+                  opacity: isFormValid ? 1 : 0.5,
+                  scale: isFormValid ? 1 : 0.98,
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  type="submit"
+                  variant={isFormValid ? "hero" : "secondary"}
+                  className="w-full transition-all duration-300"
+                  disabled={isSubmitting || !isFormValid}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                      {isSignUp ? "Creating Account..." : "Signing In..."}
+                    </div>
+                  ) : (
+                    <motion.span
+                      key={isFormValid ? "valid" : "invalid"}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {isSignUp ? "Create Account" : "Sign In"}
+                    </motion.span>
+                  )}
+                </Button>
+              </motion.div>
             </form>
+
+            <AnimatePresence>
+              {showResendConfirmation && lastSignupEmail && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Need to confirm your email?</span>
+                  </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
+                    Didn't receive the confirmation email for {lastSignupEmail}?
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendConfirmation}
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    Resend Confirmation Email
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
 

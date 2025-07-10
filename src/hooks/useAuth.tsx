@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  resendConfirmation: (email: string) => Promise<{ error: any; message?: string }>;
   validatePasswordStrength: (password: string) => { isValid: boolean; score: number; errors: string[]; suggestions: string[] };
   validateEmailFormat: (email: string) => { isValid: boolean; errors: string[]; suggestions: string[] };
 }
@@ -192,6 +193,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const resendConfirmation = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: sanitizeInput(email),
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      return { 
+        error: null, 
+        message: 'Confirmation email sent! Please check your inbox.' 
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: 'Failed to resend confirmation email.'
+        }
+      };
+    }
+  };
+
   const validatePasswordStrength = (password: string) => {
     return validatePassword(password);
   };
@@ -208,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithGoogle,
     signOut,
+    resendConfirmation,
     validatePasswordStrength,
     validateEmailFormat,
   };

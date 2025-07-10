@@ -129,7 +129,7 @@ const AnimeDetail = () => {
       </div>
 
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
+      <div className="container mx-auto px-4 py-8 pt-24 relative z-10">
         <div className="grid lg:grid-cols-5 gap-8">
           {/* Anime Image & Actions */}
           <div className="lg:col-span-2">
