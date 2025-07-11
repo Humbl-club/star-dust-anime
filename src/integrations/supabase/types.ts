@@ -306,6 +306,68 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          points_earned: number
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          points_earned?: number
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          points_earned?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generated_characters: {
+        Row: {
+          character_data: Json
+          created_at: string
+          generation_method: string
+          id: string
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Insert: {
+          character_data?: Json
+          created_at?: string
+          generation_method?: string
+          id?: string
+          tier: Database["public"]["Enums"]["username_tier"]
+          username: string
+        }
+        Update: {
+          character_data?: Json
+          created_at?: string
+          generation_method?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["username_tier"]
+          username?: string
+        }
+        Relationships: []
+      }
       genres: {
         Row: {
           created_at: string | null
@@ -950,6 +1012,50 @@ export type Database = {
           volumes_read?: number | null
         }
         Relationships: []
+      }
+      user_points: {
+        Row: {
+          created_at: string
+          daily_points: number
+          first_loot_box_opened: boolean
+          id: string
+          last_login_date: string | null
+          login_streak: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_points?: number
+          first_loot_box_opened?: boolean
+          id?: string
+          last_login_date?: string | null
+          login_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_points?: number
+          first_loot_box_opened?: boolean
+          id?: string
+          last_login_date?: string | null
+          login_streak?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
