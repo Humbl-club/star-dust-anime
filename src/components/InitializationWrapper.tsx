@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInitialization } from '@/hooks/useUserInitialization';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
@@ -11,7 +11,8 @@ interface InitializationWrapperProps {
 }
 
 export const InitializationWrapper = ({ children }: InitializationWrapperProps) => {
-  const [showWelcome, setShowWelcome] = useState(false); // Start with false
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const { user } = useAuth();
   
   // Only run initialization logic for authenticated users
@@ -26,6 +27,15 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     isRepairing
   } = useUserInitialization();
 
+  // Auto-trigger welcome animation for initialized users
+  useEffect(() => {
+    if (user && isInitialized && !hasShownWelcome && (needsWelcome || isFirstTime)) {
+      console.log('🎬 Auto-triggering welcome animation:', { needsWelcome, isFirstTime });
+      setShowWelcome(true);
+      setHasShownWelcome(true);
+    }
+  }, [user, isInitialized, needsWelcome, isFirstTime, hasShownWelcome]);
+
   // Debug logging for initialization state
   console.log('🔧 InitializationWrapper Debug:', {
     hasUser: !!user,
@@ -33,7 +43,7 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     isFirstTime,
     needsWelcome,
     isInitialized,
-    shouldShowAnimation: showWelcome && (isFirstTime || needsWelcome),
+    hasShownWelcome,
     initialization: !!initialization,
     username: initialization?.username,
     tier: initialization?.tier
