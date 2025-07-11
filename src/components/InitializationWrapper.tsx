@@ -22,6 +22,18 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     isRepairing
   } = useUserInitialization();
 
+  // Debug logging for initialization state
+  console.log('🔧 InitializationWrapper Debug:', {
+    showWelcome,
+    isFirstTime,
+    needsWelcome,
+    isInitialized,
+    shouldShowAnimation: showWelcome && (isFirstTime || needsWelcome),
+    initialization: !!initialization,
+    username: initialization?.username,
+    tier: initialization?.tier
+  });
+
   // Loading state
   if (isLoading) {
     return (
@@ -89,8 +101,18 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
         username={initialization?.username}
         tier={initialization?.tier}
         onComplete={() => setShowWelcome(false)}
-        isVisible={showWelcome && (isFirstTime || needsWelcome)}
+        isVisible={showWelcome && (isFirstTime || needsWelcome || !!initialization?.username)}
       />
+      
+      {/* Debug: Manual trigger button for testing */}
+      {!showWelcome && initialization?.username && (
+        <button
+          onClick={() => setShowWelcome(true)}
+          className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-50 text-sm"
+        >
+          🎬 Test Animation
+        </button>
+      )}
     </>
   );
 };
