@@ -94,10 +94,11 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="absolute left-1/2 transform -translate-x-1/2 bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-[90%] md:w-full text-center shadow-2xl"
+            className="absolute bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
             style={{ 
               top: `${popupTop}px`,
-              maxWidth: '24rem' 
+              left: '50%',
+              transform: 'translateX(-50%)'
             }}
           >
             {/* Welcome Header */}
