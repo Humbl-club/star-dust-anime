@@ -41,13 +41,13 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
 
     findSearchBar();
 
-    // Simple animation sequence
+    // Simple animation sequence - extended for quote reading
     const timeouts = [
       setTimeout(() => setStep(1), 300),  // Show popup
       setTimeout(() => setStep(2), 800),  // Show username
       setTimeout(() => setStep(3), 1300), // Show tier
       setTimeout(() => setStep(4), 1800), // Show thank you
-      setTimeout(() => onComplete(), 4500) // Auto close
+      setTimeout(() => onComplete(), 6500) // Auto close - extended by 2 seconds
     ];
 
     return () => timeouts.forEach(clearTimeout);
@@ -94,9 +94,11 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
+            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-6 md:p-8 w-[95%] sm:w-[90%] md:w-96 max-w-sm text-center shadow-2xl mx-4"
             style={{ 
-              marginTop: `${popupTop}px`
+              marginTop: `${Math.max(popupTop, 20)}px`,
+              maxHeight: 'calc(100vh - 120px)',
+              overflowY: 'auto'
             }}
           >
             {/* Welcome Header */}
@@ -106,7 +108,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
               transition={{ delay: 0.1 }}
               className="mb-6"
             >
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                 Welcome!
               </h1>
               <div className="flex justify-center">
