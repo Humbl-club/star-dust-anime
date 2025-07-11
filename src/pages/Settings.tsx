@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
+      <EmailVerificationBanner />
       
       {/* Header */}
       <div className="relative pt-24 pb-12 mb-8">

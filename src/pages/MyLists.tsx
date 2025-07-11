@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RatingComponent } from "@/components/RatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
 import { Navigation } from "@/components/Navigation";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { 
   DndContext, 
@@ -318,6 +319,7 @@ const MyLists = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
       <Navigation />
+      <EmailVerificationBanner />
       {/* Header with animated background */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-glow to-accent text-primary-foreground pt-24 pb-12">
         <div className="absolute inset-0 opacity-20">

@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { User, Sparkles, BookOpen, Heart, TrendingUp, Crown, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
+      <EmailVerificationBanner />
       
       {/* Header */}
       <div className="relative pt-24 pb-12 mb-8">
