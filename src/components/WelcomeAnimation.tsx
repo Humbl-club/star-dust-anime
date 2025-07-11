@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { X, Sparkles } from 'lucide-react';
 
@@ -14,12 +13,33 @@ interface WelcomeAnimationProps {
 
 export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVisible }: WelcomeAnimationProps) => {
   const [step, setStep] = useState(0);
+  const [searchBarPosition, setSearchBarPosition] = useState<{ top: number; height: number } | null>(null);
 
   useEffect(() => {
     if (!isVisible) {
       setStep(0);
       return;
     }
+
+    // Find search bar position
+    const findSearchBar = () => {
+      // Look for the search container in hero section
+      const heroSection = document.querySelector('section');
+      const searchContainer = heroSection?.querySelector('[class*="glass-card"]');
+      
+      if (searchContainer) {
+        const rect = searchContainer.getBoundingClientRect();
+        setSearchBarPosition({
+          top: rect.top + window.scrollY,
+          height: rect.height
+        });
+      } else {
+        // Fallback positioning
+        setSearchBarPosition({ top: window.innerHeight * 0.5, height: 60 });
+      }
+    };
+
+    findSearchBar();
 
     // Simple animation sequence
     const timeouts = [
@@ -33,7 +53,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
     return () => timeouts.forEach(clearTimeout);
   }, [isVisible, onComplete]);
 
-  if (!isVisible) return null;
+  if (!isVisible || !searchBarPosition) return null;
 
   // Anime quotes for thank you message
   const animeQuotes = [
@@ -45,32 +65,39 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
   
   const randomQuote = animeQuotes[Math.floor(Math.random() * animeQuotes.length)];
 
-  const welcomeContent = (
+  // Calculate popup position relative to search bar
+  const popupTop = Math.max(searchBarPosition.top - 350, 100); // Position above search bar with minimum top margin
+
+  return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
     >
       {/* Skip Button */}
       <Button
         onClick={onComplete}
         variant="ghost"
         size="sm"
-        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10"
+        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10 z-60"
       >
         <X className="w-4 h-4" />
       </Button>
 
-      {/* Main Popup */}
+      {/* Main Popup - Positioned relative to search bar */}
       <AnimatePresence mode="wait">
         {step >= 1 && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.8, opacity: 0, y: -50 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.8, opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl"
+            className="absolute left-1/2 transform -translate-x-1/2 bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-[90%] md:w-full text-center shadow-2xl"
+            style={{ 
+              top: `${popupTop}px`,
+              maxWidth: '24rem' 
+            }}
           >
             {/* Welcome Header */}
             <motion.div
@@ -147,6 +174,4 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
       </AnimatePresence>
     </motion.div>
   );
-
-  return createPortal(welcomeContent, document.body);
 };
