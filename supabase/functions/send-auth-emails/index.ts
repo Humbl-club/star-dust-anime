@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     // Send email via Resend
     const { data, error } = await resend.emails.send({
-      from: 'AniTracker <onboarding@resend.dev>',
+      from: 'AniTracker <noreply@anithing.space>',
       to: [userData.email],
       subject: '🎌 Welcome to AniTracker - Confirm Your Email',
       html,
