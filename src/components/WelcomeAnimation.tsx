@@ -113,7 +113,7 @@ const useSearchBarTargeting = () => {
     
     // Target point for briefcase deposit (search bar center)
     const targetX = found ? searchX + (searchWidth / 2) - 50 : width / 2 - 50; // Adjust for figure width
-    const targetY = found ? searchY + (searchHeight / 2) - 50 : height / 2 - 50; // Adjust for figure height
+    const targetY = found ? searchY + (searchHeight / 2) : height * 0.6; // Position at search bar center
     
     // Exit point (right side)
     const exitX = width + 100;
