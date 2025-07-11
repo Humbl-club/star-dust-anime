@@ -239,23 +239,34 @@ const SecretAgentWithBriefcase = ({
             contain: 'layout style paint'
           }}
         >
-          {/* Head */}
-          <motion.circle 
-            cx="50" cy="20" r="8" 
-            fill="hsl(var(--foreground))" 
-            stroke="hsl(var(--primary))" 
-            strokeWidth="1.5"
+          {/* Head with spy hat */}
+          <motion.g
             animate={{
-              y: phase === 1 && !reducedMotion ? [0, -1, 0] : 0
+              y: phase === 1 && !reducedMotion ? [0, -1, 0] : 0,
+              // Suspicious head turning during approach and deposit
+              rotateZ: phase === 1 || phase === 2 ? [0, -15, 15, -10, 10, 0] : 0
             }}
             transition={{
-              duration: 0.8,
-              repeat: phase === 1 ? Infinity : 0,
-              ease: "easeInOut"
+              y: { duration: 0.8, repeat: phase === 1 ? Infinity : 0, ease: "easeInOut" },
+              rotateZ: { duration: 2.5, repeat: (phase === 1 || phase === 2) ? Infinity : 0, ease: "easeInOut" }
             }}
-          />
+            style={{ transformOrigin: "50px 20px" }}
+          >
+            {/* Head */}
+            <circle 
+              cx="50" cy="20" r="8" 
+              fill="hsl(var(--foreground))" 
+              stroke="hsl(var(--primary))" 
+              strokeWidth="1.5"
+            />
+            
+            {/* Spy fedora hat */}
+            <ellipse cx="50" cy="16" rx="12" ry="3" fill="hsl(var(--muted-foreground))" />
+            <ellipse cx="50" cy="14" rx="8" ry="4" fill="hsl(var(--muted-foreground))" />
+            <rect x="47" y="12" width="6" height="2" fill="hsl(var(--foreground))" rx="1" />
+          </motion.g>
           
-          {/* Eyes */}
+          {/* Sunglasses */}
           <motion.g
             animate={{
               scaleY: phase === 3 && !reducedMotion ? [1, 0.2, 1] : 1
@@ -265,12 +276,27 @@ const SecretAgentWithBriefcase = ({
               repeat: phase === 3 ? 2 : 0
             }}
           >
-            <circle cx="47" cy="18" r="1" fill="hsl(var(--primary))" />
-            <circle cx="53" cy="18" r="1" fill="hsl(var(--primary))" />
+            <rect x="45" y="17" width="4" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.8" />
+            <rect x="51" y="17" width="4" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.8" />
+            <line x1="49" y1="18.5" x2="51" y2="18.5" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" />
           </motion.g>
 
-          {/* Body */}
-          <line x1="50" y1="28" x2="50" y2="60" stroke="hsl(var(--foreground))" strokeWidth="2" />
+          {/* Body with trench coat */}
+          <line x1="50" y1="28" x2="50" y2="60" stroke="hsl(var(--foreground))" strokeWidth="3" />
+          
+          {/* Trench coat outline */}
+          <path 
+            d="M 42 35 Q 50 33 58 35 L 60 55 Q 58 57 50 58 Q 42 57 40 55 Z" 
+            fill="none" 
+            stroke="hsl(var(--muted-foreground))" 
+            strokeWidth="1.5"
+            opacity="0.7"
+          />
+          
+          {/* Coat buttons */}
+          <circle cx="48" cy="40" r="0.8" fill="hsl(var(--muted-foreground))" />
+          <circle cx="48" cy="45" r="0.8" fill="hsl(var(--muted-foreground))" />
+          <circle cx="48" cy="50" r="0.8" fill="hsl(var(--muted-foreground))" />
           
           {/* Arms */}
           <motion.line
@@ -321,7 +347,7 @@ const SecretAgentWithBriefcase = ({
             }}
           />
 
-          {/* Briefcase (carried until phase 2) */}
+          {/* Briefcase with security chain (carried until phase 2) */}
           {phase < 2 && (
             <motion.g
               initial={{ x: 70, y: 40 }}
@@ -334,19 +360,41 @@ const SecretAgentWithBriefcase = ({
                 ease: "easeInOut"
               }}
             >
+              {/* Security chain from wrist to briefcase */}
+              <path 
+                d="M -5 0 Q 0 -2 3 0 Q 6 2 9 0 Q 12 -2 15 0" 
+                stroke="hsl(var(--muted-foreground))" 
+                strokeWidth="0.8" 
+                fill="none"
+                opacity="0.6"
+              />
+              
               <rect x="0" y="0" width="12" height="8" rx="1" fill="hsl(var(--primary))" stroke="hsl(var(--border))" strokeWidth="0.5" />
               <text x="6" y="3" fontSize="2" fill="hsl(var(--background))" textAnchor="middle">TOP</text>
               <text x="6" y="6" fontSize="2" fill="hsl(var(--background))" textAnchor="middle">SECRET</text>
+              
+              {/* Lock mechanism */}
+              <rect x="10" y="3" width="1.5" height="2" rx="0.3" fill="hsl(var(--muted-foreground))" />
             </motion.g>
           )}
 
-          {/* Speed lines during movement */}
+          {/* Stealth smoke trails during movement */}
           {(phase === 1 || phase === 4) && !reducedMotion && (
             <motion.g
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.7, 0], x: phase === 4 ? [0, -10] : [0, 10] }}
-              transition={{ duration: 0.3, repeat: Infinity }}
+              animate={{ 
+                opacity: [0, 0.5, 0], 
+                x: phase === 4 ? [0, -15] : [0, 15],
+                scale: [0.8, 1.2, 0.8]
+              }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
             >
+              {/* Stealth smoke particles */}
+              <circle cx={phase === 4 ? "25" : "75"} cy="35" r="2" fill="hsl(var(--muted-foreground))" opacity="0.3" />
+              <circle cx={phase === 4 ? "20" : "80"} cy="50" r="1.5" fill="hsl(var(--muted-foreground))" opacity="0.2" />
+              <circle cx={phase === 4 ? "30" : "70"} cy="42" r="1" fill="hsl(var(--muted-foreground))" opacity="0.25" />
+              
+              {/* Speed lines */}
               <line x1={phase === 4 ? "20" : "80"} y1="30" x2={phase === 4 ? "10" : "90"} y2="32" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
               <line x1={phase === 4 ? "25" : "75"} y1="45" x2={phase === 4 ? "15" : "85"} y2="47" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.4" />
             </motion.g>
@@ -633,23 +681,24 @@ export const WelcomeAnimation = ({
   const capabilities = useDeviceCapabilities();
   const { dimensions, positioning } = useSearchBarTargeting();
   
-  // Enhanced timing configuration (slower, more cinematic)
+  // Enhanced timing configuration (optimized for better UX)
   const timingConfig = useMemo(() => {
-    const cinematicMultiplier = 3; // Much slower for cinematic effect
+    const cinematicMultiplier = capabilities.performanceLevel === 'high' ? 1.5 : 
+                               capabilities.performanceLevel === 'medium' ? 1.3 : 1.2;
     
     return {
-      totalDuration: 20, // 20 seconds total
+      totalDuration: 12, // 12 seconds total for better UX
       phases: {
-        entry: 1000 * cinematicMultiplier,     // 3 seconds: Agent enters from left
-        deposit: 3000 * cinematicMultiplier,   // 9 seconds: Agent deposits briefcase
-        salute: 5000 * cinematicMultiplier,    // 15 seconds: Agent salutes
-        exit: 6000 * cinematicMultiplier,      // 18 seconds: Agent exits to right
-        explosion: 7000 * cinematicMultiplier, // 21 seconds: Briefcase explodes
-        username: 8500 * cinematicMultiplier,  // 25.5 seconds: Username reveal
-        welcome: 10000 * cinematicMultiplier   // 30 seconds: Welcome message
+        entry: 1000 * cinematicMultiplier,     // 1.5 seconds: Agent enters from left
+        deposit: 2000 * cinematicMultiplier,   // 3 seconds: Agent deposits briefcase
+        salute: 3000 * cinematicMultiplier,    // 4.5 seconds: Agent salutes
+        exit: 3500 * cinematicMultiplier,      // 5.25 seconds: Agent exits to right
+        explosion: 4000,                       // 4 seconds: Briefcase explodes (fixed timing)
+        username: 6000,                        // 6 seconds: Username reveal (fixed timing)
+        welcome: 8000                          // 8 seconds: Welcome message (fixed timing)
       }
     };
-  }, []);
+  }, [capabilities.performanceLevel]);
 
   // Enhanced skip functionality
   const handleSkip = useCallback(() => {
