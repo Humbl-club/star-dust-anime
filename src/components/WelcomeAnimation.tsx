@@ -13,12 +13,33 @@ interface WelcomeAnimationProps {
 
 export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVisible }: WelcomeAnimationProps) => {
   const [step, setStep] = useState(0);
+  const [searchBarPosition, setSearchBarPosition] = useState<{ top: number; height: number } | null>(null);
 
   useEffect(() => {
     if (!isVisible) {
       setStep(0);
       return;
     }
+
+    // Find search bar position
+    const findSearchBar = () => {
+      // Look for the search container in hero section
+      const heroSection = document.querySelector('section');
+      const searchContainer = heroSection?.querySelector('[class*="glass-card"]');
+      
+      if (searchContainer) {
+        const rect = searchContainer.getBoundingClientRect();
+        setSearchBarPosition({
+          top: rect.top + window.scrollY,
+          height: rect.height
+        });
+      } else {
+        // Fallback positioning
+        setSearchBarPosition({ top: window.innerHeight * 0.4, height: 60 });
+      }
+    };
+
+    findSearchBar();
 
     // Simple animation sequence
     const timeouts = [
@@ -32,7 +53,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
     return () => timeouts.forEach(clearTimeout);
   }, [isVisible, onComplete]);
 
-  if (!isVisible) return null;
+  if (!isVisible || !searchBarPosition) return null;
 
   // Anime quotes for thank you message
   const animeQuotes = [
@@ -44,12 +65,16 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
   
   const randomQuote = animeQuotes[Math.floor(Math.random() * animeQuotes.length)];
 
+  // Calculate popup position to align with search bar
+  const searchBarCenter = searchBarPosition.top + (searchBarPosition.height / 2);
+  const popupTop = searchBarCenter - 200; // Center the popup vertically on search bar
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
     >
       {/* Skip Button */}
       <Button
@@ -61,7 +86,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
         <X className="w-4 h-4" />
       </Button>
 
-      {/* Main Popup - Centered in viewport */}
+      {/* Main Popup - Horizontally centered, vertically aligned with search bar */}
       <AnimatePresence mode="wait">
         {step >= 1 && (
           <motion.div
@@ -69,7 +94,12 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
+            className="absolute bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
+            style={{ 
+              top: `${popupTop}px`,
+              left: '50%',
+              transform: 'translateX(-50%)'
+            }}
           >
             {/* Welcome Header */}
             <motion.div
