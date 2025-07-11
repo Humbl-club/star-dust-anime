@@ -160,27 +160,70 @@ export const authService = {
 
   async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
     try {
+      // Sanitize email input
+      const sanitizedEmail = sanitizeInput(email.toLowerCase());
+      
+      // Validate email format
+      const emailValidation = validateEmail(sanitizedEmail);
+      if (!emailValidation.isValid) {
+        return { 
+          error: { message: emailValidation.errors[0] || 'Please enter a valid email address' },
+          message: 'Invalid email format'
+        };
+      }
+
+      console.log('Resending confirmation to:', sanitizedEmail);
+      
+      // Try custom email service first, fallback to Supabase
+      try {
+        const { error: customError } = await supabase.functions.invoke('send-auth-emails', {
+          body: {
+            email: sanitizedEmail,
+            email_action_type: 'signup',
+            redirect_to: `${window.location.origin}/`,
+            token: 'RESEND_REQUEST',
+            token_hash: 'RESEND_REQUEST'
+          }
+        });
+
+        if (!customError) {
+          return { 
+            error: null,
+            message: 'Confirmation email sent successfully! Please check your inbox.'
+          };
+        }
+        
+        console.log('Custom email service failed, falling back to Supabase:', customError);
+      } catch (customError) {
+        console.log('Custom email service unavailable, using Supabase fallback:', customError);
+      }
+      
+      // Fallback to Supabase default
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: sanitizeInput(email),
+        email: sanitizedEmail,
         options: {
           emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (error) {
-        return { error };
+        console.error('Resend confirmation error:', error);
+        return { 
+          error: { message: error.message || 'Failed to resend confirmation email' },
+          message: 'Failed to resend email'
+        };
       }
 
       return { 
-        error: null, 
-        message: 'Confirmation email sent! Please check your inbox.' 
+        error: null,
+        message: 'Confirmation email sent! Please check your inbox.'
       };
     } catch (error: any) {
-      return {
-        error: {
-          message: 'Failed to resend confirmation email.'
-        }
+      console.error('Unexpected error during resend confirmation:', error);
+      return { 
+        error: { message: 'An unexpected error occurred. Please try again.' },
+        message: 'Unexpected error'
       };
     }
   }

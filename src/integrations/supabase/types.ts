@@ -1114,6 +1114,10 @@ export type Database = {
           random_value: number
         }[]
       }
+      process_auth_webhook: {
+        Args: { event_type: string; user_data: Json }
+        Returns: Json
+      }
       safe_date_cast: {
         Args: { date_string: string }
         Returns: string
