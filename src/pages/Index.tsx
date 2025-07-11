@@ -39,12 +39,20 @@ const Index = () => {
   useEffect(() => {
     // Check for justSignedUp flag to trigger welcome animation
     const justSignedUp = sessionStorage.getItem('justSignedUp');
+    console.log('🎬 Index checking for welcome animation:', {
+      justSignedUp: !!justSignedUp,
+      user: !!user,
+      isInitialized,
+      needsWelcome,
+      isFirstTime
+    });
+    
     if (justSignedUp && user && isInitialized) {
+      console.log('✅ Triggering welcome animation!');
       setShowWelcomeAnimation(true);
-      // Clear the flag so animation doesn't show again
-      sessionStorage.removeItem('justSignedUp');
+      // Don't clear the flag here - let the animation component handle it
     }
-  }, [user, isInitialized]);
+  }, [user, isInitialized, needsWelcome, isFirstTime]);
 
   // Get anime data from API
   const { data: allAnime, loading } = useSimpleNewApiData({ 

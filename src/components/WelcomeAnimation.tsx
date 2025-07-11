@@ -46,7 +46,7 @@ const useSearchBarTargeting = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Find search bar position
+  // Find search bar position with enhanced detection
   useEffect(() => {
     const findSearchBar = () => {
       // Multiple selectors to find the search input
@@ -604,6 +604,19 @@ export const WelcomeAnimation = ({
 }: WelcomeAnimationProps) => {
   // Backend integration
   const { initialization, isInitialized } = useUserInitialization();
+  
+  // Debug logging for animation triggering
+  useEffect(() => {
+    console.log('🎬 WelcomeAnimation Debug:', {
+      isVisible,
+      isFirstTime,
+      initialization: !!initialization,
+      isInitialized,
+      justSignedUp: sessionStorage.getItem('justSignedUp'),
+      propUsername,
+      propTier
+    });
+  }, [isVisible, isFirstTime, initialization, isInitialized, propUsername, propTier]);
   
   // Use backend data if available, fall back to props
   const username = initialization?.username || propUsername || 'Agent';

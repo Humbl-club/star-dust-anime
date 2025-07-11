@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ interface NavigationProps {
 
 export const Navigation = ({ onSearch }: NavigationProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const { stats } = useSimpleGameification();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish } = useNamePreference();
@@ -180,10 +181,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             ))}
           </div>
 
-          {/* Search Bar with Real-time Dropdown - Only on large screens */}
-          <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-xs mx-4">
-            <WorkingSearchDropdown placeholder="Search anime..." />
-          </div>
+          {/* Search Bar with Real-time Dropdown - Only on large screens and NOT on homepage */}
+          {location.pathname !== "/" && (
+            <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-xs mx-4">
+              <WorkingSearchDropdown placeholder="Search anime..." />
+            </div>
+          )}
 
           {/* Language Toggle */}
           <div className="hidden lg:flex items-center space-x-2 mr-4">
