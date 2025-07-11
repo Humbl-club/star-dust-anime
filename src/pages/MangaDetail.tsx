@@ -26,7 +26,7 @@ import { AddToListButton } from "@/components/AddToListButton";
 import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
 
 import { Navigation } from "@/components/Navigation";
-import { ParticleEffect } from "@/components/ParticleEffect";
+
 import { RichSynopsis } from "@/components/RichSynopsis";
 
 const MangaDetail = () => {
@@ -67,19 +67,9 @@ const MangaDetail = () => {
     );
   }
 
-  const getParticleTheme = (genres: string[]) => {
-    if (genres.some(g => g.toLowerCase().includes('action'))) return 'action';
-    if (genres.some(g => g.toLowerCase().includes('fantasy'))) return 'fantasy';
-    if (genres.some(g => g.toLowerCase().includes('romance'))) return 'romance';
-    return 'default';
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
-      <ParticleEffect 
-        theme={manga.genres ? getParticleTheme(manga.genres) : 'default'} 
-        className="z-0" 
-      />
       <Navigation />
       
       {/* Hero Background with blurred cover */}

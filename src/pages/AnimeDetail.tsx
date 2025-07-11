@@ -31,7 +31,7 @@ import { SEOMetaTags } from "@/components/SEOMetaTags";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { ShareButton } from "@/components/ShareButton";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
-import { ParticleEffect } from "@/components/ParticleEffect";
+
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { EnhancedTrailerPlayer } from "@/components/EnhancedTrailerPlayer";
 
@@ -86,25 +86,11 @@ const AnimeDetail = () => {
     );
   }
 
-  // Determine particle theme based on genres
-  const getParticleTheme = (genres: string[]) => {
-    if (genres.some(g => g.toLowerCase().includes('action'))) return 'action';
-    if (genres.some(g => g.toLowerCase().includes('fantasy'))) return 'fantasy';
-    if (genres.some(g => g.toLowerCase().includes('sci-fi'))) return 'sci-fi';
-    if (genres.some(g => g.toLowerCase().includes('romance'))) return 'romance';
-    return 'default';
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
       {/* SEO Meta Tags */}
       <AnimeMetaTags anime={anime} />
-      
-      {/* Particle Effect based on genre */}
-      <ParticleEffect 
-        theme={anime.genres ? getParticleTheme(anime.genres) : 'default'} 
-        className="z-0" 
-      />
       
       <Navigation />
       

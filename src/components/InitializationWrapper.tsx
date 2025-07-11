@@ -1,181 +1,94 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInitialization } from '@/hooks/useUserInitialization';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface InitializationWrapperProps {
   children: React.ReactNode;
 }
 
-export const InitializationWrapper = ({ children }: InitializationWrapperProps) => {
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [hasShownWelcome, setHasShownWelcome] = useState(false);
+export const InitializationWrapper: React.FC<InitializationWrapperProps> = ({ children }) => {
   const { user } = useAuth();
-  
-  // Only run initialization logic for authenticated users
   const { 
     initialization, 
     isLoading, 
     isError, 
-    isFirstTime,
+    error, 
+    isFirstTime, 
     needsWelcome, 
-    isInitialized,
-    repairAccount,
-    isRepairing
+    isInitialized
   } = useUserInitialization();
 
-  // Auto-trigger welcome animation for initialized users
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+
+  // Trigger welcome animation for new or uninitialized users
   useEffect(() => {
-    if (user && isInitialized && !hasShownWelcome && (needsWelcome || isFirstTime)) {
-      console.log('🎬 Auto-triggering welcome animation:', { 
-        needsWelcome, 
-        isFirstTime, 
-        username: initialization?.username,
-        tier: initialization?.tier 
-      });
-      setShowWelcome(true);
-      setHasShownWelcome(true);
+    if (user && needsWelcome && !isLoading && !showWelcomeAnimation) {
+      setShowWelcomeAnimation(true);
     }
-  }, [user, isInitialized, needsWelcome, isFirstTime, hasShownWelcome, initialization?.username, initialization?.tier]);
+  }, [user, needsWelcome, isLoading, showWelcomeAnimation]);
 
-  // Debug logging for initialization state
-  console.log('🔧 InitializationWrapper Debug:', {
-    hasUser: !!user,
-    showWelcome,
-    isFirstTime,
-    needsWelcome,
-    isInitialized,
-    hasShownWelcome,
-    initialization: !!initialization,
-    username: initialization?.username,
-    tier: initialization?.tier
-  });
-
-  // Single welcome animation logic for both authenticated and unauthenticated users
-  const handleTestAnimation = useCallback(() => {
-    console.log('🎬 Test button clicked, setting showWelcome to true');
-    setShowWelcome(true);
-  }, []);
-
-  const handleAnimationComplete = useCallback(() => {
-    setShowWelcome(false);
-  }, []);
-
-  // If no user is authenticated, just render children with test button
+  // For unauthenticated users, just render children
   if (!user) {
-    return (
-      <>
-        {children}
-        {/* Test Animation Button - Always visible for testing */}
-        {!showWelcome && (
-          <button
-            onClick={handleTestAnimation}
-            className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
-          >
-            🎬 Test Welcome Animation
-          </button>
-        )}
-        {/* Single animation instance for unauthenticated users */}
-        {showWelcome && (
-          <WelcomeAnimation
-            key="unauth-welcome"
-            isFirstTime={true}
-            username="TestUser"
-            tier="LEGENDARY"
-            onComplete={handleAnimationComplete}
-            isVisible={showWelcome}
-          />
-        )}
-      </>
-    );
+    return <>{children}</>;
   }
 
-  // Loading state (only for authenticated users)
+  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Setting up your anime profile...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-96 glass-card">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+            <CardTitle className="text-gradient-primary">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
 
-  // Error state with repair option
-  if (isError || !isInitialized) {
+  // Error state
+  if (isError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="flex items-center justify-center">
-              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-orange-500" />
-              </div>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md glass-card border-destructive/20">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 bg-destructive/10 rounded-full w-fit">
+              <AlertCircle className="w-6 h-6 text-destructive" />
             </div>
-            
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Setup Incomplete</h2>
-              <p className="text-muted-foreground">
-                There was an issue setting up your profile. Don't worry, we can fix this!
-              </p>
-            </div>
-
-            <Button 
-              onClick={() => repairAccount()}
-              disabled={isRepairing}
-              variant="hero"
-              className="w-full"
-            >
-              {isRepairing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Fixing Account...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Fix My Account
-                </>
-              )}
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>
+              {error?.message || 'Something went wrong'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Refresh Page
             </Button>
-
-            <p className="text-xs text-muted-foreground">
-              This will assign you a username and set up your gamification profile.
-            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  // Render children with welcome animation
   return (
     <>
       {children}
-      {/* Single animation instance for authenticated users */}
-      {showWelcome && (
-        <WelcomeAnimation
-          key="auth-welcome"
-          isFirstTime={isFirstTime}
-          username={initialization?.username || "AnimeFan"}
-          tier={initialization?.tier || "LEGENDARY"}
-          onComplete={handleAnimationComplete}
-          isVisible={showWelcome}
-        />
-      )}
       
-      {/* Test Animation Button - Always visible for testing */}
-      {!showWelcome && (
-        <button
-          onClick={handleTestAnimation}
-          className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
-        >
-          🎬 Test Welcome Animation
-        </button>
-      )}
+      <WelcomeAnimation
+        isFirstTime={isFirstTime}
+        username={initialization?.username}
+        tier={initialization?.tier}
+        onComplete={() => setShowWelcomeAnimation(false)}
+        isVisible={showWelcomeAnimation}
+      />
     </>
   );
 };

@@ -12,10 +12,7 @@ import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
-import { WelcomeAnimation } from "@/components/WelcomeAnimation";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
-import { useEmailVerification } from "@/hooks/useEmailVerification";
-import { useUserInitialization } from "@/hooks/useUserInitialization";
 
 import { LegalFooter } from "@/components/LegalFooter";
 
@@ -26,33 +23,7 @@ const Index = () => {
   const { stats, formatCount } = useStats();
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
-
-  const { 
-    initialization, 
-    isFirstTime,
-    needsWelcome, 
-    isInitialized
-  } = useUserInitialization();
-
-  useEffect(() => {
-    // Check for justSignedUp flag to trigger welcome animation
-    const justSignedUp = sessionStorage.getItem('justSignedUp');
-    console.log('🎬 Index checking for welcome animation:', {
-      justSignedUp: !!justSignedUp,
-      user: !!user,
-      isInitialized,
-      needsWelcome,
-      isFirstTime
-    });
-    
-    if (justSignedUp && user && isInitialized) {
-      console.log('✅ Triggering welcome animation!');
-      setShowWelcomeAnimation(true);
-      // Don't clear the flag here - let the animation component handle it
-    }
-  }, [user, isInitialized, needsWelcome, isFirstTime]);
 
   // Get anime data from API
   const { data: allAnime, loading } = useSimpleNewApiData({ 
@@ -200,21 +171,6 @@ const Index = () => {
   return (
     <div className="min-h-screen relative">
       <Navigation onSearch={handleSearch} />
-      
-      {/* Welcome Animation - Perfect Top Overlay Positioning */}
-      <WelcomeAnimation
-        isFirstTime={isFirstTime}
-        username={initialization?.username}
-        tier={initialization?.tier}
-        onComplete={() => {
-          setShowWelcomeAnimation(false);
-          // Trigger email popup 1 second after welcome animation completes
-          setTimeout(() => {
-            setTriggerEmailPopup(true);
-          }, 1000);
-        }}
-        isVisible={showWelcomeAnimation}
-      />
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />

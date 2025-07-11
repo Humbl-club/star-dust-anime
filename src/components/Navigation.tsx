@@ -30,7 +30,7 @@ import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
-import { AnimatedLogo } from "@/components/AnimatedLogo";
+
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { Switch } from "@/components/ui/switch";
@@ -132,7 +132,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group touch-friendly">
-            <AnimatedLogo size="md" />
+            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold group-hover:opacity-80 transition-opacity">
                 <span className="text-accent">Ani</span>
