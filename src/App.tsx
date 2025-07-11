@@ -102,11 +102,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-background pb-16 lg:pb-0">
       <Routes>
-        <Route path="/" element={
-          <InitializationWrapper>
-            <Index />
-          </InitializationWrapper>
-        } />
+        <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/anime" element={<Anime />} />
         <Route path="/anime/:id" element={<AnimeDetail />} />
