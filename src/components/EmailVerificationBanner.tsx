@@ -4,31 +4,41 @@ import { AlertCircle, X, Mail, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export const EmailVerificationBanner = () => {
   const { 
     showVerificationPrompt, 
     daysRemaining, 
-    verifyEmail, 
     isLoading 
   } = useEmailVerification();
+  const { user, resendConfirmation } = useAuth();
   const [isVisible, setIsVisible] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleVerifyEmail = async () => {
+    if (!user?.email) return;
+    
     setIsVerifying(true);
     try {
-      await verifyEmail();
-      toast({
-        title: "Email Verified!",
-        description: "Your email has been successfully verified. You now have full access to all features.",
-      });
-      setIsVisible(false);
+      const result = await resendConfirmation(user.email);
+      if (result.error) {
+        toast({
+          title: "Failed to Send Email",
+          description: result.error.message || "There was an error sending the verification email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Verification Email Sent!",
+          description: result.message || "Please check your inbox and click the verification link.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Verification Failed",
-        description: "There was an error verifying your email. Please try again.",
+        description: "There was an error sending the verification email. Please try again.",
         variant: "destructive",
       });
     } finally {

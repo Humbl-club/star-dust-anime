@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { X, Mail, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface EmailVerificationCornerPopupProps {
   isVisible: boolean;
@@ -10,18 +11,37 @@ interface EmailVerificationCornerPopupProps {
 }
 
 export const EmailVerificationCornerPopup = ({ isVisible, onDismiss }: EmailVerificationCornerPopupProps) => {
-  const { resendConfirmation } = useAuth();
+  const { user, resendConfirmation } = useAuth();
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleResendConfirmation = async () => {
+    if (!user?.email) return;
+    
     setIsResending(true);
     try {
-      await resendConfirmation('');
-      setResendSuccess(true);
-      setTimeout(() => setResendSuccess(false), 3000);
+      const result = await resendConfirmation(user.email);
+      if (result.error) {
+        toast({
+          title: "Failed to Send Email",
+          description: result.error.message || "There was an error sending the verification email.",
+          variant: "destructive",
+        });
+      } else {
+        setResendSuccess(true);
+        setTimeout(() => setResendSuccess(false), 3000);
+        toast({
+          title: "Verification Email Sent!",
+          description: result.message || "Please check your inbox and click the verification link.",
+        });
+      }
     } catch (error) {
       console.error('Failed to resend confirmation:', error);
+      toast({
+        title: "Error",
+        description: "There was an error sending the verification email. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsResending(false);
     }

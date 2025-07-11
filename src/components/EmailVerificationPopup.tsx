@@ -49,7 +49,16 @@ export const EmailVerificationPopup = ({ triggerShow }: EmailVerificationPopupPr
     
     setIsResending(true);
     try {
-      await resendConfirmation(user.email!);
+      const result = await resendConfirmation(user.email!);
+      
+      if (result.error) {
+        toast({
+          title: "Failed to Send Email",
+          description: result.error.message || "There was an error sending the verification email.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       const provider = getEmailProvider(user.email!);
       
