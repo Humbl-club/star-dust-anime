@@ -65,8 +65,8 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
   
   const randomQuote = animeQuotes[Math.floor(Math.random() * animeQuotes.length)];
 
-  // Calculate popup position relative to search bar
-  const popupTop = Math.max(searchBarPosition.top - 350, 100); // Position above search bar with minimum top margin
+  // Calculate popup position relative to search bar - slightly more centered
+  const popupTop = Math.max(searchBarPosition.top - 300, 120); // Position above search bar with better centering
 
   return (
     <motion.div
