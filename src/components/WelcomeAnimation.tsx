@@ -204,14 +204,20 @@ export const WelcomeAnimation = ({
 
   // Simple effect to start animation when visible
   useEffect(() => {
+    console.log('🎬 WelcomeAnimation useEffect:', { isVisible, skipRequested, phase, showText });
+    
     if (!isVisible) {
+      console.log('🎬 Animation not visible, resetting states');
       setPhase(0);
       setShowText(false);
       setSkipRequested(false);
       return;
     }
 
+    console.log('🎬 Animation is visible, starting sequence');
+
     if (skipRequested) {
+      console.log('🎬 Skip requested, calling onComplete');
       onComplete();
       return;
     }
@@ -219,15 +225,37 @@ export const WelcomeAnimation = ({
     // Start animation sequence immediately
     const timeouts: NodeJS.Timeout[] = [];
     
+    console.log('🎬 Setting up animation timeouts');
     // Fast timing for testing
-    timeouts.push(setTimeout(() => setPhase(1), 500));      // Agent entry
-    timeouts.push(setTimeout(() => setPhase(2), 1000));     // Briefcase deposit  
-    timeouts.push(setTimeout(() => setPhase(3), 1500));     // Surveillance
-    timeouts.push(setTimeout(() => setPhase(4), 2000));     // Agent exit
-    timeouts.push(setTimeout(() => setShowText(true), 2500)); // Show text
-    timeouts.push(setTimeout(() => onComplete(), 4000));    // Complete
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Phase 1: Agent entry');
+      setPhase(1);
+    }, 500));
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Phase 2: Briefcase deposit');
+      setPhase(2);
+    }, 1000));
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Phase 3: Surveillance');
+      setPhase(3);
+    }, 1500));
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Phase 4: Agent exit');
+      setPhase(4);
+    }, 2000));
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Show text');
+      setShowText(true);
+    }, 2500));
+    timeouts.push(setTimeout(() => {
+      console.log('🎬 Animation complete, calling onComplete');
+      onComplete();
+    }, 4000));
 
-    return () => timeouts.forEach(clearTimeout);
+    return () => {
+      console.log('🎬 Cleaning up timeouts');
+      timeouts.forEach(clearTimeout);
+    };
   }, [isVisible, skipRequested, onComplete]);
 
   // Skip animation handler

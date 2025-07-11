@@ -41,6 +41,7 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
 
   // Single welcome animation logic for both authenticated and unauthenticated users
   const handleTestAnimation = useCallback(() => {
+    console.log('🎬 Test button clicked, setting showWelcome to true');
     setShowWelcome(true);
   }, []);
 
