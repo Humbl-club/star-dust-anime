@@ -97,20 +97,20 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     <>
       {children}
       <WelcomeAnimation
-        isFirstTime={isFirstTime}
-        username={initialization?.username}
-        tier={initialization?.tier}
+        isFirstTime={isFirstTime || true} // Allow testing without real first-time state
+        username={initialization?.username || "TestUser"} // Fallback for testing
+        tier={initialization?.tier || "LEGENDARY"} // Fallback tier for testing
         onComplete={() => setShowWelcome(false)}
-        isVisible={showWelcome && (isFirstTime || needsWelcome || !!initialization?.username)}
+        isVisible={showWelcome}
       />
       
-      {/* Debug: Manual trigger button for testing */}
-      {!showWelcome && initialization?.username && (
+      {/* Test Animation Button - Always visible for testing */}
+      {!showWelcome && (
         <button
           onClick={() => setShowWelcome(true)}
-          className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg z-50 text-sm"
+          className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
         >
-          🎬 Test Animation
+          🎬 Test Welcome Animation
         </button>
       )}
     </>
