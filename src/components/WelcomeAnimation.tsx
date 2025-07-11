@@ -98,9 +98,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
             style={{ 
               top: `${popupTop}px`,
               left: '50%',
-              transform: 'translateX(-50%)',
-              marginLeft: 'auto',
-              marginRight: 'auto'
+              transform: 'translateX(-50%)'
             }}
           >
             {/* Welcome Header */}
