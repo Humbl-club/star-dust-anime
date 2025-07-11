@@ -691,16 +691,19 @@ export const WelcomeAnimation = ({
     const cinematicMultiplier = capabilities.performanceLevel === 'high' ? 1.5 : 
                                capabilities.performanceLevel === 'medium' ? 1.3 : 1.2;
     
+    const agentExitTime = 3500 * cinematicMultiplier; // Dynamic agent exit timing
+    console.log(`🎬 WelcomeAnimation: Agent exit time calculated: ${agentExitTime}ms (multiplier: ${cinematicMultiplier})`);
+    
     return {
       totalDuration: 12, // 12 seconds total for better UX
       phases: {
-        entry: 1000 * cinematicMultiplier,     // 1.5 seconds: Agent enters from left
-        deposit: 2000 * cinematicMultiplier,   // 3 seconds: Agent deposits briefcase
-        salute: 3000 * cinematicMultiplier,    // 4.5 seconds: Agent salutes
-        exit: 3500 * cinematicMultiplier,      // 5.25 seconds: Agent exits to right
-        explosion: 6000,                       // 6 seconds: Briefcase explodes AFTER agent exits
-        username: 7000,                        // 7 seconds: Username emerges from explosion
-        welcome: 9000                          // 9 seconds: Welcome message emerges from explosion
+        entry: 1000 * cinematicMultiplier,     // Agent enters from left
+        deposit: 2000 * cinematicMultiplier,   // Agent deposits briefcase
+        salute: 3000 * cinematicMultiplier,    // Agent turns head and surveys
+        exit: agentExitTime,                   // Agent exits completely off screen
+        explosion: agentExitTime + 750,        // 0.75s after agent exits: Briefcase explodes
+        username: agentExitTime + 1750,        // 1s after explosion: Username emerges
+        welcome: agentExitTime + 3250          // 1.5s after username: Welcome message
       }
     };
   }, [capabilities.performanceLevel]);
@@ -767,14 +770,41 @@ export const WelcomeAnimation = ({
     const timeouts: NodeJS.Timeout[] = [];
     const { phases } = timingConfig;
     
-    // Animation sequence
-    timeouts.push(setTimeout(() => setPhase(1), phases.entry));
-    timeouts.push(setTimeout(() => setPhase(2), phases.deposit));
-    timeouts.push(setTimeout(() => setPhase(3), phases.salute));
-    timeouts.push(setTimeout(() => setPhase(4), phases.exit));
-    timeouts.push(setTimeout(() => setShowExplosion(true), phases.explosion));
-    timeouts.push(setTimeout(() => setShowUsername(true), phases.username));
-    timeouts.push(setTimeout(() => setShowWelcome(true), phases.welcome));
+    // Animation sequence with debug logging
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Phase 1: Agent enters (${phases.entry}ms)`);
+      setPhase(1);
+    }, phases.entry));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Phase 2: Agent deposits briefcase (${phases.deposit}ms)`);
+      setPhase(2);
+    }, phases.deposit));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Phase 3: Agent surveys area (${phases.salute}ms)`);
+      setPhase(3);
+    }, phases.salute));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Phase 4: Agent exits (${phases.exit}ms)`);
+      setPhase(4);
+    }, phases.exit));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 💥 EXPLOSION! (${phases.explosion}ms - ${phases.explosion - phases.exit}ms after agent exit)`);
+      setShowExplosion(true);
+    }, phases.explosion));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Username reveal (${phases.username}ms)`);
+      setShowUsername(true);
+    }, phases.username));
+    
+    timeouts.push(setTimeout(() => {
+      console.log(`🎬 Welcome message (${phases.welcome}ms)`);
+      setShowWelcome(true);
+    }, phases.welcome));
 
     return () => {
       timeouts.forEach(clearTimeout);
@@ -987,19 +1017,19 @@ export const WelcomeAnimation = ({
             {/* Welcome Message */}
             <AnimatePresence>
               {showWelcome && (
-                <motion.div
-                  initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1
-                  }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 150, 
-                    damping: 12,
-                    delay: 1
-                  }}
+                  <motion.div
+                    initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                    animate={{ 
+                      opacity: 1, 
+                      y: 0, 
+                      scale: 1
+                    }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 150, 
+                      damping: 12
+                      // Removed delay: welcome message appears immediately when state changes
+                    }}
                   className="absolute bottom-20 left-1/2 transform -translate-x-1/2 max-w-2xl w-full px-6"
                   style={{ zIndex: 25 }}
                 >
