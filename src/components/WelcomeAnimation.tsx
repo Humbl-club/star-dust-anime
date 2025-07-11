@@ -206,7 +206,7 @@ const SecretAgentWithBriefcase = ({
   performanceLevel: 'low' | 'medium' | 'high';
   positioning: any;
 }) => {
-  const { entryX, centerX, exitX, figureScale, briefcaseX, briefcaseY } = positioning;
+  const { entryX, centerX, centerY, exitX, figureScale, briefcaseX, briefcaseY } = positioning;
   
   return (
     <div className="absolute inset-0 overflow-hidden">
@@ -215,8 +215,8 @@ const SecretAgentWithBriefcase = ({
         className="absolute"
         style={{
           left: 0,
-          top: '50%',
-          transform: `translateY(-50%) scale(${figureScale})`,
+          top: centerY,
+          transform: `scale(${figureScale})`,
           zIndex: 10
         }}
         initial={{ x: entryX }}
