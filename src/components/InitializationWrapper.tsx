@@ -53,13 +53,15 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
             🎬 Test Welcome Animation
           </button>
         )}
-        <WelcomeAnimation
-          isFirstTime={true}
-          username="TestUser"
-          tier="LEGENDARY"
-          onComplete={() => setShowWelcome(false)}
-          isVisible={showWelcome}
-        />
+        {showWelcome && (
+          <WelcomeAnimation
+            isFirstTime={true}
+            username="TestUser"
+            tier="LEGENDARY"
+            onComplete={() => setShowWelcome(false)}
+            isVisible={showWelcome}
+          />
+        )}
       </>
     );
   }
@@ -126,13 +128,15 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
   return (
     <>
       {children}
-      <WelcomeAnimation
-        isFirstTime={isFirstTime || true} // Allow testing without real first-time state
-        username={initialization?.username || "TestUser"} // Fallback for testing
-        tier={initialization?.tier || "LEGENDARY"} // Fallback tier for testing
-        onComplete={() => setShowWelcome(false)}
-        isVisible={showWelcome}
-      />
+      {showWelcome && (
+        <WelcomeAnimation
+          isFirstTime={isFirstTime || true} // Allow testing without real first-time state
+          username={initialization?.username || "TestUser"} // Fallback for testing
+          tier={initialization?.tier || "LEGENDARY"} // Fallback tier for testing
+          onComplete={() => setShowWelcome(false)}
+          isVisible={showWelcome}
+        />
+      )}
       
       {/* Test Animation Button - Always visible for testing */}
       {!showWelcome && (

@@ -680,14 +680,18 @@ export const WelcomeAnimation = ({
   const [showUsername, setShowUsername] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   
+  // Generate unique instance ID for debugging
+  const instanceId = useRef(Math.random().toString(36).substr(2, 9));
+  
   // Debug logging for text visibility
-  console.log('🎬 WelcomeAnimation Text Debug:', {
+  console.log(`🎬 WelcomeAnimation [${instanceId.current}] Debug:`, {
     showUsername,
     showWelcome,
     isVisible,
     phase,
     username,
-    tier
+    tier,
+    instanceId: instanceId.current
   });
   const [screenShake, setScreenShake] = useState(false);
   const [showSkipHint, setShowSkipHint] = useState(false);
@@ -696,13 +700,33 @@ export const WelcomeAnimation = ({
   const capabilities = useDeviceCapabilities();
   const { dimensions, positioning } = useSearchBarTargeting();
   
-  // Enhanced timing configuration (optimized for better UX)
+  // Fast timing configuration for testing and debugging
   const timingConfig = useMemo(() => {
+    // Use fast timing for testing - much shorter delays
+    const fastMode = true; // Set to true for debugging
+    
+    if (fastMode) {
+      console.log(`🎬 WelcomeAnimation [${instanceId.current}]: Using FAST MODE for testing`);
+      return {
+        totalDuration: 8, // 8 seconds total for testing
+        phases: {
+          entry: 500,      // Agent enters from left
+          deposit: 1000,   // Agent deposits briefcase
+          salute: 1500,    // Agent turns head and surveys
+          exit: 2000,      // Agent exits completely off screen
+          explosion: 2500, // 0.5s after agent exits: Briefcase explodes
+          username: 3000,  // 0.5s after explosion: Username emerges
+          welcome: 3500    // 0.5s after username: Welcome message
+        }
+      };
+    }
+    
+    // Normal cinematic timing
     const cinematicMultiplier = capabilities.performanceLevel === 'high' ? 1.5 : 
                                capabilities.performanceLevel === 'medium' ? 1.3 : 1.2;
     
-    const agentExitTime = 3500 * cinematicMultiplier; // Dynamic agent exit timing
-    console.log(`🎬 WelcomeAnimation: Agent exit time calculated: ${agentExitTime}ms (multiplier: ${cinematicMultiplier})`);
+    const agentExitTime = 3500 * cinematicMultiplier;
+    console.log(`🎬 WelcomeAnimation [${instanceId.current}]: Agent exit time calculated: ${agentExitTime}ms (multiplier: ${cinematicMultiplier})`);
     
     return {
       totalDuration: 12, // 12 seconds total for better UX
@@ -716,7 +740,7 @@ export const WelcomeAnimation = ({
         welcome: agentExitTime + 3250          // 1.5s after username: Welcome message
       }
     };
-  }, [capabilities.performanceLevel]);
+  }, [capabilities.performanceLevel, instanceId]);
 
   // Enhanced skip functionality
   const handleSkip = useCallback(() => {
@@ -973,14 +997,21 @@ export const WelcomeAnimation = ({
                     type: "spring", 
                     stiffness: 200, 
                     damping: 15,
-                    delay: 0.5 
+                    delay: 0.2 
                   }}
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ zIndex: 25 }}
+                  style={{ 
+                    zIndex: 50,
+                    position: 'fixed' as any,
+                    backgroundColor: 'hsl(var(--background))',
+                    padding: '2rem',
+                    border: '2px solid hsl(var(--primary))',
+                    borderRadius: '0.75rem'
+                  }}
                 >
-                  <div className="bg-background/95 backdrop-blur-lg border border-primary/30 rounded-xl p-6 text-center shadow-2xl">
+                  <div className="bg-background/95 backdrop-blur-lg border-2 border-primary/60 rounded-xl p-8 text-center shadow-2xl">
                     <motion.div 
-                      className="flex items-center justify-center gap-3 mb-2"
+                      className="flex items-center justify-center gap-4 mb-4"
                       animate={{
                         y: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, -3, 0] : 0
                       }}
@@ -991,7 +1022,7 @@ export const WelcomeAnimation = ({
                       }}
                     >
                       <motion.span 
-                        className="text-4xl"
+                        className="text-5xl"
                         animate={{
                           scale: capabilities.performanceLevel === 'high' && !reducedMotion ? [1, 1.2, 1] : 1,
                           rotate: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, 10, -10, 0] : 0
@@ -1004,7 +1035,7 @@ export const WelcomeAnimation = ({
                       >
                         {getTierEmoji(tier)}
                       </motion.span>
-                      <div className="text-3xl font-bold">
+                      <div className="text-4xl font-bold text-primary">
                         <CharacterReveal 
                           text={username}
                           isVisible={showUsername}
@@ -1012,11 +1043,11 @@ export const WelcomeAnimation = ({
                         />
                       </div>
                     </motion.div>
-                    <div className={`text-lg ${getTierColor(tier)} font-semibold`}>
+                    <div className={`text-xl ${getTierColor(tier)} font-semibold`}>
                       <CharacterReveal 
                         text={`${tier} AGENT`}
                         isVisible={showUsername}
-                        delay={800}
+                        delay={300}
                       />
                     </div>
                   </div>
@@ -1037,15 +1068,22 @@ export const WelcomeAnimation = ({
                     transition={{ 
                       type: "spring", 
                       stiffness: 150, 
-                      damping: 12
-                      // Removed delay: welcome message appears immediately when state changes
+                      damping: 12,
+                      delay: 0.1
                     }}
                   className="absolute bottom-20 left-1/2 transform -translate-x-1/2 max-w-2xl w-full px-6"
-                  style={{ zIndex: 25 }}
+                  style={{ 
+                    zIndex: 50,
+                    position: 'fixed' as any,
+                    backgroundColor: 'hsl(var(--background))',
+                    padding: '2rem',
+                    border: '2px solid hsl(var(--primary))',
+                    borderRadius: '0.75rem'
+                  }}
                 >
-                  <div className="bg-background/95 backdrop-blur-lg border border-primary/20 rounded-xl p-8 text-center shadow-2xl">
+                  <div className="bg-background/95 backdrop-blur-lg border-2 border-primary/60 rounded-xl p-8 text-center shadow-2xl">
                     <motion.h2 
-                      className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary via-primary-foreground to-primary bg-clip-text text-transparent"
+                      className="text-3xl font-bold mb-6 text-primary"
                     >
                       <CharacterReveal 
                         text={`Mission Complete, ${username}!`}
@@ -1053,18 +1091,18 @@ export const WelcomeAnimation = ({
                       />
                     </motion.h2>
                     
-                    <div className="text-lg text-foreground/90 mb-6 leading-relaxed">
+                    <div className="text-xl text-foreground/90 mb-8 leading-relaxed">
                       <CharacterReveal 
                         text="Your anime adventure awaits. Prepare for epic journeys ahead!"
                         isVisible={showWelcome}
-                        delay={1200}
+                        delay={500}
                       />
                     </div>
                     
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 3, type: "spring", stiffness: 200 }}
+                      transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
                     >
                       <Button 
                         onClick={handleSkip}
