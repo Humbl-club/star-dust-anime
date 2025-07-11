@@ -74,7 +74,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
     >
       {/* Skip Button */}
       <Button
@@ -86,7 +86,7 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
         <X className="w-4 h-4" />
       </Button>
 
-      {/* Main Popup - Horizontally centered via flex, vertically positioned at search bar level */}
+      {/* Main Popup - Perfectly centered horizontally, positioned at search bar level vertically */}
       <AnimatePresence mode="wait">
         {step >= 1 && (
           <motion.div
@@ -94,9 +94,11 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
+            className="absolute bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 w-[90%] md:w-96 text-center shadow-2xl"
             style={{ 
-              marginTop: `${popupTop}px`
+              top: `${popupTop}px`,
+              left: '50%',
+              transform: 'translateX(-50%)'
             }}
           >
             {/* Welcome Header */}
