@@ -223,11 +223,11 @@ const SecretAgentWithBriefcase = ({
         animate={{
           x: phase === 1 ? centerX - 50 : // Enter and stop before center
              phase === 2 ? centerX - 50 : // Stay in position during deposit
-             phase === 3 ? centerX - 50 : // Salute position
-             phase === 4 ? exitX : entryX  // Exit to right
+             phase === 3 ? centerX - 50 : // Head turn position
+             phase === 4 ? exitX : entryX  // Exit fast and completely off screen
         }}
         transition={{
-          duration: phase === 1 ? 3 : phase === 4 ? 2.5 : 0.5,
+          duration: phase === 1 ? 3 : phase === 4 ? 1.5 : 0.5, // Faster exit
           ease: phase === 4 ? "easeIn" : "easeOut"
         }}
       >
@@ -243,12 +243,17 @@ const SecretAgentWithBriefcase = ({
           <motion.g
             animate={{
               y: phase === 1 && !reducedMotion ? [0, -1, 0] : 0,
-              // Suspicious head turning during approach and deposit
-              rotateZ: phase === 1 || phase === 2 ? [0, -15, 15, -10, 10, 0] : 0
+              // Enhanced head turning sequence for surveillance
+              rotateZ: phase === 1 || phase === 2 ? [0, -15, 15, -10, 10, 0] : 
+                       phase === 3 ? [0, -25, 25, -15, 15, 0] : 0 // More dramatic in phase 3
             }}
             transition={{
               y: { duration: 0.8, repeat: phase === 1 ? Infinity : 0, ease: "easeInOut" },
-              rotateZ: { duration: 2.5, repeat: (phase === 1 || phase === 2) ? Infinity : 0, ease: "easeInOut" }
+              rotateZ: { 
+                duration: phase === 3 ? 2 : 2.5, 
+                repeat: (phase === 1 || phase === 2 || phase === 3) ? Infinity : 0, 
+                ease: "easeInOut" 
+              }
             }}
             style={{ transformOrigin: "50px 20px" }}
           >
@@ -693,9 +698,9 @@ export const WelcomeAnimation = ({
         deposit: 2000 * cinematicMultiplier,   // 3 seconds: Agent deposits briefcase
         salute: 3000 * cinematicMultiplier,    // 4.5 seconds: Agent salutes
         exit: 3500 * cinematicMultiplier,      // 5.25 seconds: Agent exits to right
-        explosion: 4000,                       // 4 seconds: Briefcase explodes (fixed timing)
-        username: 6000,                        // 6 seconds: Username reveal (fixed timing)
-        welcome: 8000                          // 8 seconds: Welcome message (fixed timing)
+        explosion: 6000,                       // 6 seconds: Briefcase explodes AFTER agent exits
+        username: 7000,                        // 7 seconds: Username emerges from explosion
+        welcome: 9000                          // 9 seconds: Welcome message emerges from explosion
       }
     };
   }, [capabilities.performanceLevel]);
