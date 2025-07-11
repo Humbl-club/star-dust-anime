@@ -30,11 +30,16 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
   // Auto-trigger welcome animation for initialized users
   useEffect(() => {
     if (user && isInitialized && !hasShownWelcome && (needsWelcome || isFirstTime)) {
-      console.log('🎬 Auto-triggering welcome animation:', { needsWelcome, isFirstTime });
+      console.log('🎬 Auto-triggering welcome animation:', { 
+        needsWelcome, 
+        isFirstTime, 
+        username: initialization?.username,
+        tier: initialization?.tier 
+      });
       setShowWelcome(true);
       setHasShownWelcome(true);
     }
-  }, [user, isInitialized, needsWelcome, isFirstTime, hasShownWelcome]);
+  }, [user, isInitialized, needsWelcome, isFirstTime, hasShownWelcome, initialization?.username, initialization?.tier]);
 
   // Debug logging for initialization state
   console.log('🔧 InitializationWrapper Debug:', {
@@ -154,9 +159,9 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
       {showWelcome && (
         <WelcomeAnimation
           key="auth-welcome"
-          isFirstTime={isFirstTime || true} // Allow testing without real first-time state
-          username={initialization?.username || "TestUser"} // Fallback for testing
-          tier={initialization?.tier || "LEGENDARY"} // Fallback tier for testing
+          isFirstTime={isFirstTime}
+          username={initialization?.username || "AnimeFan"}
+          tier={initialization?.tier || "LEGENDARY"}
           onComplete={handleAnimationComplete}
           isVisible={showWelcome}
         />
