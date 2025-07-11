@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInitialization } from '@/hooks/useUserInitialization';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
@@ -11,7 +11,7 @@ interface InitializationWrapperProps {
 }
 
 export const InitializationWrapper = ({ children }: InitializationWrapperProps) => {
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false); // Start with false
   const { user } = useAuth();
   
   // Only run initialization logic for authenticated users
@@ -39,6 +39,15 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     tier: initialization?.tier
   });
 
+  // Single welcome animation logic for both authenticated and unauthenticated users
+  const handleTestAnimation = useCallback(() => {
+    setShowWelcome(true);
+  }, []);
+
+  const handleAnimationComplete = useCallback(() => {
+    setShowWelcome(false);
+  }, []);
+
   // If no user is authenticated, just render children with test button
   if (!user) {
     return (
@@ -47,18 +56,20 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
         {/* Test Animation Button - Always visible for testing */}
         {!showWelcome && (
           <button
-            onClick={() => setShowWelcome(true)}
+            onClick={handleTestAnimation}
             className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
           >
             🎬 Test Welcome Animation
           </button>
         )}
+        {/* Single animation instance for unauthenticated users */}
         {showWelcome && (
           <WelcomeAnimation
+            key="unauth-welcome"
             isFirstTime={true}
             username="TestUser"
             tier="LEGENDARY"
-            onComplete={() => setShowWelcome(false)}
+            onComplete={handleAnimationComplete}
             isVisible={showWelcome}
           />
         )}
@@ -128,12 +139,14 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
   return (
     <>
       {children}
+      {/* Single animation instance for authenticated users */}
       {showWelcome && (
         <WelcomeAnimation
+          key="auth-welcome"
           isFirstTime={isFirstTime || true} // Allow testing without real first-time state
           username={initialization?.username || "TestUser"} // Fallback for testing
           tier={initialization?.tier || "LEGENDARY"} // Fallback tier for testing
-          onComplete={() => setShowWelcome(false)}
+          onComplete={handleAnimationComplete}
           isVisible={showWelcome}
         />
       )}
@@ -141,7 +154,7 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
       {/* Test Animation Button - Always visible for testing */}
       {!showWelcome && (
         <button
-          onClick={() => setShowWelcome(true)}
+          onClick={handleTestAnimation}
           className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
         >
           🎬 Test Welcome Animation

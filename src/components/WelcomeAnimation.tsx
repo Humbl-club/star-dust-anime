@@ -458,668 +458,228 @@ const SecretAgentWithBriefcase = ({
   );
 };
 
-// Enhanced Explosion Effect
-const BriefcaseExplosion = ({ 
-  trigger, 
-  reducedMotion, 
-  performanceLevel,
-  positioning,
-  onScreenShake 
-}: { 
-  trigger: boolean; 
-  reducedMotion: boolean;
-  performanceLevel: 'low' | 'medium' | 'high';
-  positioning: any;
-  onScreenShake: () => void;
-}) => {
-  const { briefcaseX, briefcaseY } = positioning;
-  const particleCount = performanceLevel === 'low' ? 12 : performanceLevel === 'medium' ? 24 : 36;
-  const particles = Array.from({ length: particleCount }, (_, i) => i);
-  
-  useEffect(() => {
-    if (trigger && !reducedMotion) {
-      onScreenShake();
-    }
-  }, [trigger, reducedMotion, onScreenShake]);
-  
-  return (
-    <AnimatePresence>
-      {trigger && (
-        <motion.div 
-          className="absolute inset-0 pointer-events-none"
-          style={{ zIndex: 20 }}
-        >
-          {/* Core explosion centered on briefcase */}
-          <motion.div
-            className="absolute"
-            style={{
-              left: briefcaseX + 15,
-              top: briefcaseY + 10,
-              transform: 'translate(-50%, -50%)'
-            }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: [0, 1, 0.8, 0],
-              scale: [0, 0.5, 2, 4]
-            }}
-            transition={{ duration: reducedMotion ? 1 : 1.8, times: [0, 0.1, 0.5, 1] }}
-          >
-            <div className="w-20 h-20 bg-gradient-radial from-white via-yellow-400 to-orange-500 rounded-full" />
-          </motion.div>
-          
-          {/* Shockwave rings */}
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={`ring-${i}`}
-              className="absolute border-2 border-orange-400 rounded-full"
-              style={{
-                left: briefcaseX + 15,
-                top: briefcaseY + 10,
-                transform: 'translate(-50%, -50%)'
-              }}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: [0, 0.8 - i * 0.2, 0],
-                scale: [0, 3 + i * 2, 6 + i * 3]
-              }}
-              transition={{ 
-                duration: reducedMotion ? 1 : 1.5, 
-                delay: i * 0.1,
-                ease: "easeOut"
-              }}
-            />
-          ))}
-          
-          {/* Particles */}
-          {particles.map((i) => {
-            const angle = (i * 360 / particles.length) * Math.PI / 180;
-            const distance = 80 + Math.random() * 60;
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full"
-                style={{
-                  left: briefcaseX + 15,
-                  top: briefcaseY + 10,
-                  backgroundColor: i % 3 === 0 ? 'hsl(var(--primary))' : 
-                                   i % 3 === 1 ? '#f59e0b' : '#ef4444'
-                }}
-                initial={{ 
-                  scale: 0,
-                  opacity: 1
-                }}
-                animate={{
-                  x: Math.cos(angle) * distance,
-                  y: Math.sin(angle) * distance,
-                  scale: [0, 1.5, 0],
-                  opacity: [1, 0.8, 0]
-                }}
-                transition={{
-                  duration: reducedMotion ? 1.2 : 2,
-                  ease: "easeOut",
-                  delay: i * 0.02
-                }}
-              />
-            );
-          })}
-          
-          {/* Screen flash */}
-          <motion.div
-            className="absolute inset-0 bg-white/40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.6, 0] }}
-            transition={{ duration: 0.3, times: [0, 0.1, 1] }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
-// Character reveal component
-const CharacterReveal = ({ 
-  text, 
-  isVisible, 
-  tier,
-  delay = 0 
-}: { 
-  text: string; 
-  isVisible: boolean; 
-  tier?: string;
-  delay?: number;
-}) => {
-  const [visibleChars, setVisibleChars] = useState(0);
-  const reducedMotion = useReducedMotion();
-  
-  useEffect(() => {
-    if (!isVisible) {
-      setVisibleChars(0);
-      return;
-    }
-    
-    const timeout = setTimeout(() => {
-      let current = 0;
-      const interval = setInterval(() => {
-        current++;
-        setVisibleChars(current);
-        
-        if (current >= text.length) {
-          clearInterval(interval);
-        }
-      }, reducedMotion ? 30 : 50);
-      
-      return () => clearInterval(interval);
-    }, delay);
-    
-    return () => clearTimeout(timeout);
-  }, [isVisible, text.length, delay, reducedMotion]);
-  
-  const getTierGradient = (tier?: string) => {
-    switch (tier) {
-      case 'GOD': return 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent';
-      case 'LEGENDARY': return 'bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent';
-      case 'EPIC': return 'bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 bg-clip-text text-transparent';
-      case 'RARE': return 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent';
-      case 'UNCOMMON': return 'bg-gradient-to-r from-green-400 via-green-500 to-green-600 bg-clip-text text-transparent';
-      default: return 'text-foreground';
-    }
-  };
-  
-  return (
-    <span className={getTierGradient(tier)}>
-      {text.split('').map((char, index) => (
-        <motion.span
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: index < visibleChars ? 1 : 0,
-            y: index < visibleChars ? 0 : 20
-          }}
-          transition={{
-            duration: 0.1,
-            ease: "easeOut"
-          }}
-          style={{ display: 'inline-block' }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </motion.span>
-      ))}
-    </span>
-  );
-};
-
 export const WelcomeAnimation = ({ 
   isFirstTime, 
-  username: propUsername, 
-  tier: propTier, 
+  username = "Agent", 
+  tier = "COMMON", 
   onComplete, 
   isVisible 
 }: WelcomeAnimationProps) => {
-  // Backend integration
-  const { initialization, isInitialized } = useUserInitialization();
+  // Performance optimizations
+  const shouldReduceMotion = useReducedMotion();
+  const reducedMotion = shouldReduceMotion || false;
+  const { positioning } = useSearchBarTargeting();
+  const capabilities = useDeviceCapabilities();
   
-  // Debug logging for animation triggering
-  useEffect(() => {
-    console.log('🎬 WelcomeAnimation Debug:', {
-      isVisible,
-      isFirstTime,
-      initialization: !!initialization,
-      isInitialized,
-      justSignedUp: sessionStorage.getItem('justSignedUp'),
-      propUsername,
-      propTier
-    });
-  }, [isVisible, isFirstTime, initialization, isInitialized, propUsername, propTier]);
+  // Unique instance ID for debugging
+  const instanceId = useRef(Math.random().toString(36).substring(2, 11)).current;
   
-  // Use backend data if available, fall back to props
-  const username = initialization?.username || propUsername || 'Agent';
-  const tier = initialization?.tier || propTier || 'COMMON';
-  
+  // Animation control states
   const [phase, setPhase] = useState(0);
-  const [showExplosion, setShowExplosion] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [skipRequested, setSkipRequested] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const lastPhaseRef = useRef(-1);
   
-  // Generate unique instance ID for debugging
-  const instanceId = useRef(Math.random().toString(36).substr(2, 9));
+  // Fast mode for testing (much quicker timing)
+  const fastMode = true; // Enable for testing
   
-  // Debug logging for text visibility
-  console.log(`🎬 WelcomeAnimation [${instanceId.current}] Debug:`, {
-    showUsername,
-    showWelcome,
-    isVisible,
-    phase,
-    username,
-    tier,
-    instanceId: instanceId.current
-  });
-  const [screenShake, setScreenShake] = useState(false);
-  const [showSkipHint, setShowSkipHint] = useState(false);
+  // Get user data for potential welcome customization
+  const { initialization } = useUserInitialization();
+  const actualUsername = initialization?.username || username;
+  const actualTier = initialization?.tier || tier;
   
-  const reducedMotion = useReducedMotion();
-  const capabilities = useDeviceCapabilities();
-  const { dimensions, positioning } = useSearchBarTargeting();
-  
-  // Fast timing configuration for testing and debugging
-  const timingConfig = useMemo(() => {
-    // Use fast timing for testing - much shorter delays
-    const fastMode = true; // Set to true for debugging
-    
-    if (fastMode) {
-      console.log(`🎬 WelcomeAnimation [${instanceId.current}]: Using FAST MODE for testing`);
-      return {
-        totalDuration: 8, // 8 seconds total for testing
-        phases: {
-          entry: 500,      // Agent enters from left
-          deposit: 1000,   // Agent deposits briefcase
-          salute: 1500,    // Agent turns head and surveys
-          exit: 2000,      // Agent exits completely off screen
-          explosion: 2500, // 0.5s after agent exits: Briefcase explodes
-          username: 3000,  // 0.5s after explosion: Username emerges
-          welcome: 3500    // 0.5s after username: Welcome message
-        }
-      };
+  // Only log state changes to reduce spam
+  useEffect(() => {
+    if (lastPhaseRef.current !== phase) {
+      console.log(`🎬 WelcomeAnimation [${instanceId}] Phase Change:`, {
+        oldPhase: lastPhaseRef.current,
+        newPhase: phase,
+        showUsername,
+        showWelcome,
+        isVisible,
+        username: actualUsername,
+        tier: actualTier,
+        instanceId
+      });
+      lastPhaseRef.current = phase;
     }
+  }, [phase, showUsername, showWelcome, isVisible, actualUsername, actualTier, instanceId]);
+
+  // Timing constants with fast mode support
+  const timing = {
+    agentEntry: fastMode ? 1000 : 3000,
+    agentDeposit: fastMode ? 1000 : 2000,
+    agentExit: fastMode ? 800 : 1500, // Fixed: much shorter
+    usernameReveal: fastMode ? 1000 : 2000,
+    welcomeReveal: fastMode ? 1000 : 3000,
+    totalDuration: fastMode ? 5000 : 8000 // Fixed: realistic total duration
+  };
+
+  // Main animation sequence controller - simplified to prevent loops
+  useEffect(() => {
+    if (!isVisible || skipRequested || hasStarted) return;
     
-    // Normal cinematic timing
-    const cinematicMultiplier = capabilities.performanceLevel === 'high' ? 1.5 : 
-                               capabilities.performanceLevel === 'medium' ? 1.3 : 1.2;
+    setHasStarted(true);
+    console.log(`🎬 Starting animation sequence [${instanceId}]`);
     
-    const agentExitTime = 3500 * cinematicMultiplier;
-    console.log(`🎬 WelcomeAnimation [${instanceId.current}]: Agent exit time calculated: ${agentExitTime}ms (multiplier: ${cinematicMultiplier})`);
+    let timeouts: NodeJS.Timeout[] = [];
     
-    return {
-      totalDuration: 12, // 12 seconds total for better UX
-      phases: {
-        entry: 1000 * cinematicMultiplier,     // Agent enters from left
-        deposit: 2000 * cinematicMultiplier,   // Agent deposits briefcase
-        salute: 3000 * cinematicMultiplier,    // Agent turns head and surveys
-        exit: agentExitTime,                   // Agent exits completely off screen
-        explosion: agentExitTime + 750,        // 0.75s after agent exits: Briefcase explodes
-        username: agentExitTime + 1750,        // 1s after explosion: Username emerges
-        welcome: agentExitTime + 3250          // 1.5s after username: Welcome message
+    // Phase 1: Agent enters and deposits briefcase
+    timeouts.push(setTimeout(() => {
+      if (!skipRequested) setPhase(1);
+    }, 200));
+    
+    // Phase 2: Briefcase deposited, explosion preparation
+    timeouts.push(setTimeout(() => {
+      if (!skipRequested) setPhase(2);
+    }, timing.agentEntry));
+    
+    // Phase 3: Explosion and agent exit
+    timeouts.push(setTimeout(() => {
+      if (!skipRequested) setPhase(3);
+    }, timing.agentEntry + timing.agentDeposit));
+    
+    // Phase 4: Text reveals
+    timeouts.push(setTimeout(() => {
+      if (!skipRequested) {
+        setPhase(4);
+        setShowUsername(true);
       }
-    };
-  }, [capabilities.performanceLevel, instanceId]);
-
-  // Enhanced skip functionality
-  const handleSkip = useCallback(() => {
-    if (capabilities.supportsHaptics) {
-      navigator.vibrate?.(50);
-    }
-    onComplete();
-  }, [capabilities.supportsHaptics, onComplete]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape') {
-        e.preventDefault();
-        handleSkip();
+    }, timing.agentEntry + timing.agentDeposit + 500));
+    
+    // Show welcome message
+    timeouts.push(setTimeout(() => {
+      if (!skipRequested) {
+        setShowWelcome(true);
       }
-    };
-
-    if (isVisible) {
-      document.addEventListener('keydown', handleKeyPress);
-      // Prevent scrolling during animation
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-      document.body.style.overflow = '';
-    };
-  }, [handleSkip, isVisible]);
-
-  // Screen shake handler
-  const handleScreenShake = useCallback(() => {
-    setScreenShake(true);
-    setTimeout(() => setScreenShake(false), 500);
-  }, []);
-
-  // Show skip hint after 3 seconds
-  useEffect(() => {
-    if (!isVisible) return;
+    }, timing.agentEntry + timing.agentDeposit + timing.usernameReveal));
     
-    const timeout = setTimeout(() => {
-      setShowSkipHint(true);
-    }, 3000);
-
-    return () => clearTimeout(timeout);
-  }, [isVisible]);
-
-  // Main animation sequence
-  useEffect(() => {
-    if (!isVisible) {
-      // Reset all states
-      setPhase(0);
-      setShowExplosion(false);
-      setShowUsername(false);
-      setShowWelcome(false);
-      setScreenShake(false);
-      setShowSkipHint(false);
-      return;
-    }
-
-    const timeouts: NodeJS.Timeout[] = [];
-    const { phases } = timingConfig;
-    
-    // Animation sequence with debug logging
+    // Complete animation
     timeouts.push(setTimeout(() => {
-      console.log(`🎬 Phase 1: Agent enters (${phases.entry}ms)`);
-      setPhase(1);
-    }, phases.entry));
+      if (!skipRequested) {
+        console.log(`🎬 Animation complete [${instanceId}]`);
+        onComplete();
+      }
+    }, timing.totalDuration));
     
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 Phase 2: Agent deposits briefcase (${phases.deposit}ms)`);
-      setPhase(2);
-    }, phases.deposit));
-    
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 Phase 3: Agent surveys area (${phases.salute}ms)`);
-      setPhase(3);
-    }, phases.salute));
-    
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 Phase 4: Agent exits (${phases.exit}ms)`);
-      setPhase(4);
-    }, phases.exit));
-    
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 💥 EXPLOSION! (${phases.explosion}ms - ${phases.explosion - phases.exit}ms after agent exit)`);
-      setShowExplosion(true);
-    }, phases.explosion));
-    
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 Username reveal (${phases.username}ms)`);
-      setShowUsername(true);
-    }, phases.username));
-    
-    timeouts.push(setTimeout(() => {
-      console.log(`🎬 Welcome message (${phases.welcome}ms)`);
-      setShowWelcome(true);
-    }, phases.welcome));
-
     return () => {
       timeouts.forEach(clearTimeout);
     };
-  }, [isVisible, timingConfig]);
+  }, [isVisible, skipRequested, hasStarted, onComplete, instanceId]);
 
-  const getTierColor = (tier?: string) => {
-    switch (tier) {
-      case 'GOD': return 'text-yellow-400';
-      case 'LEGENDARY': return 'text-purple-400';
-      case 'EPIC': return 'text-pink-400';
-      case 'RARE': return 'text-blue-400';
-      case 'UNCOMMON': return 'text-green-400';
-      default: return 'text-gray-400';
-    }
-  };
+  // Skip functionality
+  const handleSkip = useCallback(() => {
+    setSkipRequested(true);
+    onComplete();
+  }, [onComplete]);
 
-  const getTierEmoji = (tier?: string) => {
-    switch (tier) {
-      case 'GOD': return '👑';
-      case 'LEGENDARY': return '⭐';
-      case 'EPIC': return '🔥';
-      case 'RARE': return '💎';
-      case 'UNCOMMON': return '✨';
-      default: return '🌟';
-    }
-  };
+  // Early return if not visible
+  if (!isVisible) return null;
 
-  // Render via Portal to ensure top-level positioning
-  if (typeof window === 'undefined') return null;
+  // Render the animation portal
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-[9999] bg-gradient-to-br from-background via-secondary/20 to-accent/10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        pointerEvents: 'auto'
+      }}
+    >
+      {/* Skip Button */}
+      <Button
+        onClick={handleSkip}
+        variant="outline"
+        size="sm"
+        className="absolute top-4 right-4 z-50 bg-background/80 backdrop-blur-sm"
+      >
+        Skip Animation
+      </Button>
 
-  const animationContent = (
-    <AnimatePresence>
-      {isVisible && (
-        <>
-          {/* Full-screen backdrop with maximum z-index */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="fixed inset-0 bg-background/95 backdrop-blur-xl"
-            style={{
-              zIndex: 2147483647, // Maximum safe z-index
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              position: 'fixed !important' as any,
-              top: '0 !important' as any,
-              left: '0 !important' as any,
-              right: '0 !important' as any,
-              bottom: '0 !important' as any,
-              width: '100vw !important' as any,
-              height: '100vh !important' as any
-            }}
-          />
+      {/* Secret Agent Animation */}
+      <SecretAgentWithBriefcase
+        phase={phase}
+        reducedMotion={reducedMotion}
+        performanceLevel={capabilities.performanceLevel}
+        positioning={positioning}
+      />
+
+      {/* Enhanced Username Display - Always visible when active */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ 
+          zIndex: 9999,
+          position: 'fixed',
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'auto',
+          height: 'auto'
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: showUsername ? 1 : 0,
+          scale: showUsername ? 1 : 0.8
+        }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center relative max-w-md mx-auto px-4">
+          {/* Strong background for visibility */}
+          <div className="absolute inset-0 bg-background/98 backdrop-blur-md rounded-xl border-4 border-primary/50 shadow-2xl" 
+               style={{ boxShadow: '0 0 50px rgba(var(--primary-rgb), 0.3)' }} />
           
-          {/* Main animation container with Portal positioning */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1,
-              x: screenShake && !reducedMotion ? [0, -5, 5, -3, 3, 0] : 0
-            }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ 
-              duration: 1, 
-              ease: 'easeOut',
-              x: { duration: 0.5, times: [0, 0.15, 0.3, 0.6, 0.8, 1] }
-            }}
-            className="fixed inset-0 overflow-hidden"
-            style={{ 
-              zIndex: 2147483647, // Maximum safe z-index
-              willChange: 'transform, opacity',
-              transform: 'translate3d(0, 0, 0)',
-              contain: 'layout style paint',
-              position: 'fixed !important' as any,
-              top: '0 !important' as any,
-              left: '0 !important' as any,
-              right: '0 !important' as any,
-              bottom: '0 !important' as any,
-              width: '100vw !important' as any,
-              height: '100vh !important' as any,
-              pointerEvents: 'auto' as any
-            }}
-          >
-            {/* Skip hints */}
-            <AnimatePresence>
-              {showSkipHint && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="absolute top-6 right-6 z-10 bg-background/90 backdrop-blur-sm rounded-lg border border-primary/20 p-3"
-                >
-                  <p className="text-sm text-muted-foreground mb-2">Skip animation:</p>
-                  <div className="flex gap-2 text-xs">
-                    <span className="px-2 py-1 bg-muted rounded">Space</span>
-                    <span className="px-2 py-1 bg-muted rounded">Enter</span>
-                    <span className="px-2 py-1 bg-muted rounded">ESC</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* Search Bar Highlight Effect */}
-            {positioning.searchBarFound && phase >= 2 && phase <= 3 && (
-              <motion.div
-                className="absolute border-2 border-primary/60 rounded-lg pointer-events-none"
-                style={{
-                  left: positioning.searchBarRect.x - 4,
-                  top: positioning.searchBarRect.y - 4,
-                  width: positioning.searchBarRect.width + 8,
-                  height: positioning.searchBarRect.height + 8,
-                  zIndex: 15
-                }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ 
-                  opacity: [0, 0.8, 0.4, 0.8, 0],
-                  scale: [0.9, 1.02, 1, 1.02, 0.9]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                <div className="absolute inset-0 bg-primary/10 rounded-lg animate-pulse" />
-              </motion.div>
-            )}
+          <div className="relative z-10 p-8">
+            <div className="text-3xl md:text-4xl font-bold text-primary mb-4 drop-shadow-lg">
+              {`Codename: ${actualUsername}`}
+            </div>
+            <div className="text-xl md:text-2xl text-accent font-semibold drop-shadow-md">
+              {`Tier: ${actualTier}`}
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
-            {/* Secret Agent Animation */}
-            <SecretAgentWithBriefcase 
-              phase={phase} 
-              reducedMotion={reducedMotion} 
-              performanceLevel={capabilities.performanceLevel}
-              positioning={positioning}
-            />
-            
-            {/* Briefcase Explosion */}
-            <BriefcaseExplosion 
-              trigger={showExplosion} 
-              reducedMotion={reducedMotion}
-              performanceLevel={capabilities.performanceLevel}
-              positioning={positioning}
-              onScreenShake={handleScreenShake}
-            />
-            
-            {/* Username Reveal */}
-            <AnimatePresence>
-              {showUsername && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0, y: 100 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 200, 
-                    damping: 15,
-                    delay: 0.2 
-                  }}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  style={{ 
-                    zIndex: 50,
-                    position: 'fixed' as any,
-                    backgroundColor: 'hsl(var(--background))',
-                    padding: '2rem',
-                    border: '2px solid hsl(var(--primary))',
-                    borderRadius: '0.75rem'
-                  }}
-                >
-                  <div className="bg-background/95 backdrop-blur-lg border-2 border-primary/60 rounded-xl p-8 text-center shadow-2xl">
-                    <motion.div 
-                      className="flex items-center justify-center gap-4 mb-4"
-                      animate={{
-                        y: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, -3, 0] : 0
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <motion.span 
-                        className="text-5xl"
-                        animate={{
-                          scale: capabilities.performanceLevel === 'high' && !reducedMotion ? [1, 1.2, 1] : 1,
-                          rotate: capabilities.performanceLevel === 'high' && !reducedMotion ? [0, 10, -10, 0] : 0
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        {getTierEmoji(tier)}
-                      </motion.span>
-                      <div className="text-4xl font-bold text-primary">
-                        <CharacterReveal 
-                          text={username}
-                          isVisible={showUsername}
-                          tier={tier}
-                        />
-                      </div>
-                    </motion.div>
-                    <div className={`text-xl ${getTierColor(tier)} font-semibold`}>
-                      <CharacterReveal 
-                        text={`${tier} AGENT`}
-                        isVisible={showUsername}
-                        delay={300}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* Welcome Message */}
-            <AnimatePresence>
-              {showWelcome && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                    animate={{ 
-                      opacity: 1, 
-                      y: 0, 
-                      scale: 1
-                    }}
-                    transition={{ 
-                      type: "spring", 
-                      stiffness: 150, 
-                      damping: 12,
-                      delay: 0.1
-                    }}
-                  className="absolute bottom-20 left-1/2 transform -translate-x-1/2 max-w-2xl w-full px-6"
-                  style={{ 
-                    zIndex: 50,
-                    position: 'fixed' as any,
-                    backgroundColor: 'hsl(var(--background))',
-                    padding: '2rem',
-                    border: '2px solid hsl(var(--primary))',
-                    borderRadius: '0.75rem'
-                  }}
-                >
-                  <div className="bg-background/95 backdrop-blur-lg border-2 border-primary/60 rounded-xl p-8 text-center shadow-2xl">
-                    <motion.h2 
-                      className="text-3xl font-bold mb-6 text-primary"
-                    >
-                      <CharacterReveal 
-                        text={`Mission Complete, ${username}!`}
-                        isVisible={showWelcome}
-                      />
-                    </motion.h2>
-                    
-                    <div className="text-xl text-foreground/90 mb-8 leading-relaxed">
-                      <CharacterReveal 
-                        text="Your anime adventure awaits. Prepare for epic journeys ahead!"
-                        isVisible={showWelcome}
-                        delay={500}
-                      />
-                    </div>
-                    
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
-                    >
-                      <Button 
-                        onClick={handleSkip}
-                        className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        Begin Your Journey! 🚀
-                      </Button>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      {/* Enhanced Welcome Message - Always visible when active */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ 
+          zIndex: 9998,
+          position: 'fixed',
+          top: '60%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'auto',
+          height: 'auto'
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: showWelcome ? 1 : 0,
+          scale: showWelcome ? 1 : 0.8
+        }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <div className="text-center relative max-w-lg mx-auto px-4">
+          {/* Strong background for visibility */}
+          <div className="absolute inset-0 bg-secondary/98 backdrop-blur-md rounded-xl border-4 border-accent/50 shadow-2xl"
+               style={{ boxShadow: '0 0 40px rgba(var(--accent-rgb), 0.3)' }} />
+          
+          <div className="relative z-10 p-8">
+            <div className="text-2xl md:text-3xl font-semibold text-foreground mb-3 drop-shadow-lg">
+              Welcome to your mission base
+            </div>
+            <div className="text-lg md:text-xl text-muted-foreground drop-shadow-md">
+              Your anime intelligence network awaits...
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>,
+    document.body
   );
-
-  return createPortal(animationContent, document.body);
 };
