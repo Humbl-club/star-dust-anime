@@ -875,7 +875,7 @@ export type Database = {
           id: string
           quantity: number | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           box_type: string
@@ -883,7 +883,7 @@ export type Database = {
           id?: string
           quantity?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           box_type?: string
@@ -891,7 +891,7 @@ export type Database = {
           id?: string
           quantity?: number | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
