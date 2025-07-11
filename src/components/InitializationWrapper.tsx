@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useUserInitialization } from '@/hooks/useUserInitialization';
 import { WelcomeAnimation } from '@/components/WelcomeAnimation';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,9 @@ interface InitializationWrapperProps {
 
 export const InitializationWrapper = ({ children }: InitializationWrapperProps) => {
   const [showWelcome, setShowWelcome] = useState(true);
+  const { user } = useAuth();
+  
+  // Only run initialization logic for authenticated users
   const { 
     initialization, 
     isLoading, 
@@ -24,6 +28,7 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
 
   // Debug logging for initialization state
   console.log('🔧 InitializationWrapper Debug:', {
+    hasUser: !!user,
     showWelcome,
     isFirstTime,
     needsWelcome,
@@ -34,7 +39,32 @@ export const InitializationWrapper = ({ children }: InitializationWrapperProps) 
     tier: initialization?.tier
   });
 
-  // Loading state
+  // If no user is authenticated, just render children with test button
+  if (!user) {
+    return (
+      <>
+        {children}
+        {/* Test Animation Button - Always visible for testing */}
+        {!showWelcome && (
+          <button
+            onClick={() => setShowWelcome(true)}
+            className="fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-sm font-semibold transition-colors"
+          >
+            🎬 Test Welcome Animation
+          </button>
+        )}
+        <WelcomeAnimation
+          isFirstTime={true}
+          username="TestUser"
+          tier="LEGENDARY"
+          onComplete={() => setShowWelcome(false)}
+          isVisible={showWelcome}
+        />
+      </>
+    );
+  }
+
+  // Loading state (only for authenticated users)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 flex items-center justify-center">
