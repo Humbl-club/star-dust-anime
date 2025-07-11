@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { X, Sparkles } from 'lucide-react';
 
 interface WelcomeAnimationProps {
   isFirstTime: boolean;
@@ -11,343 +12,141 @@ interface WelcomeAnimationProps {
   isVisible: boolean;
 }
 
-// Simple positioning hook
-const usePositioning = () => {
-  return useMemo(() => {
-    const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
-    const height = typeof window !== 'undefined' ? window.innerHeight : 768;
-    
-    return {
-      entryX: -100,
-      centerX: width / 2 - 50,
-      centerY: height / 2,
-      exitX: width + 100,
-      briefcaseX: width / 2 - 15,
-      briefcaseY: height / 2 - 10,
-      figureScale: width < 768 ? 0.6 : 1
-    };
-  }, []);
-};
+export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVisible }: WelcomeAnimationProps) => {
+  const [step, setStep] = useState(0);
 
-// Secret Agent Animation Component
-const SecretAgentWithBriefcase = ({ 
-  phase, 
-  positioning 
-}: { 
-  phase: number; 
-  positioning: any;
-}) => {
-  const { entryX, centerX, centerY, exitX, figureScale, briefcaseX, briefcaseY } = positioning;
-  
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {/* Secret Agent Figure */}
-      <motion.div
-        className="absolute"
-        style={{
-          left: 0,
-          top: centerY,
-          transform: `scale(${figureScale})`,
-          zIndex: 10
-        }}
-        initial={{ x: entryX }}
-        animate={{
-          x: phase === 1 ? centerX - 50 : 
-             phase === 2 ? centerX - 50 : 
-             phase === 3 ? centerX - 50 : 
-             phase === 4 ? exitX : entryX
-        }}
-        transition={{
-          duration: phase === 1 ? 2 : phase === 4 ? 1.5 : 0.5,
-          ease: phase === 4 ? "easeIn" : "easeOut"
-        }}
-      >
-        <svg viewBox="0 0 100 100" className="w-24 h-24">
-          {/* Head */}
-          <circle 
-            cx="50" cy="20" r="8" 
-            fill="hsl(var(--foreground))" 
-            stroke="hsl(var(--primary))" 
-            strokeWidth="1.5"
-          />
-          
-          {/* Hat */}
-          <ellipse cx="50" cy="16" rx="12" ry="3" fill="hsl(var(--muted-foreground))" />
-          <ellipse cx="50" cy="14" rx="8" ry="4" fill="hsl(var(--muted-foreground))" />
-          
-          {/* Sunglasses */}
-          <rect x="45" y="17" width="4" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.8" />
-          <rect x="51" y="17" width="4" height="3" rx="1.5" fill="hsl(var(--muted-foreground))" opacity="0.8" />
-          <line x1="49" y1="18.5" x2="51" y2="18.5" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" />
-
-          {/* Body */}
-          <line x1="50" y1="28" x2="50" y2="60" stroke="hsl(var(--foreground))" strokeWidth="3" />
-          
-          {/* Arms */}
-          <line x1="50" y1="35" x2="35" y2="45" stroke="hsl(var(--foreground))" strokeWidth="2" />
-          <line x1="50" y1="35" x2="65" y2="45" stroke="hsl(var(--foreground))" strokeWidth="2" />
-          
-          {/* Legs */}
-          <motion.line
-            x1="50" y1="60" x2="40" y2="80"
-            stroke="hsl(var(--foreground))" strokeWidth="2"
-            animate={{
-              rotate: phase === 1 || phase === 4 ? [0, 15, -15, 0] : 0
-            }}
-            style={{ transformOrigin: "50px 60px" }}
-            transition={{ 
-              duration: 0.4, 
-              repeat: (phase === 1 || phase === 4) ? Infinity : 0,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.line
-            x1="50" y1="60" x2="60" y2="80"
-            stroke="hsl(var(--foreground))" strokeWidth="2"
-            animate={{
-              rotate: phase === 1 || phase === 4 ? [0, -15, 15, 0] : 0
-            }}
-            style={{ transformOrigin: "50px 60px" }}
-            transition={{ 
-              duration: 0.4, 
-              repeat: (phase === 1 || phase === 4) ? Infinity : 0,
-              delay: 0.2,
-              ease: "easeInOut"
-            }}
-          />
-
-          {/* Briefcase (carried until phase 2) */}
-          {phase < 2 && (
-            <motion.g
-              initial={{ x: 70, y: 40 }}
-              animate={{ 
-                y: phase === 1 ? [40, 38, 40] : 40
-              }}
-              transition={{
-                duration: 0.6,
-                repeat: phase === 1 ? Infinity : 0,
-                ease: "easeInOut"
-              }}
-            >
-              <rect x="0" y="0" width="12" height="8" rx="1" fill="hsl(var(--primary))" stroke="hsl(var(--border))" strokeWidth="0.5" />
-              <text x="6" y="3" fontSize="2" fill="hsl(var(--background))" textAnchor="middle">TOP</text>
-              <text x="6" y="6" fontSize="2" fill="hsl(var(--background))" textAnchor="middle">SECRET</text>
-            </motion.g>
-          )}
-        </svg>
-      </motion.div>
-
-      {/* Briefcase Deposit Animation */}
-      {phase >= 2 && (
-        <motion.div
-          className="absolute"
-          style={{
-            left: briefcaseX,
-            top: briefcaseY,
-            zIndex: 5
-          }}
-          initial={{ 
-            scale: 0, 
-            rotate: 0,
-            x: centerX - briefcaseX - 50,
-            y: 0
-          }}
-          animate={{ 
-            scale: phase >= 2 ? 1 : 0,
-            rotate: phase === 2 ? [0, 360, 720, 360] : 0,
-            x: 0,
-            y: phase === 2 ? [0, -20, 0] : 0
-          }}
-          transition={{ 
-            duration: phase === 2 ? 2 : 0.5,
-            ease: "easeOut",
-            scale: { delay: phase === 2 ? 0.5 : 0 }
-          }}
-        >
-          <div className="relative">
-            <svg viewBox="0 0 30 20" className="w-8 h-6">
-              <rect x="0" y="0" width="30" height="20" rx="2" fill="hsl(var(--primary))" stroke="hsl(var(--border))" strokeWidth="1" />
-              <line x1="3" y1="10" x2="27" y2="10" stroke="hsl(var(--muted-foreground))" strokeWidth="0.5" />
-              <text x="15" y="7" fontSize="4" fill="hsl(var(--background))" textAnchor="middle">TOP</text>
-              <text x="15" y="15" fontSize="4" fill="hsl(var(--background))" textAnchor="middle">SECRET</text>
-            </svg>
-            
-            {/* Glow effect */}
-            <motion.div
-              className="absolute inset-0 bg-primary/20 rounded blur-sm"
-              animate={{ 
-                opacity: phase >= 2 ? [0.4, 0.8, 0.4] : 0.4,
-                scale: phase >= 2 ? [1, 1.2, 1] : 1
-              }}
-              transition={{ duration: 1.5, repeat: phase >= 2 ? Infinity : 0 }}
-            />
-          </div>
-        </motion.div>
-      )}
-    </div>
-  );
-};
-
-export const WelcomeAnimation = ({ 
-  isFirstTime, 
-  username = "Agent", 
-  tier = "COMMON", 
-  onComplete, 
-  isVisible 
-}: WelcomeAnimationProps) => {
-  // Simplified state management
-  const [phase, setPhase] = useState(0);
-  const [showText, setShowText] = useState(false);
-  const [skipRequested, setSkipRequested] = useState(false);
-  
-  const positioning = usePositioning();
-
-  // Simple effect to start animation when visible
   useEffect(() => {
-    console.log('🎬 WelcomeAnimation useEffect:', { isVisible, skipRequested, phase, showText });
-    
     if (!isVisible) {
-      console.log('🎬 Animation not visible, resetting states');
-      setPhase(0);
-      setShowText(false);
-      setSkipRequested(false);
+      setStep(0);
       return;
     }
 
-    console.log('🎬 Animation is visible, starting sequence');
+    // Simple animation sequence
+    const timeouts = [
+      setTimeout(() => setStep(1), 300),  // Show popup
+      setTimeout(() => setStep(2), 800),  // Show username
+      setTimeout(() => setStep(3), 1300), // Show tier
+      setTimeout(() => setStep(4), 1800), // Show thank you
+      setTimeout(() => onComplete(), 4500) // Auto close
+    ];
 
-    if (skipRequested) {
-      console.log('🎬 Skip requested, calling onComplete');
-      onComplete();
-      return;
-    }
+    return () => timeouts.forEach(clearTimeout);
+  }, [isVisible, onComplete]);
 
-    // Start animation sequence immediately
-    const timeouts: NodeJS.Timeout[] = [];
-    
-    console.log('🎬 Setting up animation timeouts');
-    // Fast timing for testing
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Phase 1: Agent entry');
-      setPhase(1);
-    }, 500));
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Phase 2: Briefcase deposit');
-      setPhase(2);
-    }, 1000));
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Phase 3: Surveillance');
-      setPhase(3);
-    }, 1500));
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Phase 4: Agent exit');
-      setPhase(4);
-    }, 2000));
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Show text');
-      setShowText(true);
-    }, 2500));
-    timeouts.push(setTimeout(() => {
-      console.log('🎬 Animation complete, calling onComplete');
-      onComplete();
-    }, 4000));
-
-    return () => {
-      console.log('🎬 Cleaning up timeouts');
-      timeouts.forEach(clearTimeout);
-    };
-  }, [isVisible, skipRequested, onComplete]);
-
-  // Skip animation handler
-  const handleSkipAnimation = useCallback(() => {
-    setSkipRequested(true);
-  }, []);
-
-  // Early return if not visible
   if (!isVisible) return null;
 
-  return createPortal(
-    <AnimatePresence mode="wait">
-      {isVisible && (
-        <motion.div
-          className="fixed inset-0 bg-black/90 backdrop-blur-lg z-[100] overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Skip Button */}
-          <Button
-            onClick={handleSkipAnimation}
-            variant="ghost"
-            className="absolute top-6 right-6 z-[110] bg-white/10 hover:bg-white/20 text-white border border-white/20"
+  // Anime quotes for thank you message
+  const animeQuotes = [
+    "The journey of a thousand miles begins with a single step!",
+    "Believe in yourself and create your own destiny!",
+    "Every adventure starts with courage!",
+    "Your story begins now!"
+  ];
+  
+  const randomQuote = animeQuotes[Math.floor(Math.random() * animeQuotes.length)];
+
+  const welcomeContent = (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      {/* Skip Button */}
+      <Button
+        onClick={onComplete}
+        variant="ghost"
+        size="sm"
+        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10"
+      >
+        <X className="w-4 h-4" />
+      </Button>
+
+      {/* Main Popup */}
+      <AnimatePresence mode="wait">
+        {step >= 1 && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl"
           >
-            Skip Animation
-          </Button>
+            {/* Welcome Header */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="mb-6"
+            >
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Welcome!
+              </h1>
+              <div className="flex justify-center">
+                <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+              </div>
+            </motion.div>
 
-          {/* Phase Debug */}
-          <div className="absolute top-6 left-6 z-[110] bg-black/70 text-white p-4 rounded-lg text-sm">
-            <div>Phase: {phase}</div>
-            <div>Show Text: {showText ? '✓' : '✗'}</div>
-            <div>Visible: {isVisible ? '✓' : '✗'}</div>
-          </div>
-
-          {/* Secret Agent Animation */}
-          <SecretAgentWithBriefcase 
-            phase={phase}
-            positioning={positioning}
-          />
-
-          {/* Text Display */}
-          <AnimatePresence>
-            {showText && (
-              <motion.div
-                className="absolute inset-0 flex flex-col items-center justify-center z-[105]"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="text-center space-y-6 bg-black/80 backdrop-blur-sm p-8 rounded-2xl border border-white/20 max-w-lg">
-                  <motion.div
-                    className="text-5xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent"
-                    initial={{ y: 20 }}
-                    animate={{ y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
+            {/* Username Reveal */}
+            <AnimatePresence>
+              {step >= 2 && username && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                  className="mb-6"
+                >
+                  <p className="text-white/70 mb-2">Agent</p>
+                  <div className="text-2xl font-bold text-white bg-white/10 rounded-lg py-3 px-4 border border-white/20">
                     {username}
-                  </motion.div>
-                  <motion.div
-                    className="text-xl text-orange-300 uppercase tracking-wider"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    {tier} Agent
-                  </motion.div>
-                  <motion.div
-                    className="text-lg text-white"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    Welcome to Your Secret Mission
-                  </motion.div>
-                  <motion.div
-                    className="text-base text-orange-300/80"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                  >
-                    {isFirstTime ? "Your briefing has been delivered." : "Mission briefing updated."}
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Tier Badge */}
+            <AnimatePresence>
+              {step >= 3 && tier && (
+                <motion.div
+                  initial={{ rotate: -180, scale: 0, opacity: 0 }}
+                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", damping: 15, stiffness: 200 }}
+                  className="mb-6"
+                >
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-full px-4 py-2">
+                    <Sparkles className="w-4 h-4 text-yellow-400" />
+                    <span className="text-yellow-400 font-semibold">
+                      {tier} Tier
+                    </span>
+                    <Sparkles className="w-4 h-4 text-yellow-400" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Thank You Message */}
+            <AnimatePresence>
+              {step >= 4 && (
+                <motion.div
+                  initial={{ y: 30, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className="space-y-3"
+                >
+                  <p className="text-white font-medium">
+                    {isFirstTime ? "Your adventure begins!" : "Welcome back!"}
+                  </p>
+                  <div className="text-sm text-white/70 italic border-l-2 border-white/20 pl-3">
+                    "{randomQuote}"
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
+
+  return createPortal(welcomeContent, document.body);
 };
