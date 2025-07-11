@@ -679,6 +679,16 @@ export const WelcomeAnimation = ({
   const [showExplosion, setShowExplosion] = useState(false);
   const [showUsername, setShowUsername] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  
+  // Debug logging for text visibility
+  console.log('🎬 WelcomeAnimation Text Debug:', {
+    showUsername,
+    showWelcome,
+    isVisible,
+    phase,
+    username,
+    tier
+  });
   const [screenShake, setScreenShake] = useState(false);
   const [showSkipHint, setShowSkipHint] = useState(false);
   
