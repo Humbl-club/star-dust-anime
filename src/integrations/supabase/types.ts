@@ -411,6 +411,36 @@ export type Database = {
         }
         Relationships: []
       }
+      list_statuses: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          label: string
+          media_type: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          label: string
+          media_type: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          label?: string
+          media_type?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       manga_details: {
         Row: {
           chapters: number | null
