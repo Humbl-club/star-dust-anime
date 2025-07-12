@@ -1,3 +1,4 @@
+
 import { ProcessItemResult } from './types.ts'
 import { transformToTitleData, transformToAnimeDetails, transformToMangaDetails } from './transformers.ts'
 import { ensureGenres, ensureStudios, ensureAuthors, linkTitleGenres, linkTitleStudios, linkTitleAuthors } from './database-operations.ts'
@@ -77,15 +78,15 @@ export async function processSingleItem(supabase: any, item: any, contentType: '
       titleProcessed = true
     }
     
-    // Step 2: Insert/update details
+    // Step 2: Insert/update details using title_id as primary key
     let detailProcessed = false
     if (contentType === 'anime') {
       console.log(`📝 Processing anime details for ${item.id}`)
       const animeDetails = transformToAnimeDetails(item, titleId)
       const { data: detailResult, error: detailError } = await supabase
         .from('anime_details')
-        .upsert(animeDetails, { onConflict: 'title_id' })
-        .select('id')
+        .upsert(animeDetails, { onConflict: 'title_id' }) // Now using title_id as primary key
+        .select('title_id')
         .single()
       
       if (detailError) {
@@ -99,8 +100,8 @@ export async function processSingleItem(supabase: any, item: any, contentType: '
       const mangaDetails = transformToMangaDetails(item, titleId)
       const { data: detailResult, error: detailError } = await supabase
         .from('manga_details')
-        .upsert(mangaDetails, { onConflict: 'title_id' })
-        .select('id')
+        .upsert(mangaDetails, { onConflict: 'title_id' }) // Now using title_id as primary key
+        .select('title_id')
         .single()
       
       if (detailError) {

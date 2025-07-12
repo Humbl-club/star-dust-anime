@@ -1,3 +1,4 @@
+
 // Unified database types for the new normalized schema
 export interface Title {
   id: string;
@@ -20,8 +21,7 @@ export interface Title {
 }
 
 export interface AnimeDetail {
-  id: string;
-  title_id: string;
+  title_id: string; // Now the primary key
   episodes?: number;
   aired_from?: string;
   aired_to?: string;
@@ -39,8 +39,7 @@ export interface AnimeDetail {
 }
 
 export interface MangaDetail {
-  id: string;
-  title_id: string;
+  title_id: string; // Now the primary key
   chapters?: number;
   volumes?: number;
   published_from?: string;

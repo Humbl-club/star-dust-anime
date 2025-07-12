@@ -1,3 +1,4 @@
+
 // Transform AniList data to match our normalized database schema
 export function transformToTitleData(item: any) {
   return {
@@ -20,7 +21,7 @@ export function transformToTitleData(item: any) {
 
 export function transformToAnimeDetails(item: any, titleId: string) {
   return {
-    title_id: titleId,
+    title_id: titleId, // Primary key
     episodes: item.episodes || null,
     aired_from: item.startDate ? formatDate(item.startDate) : null,
     aired_to: item.endDate ? formatDate(item.endDate) : null,
@@ -38,7 +39,7 @@ export function transformToAnimeDetails(item: any, titleId: string) {
 
 export function transformToMangaDetails(item: any, titleId: string) {
   return {
-    title_id: titleId,
+    title_id: titleId, // Primary key
     chapters: item.chapters || null,
     volumes: item.volumes || null,
     published_from: item.startDate ? formatDate(item.startDate) : null,
