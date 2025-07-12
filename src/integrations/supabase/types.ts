@@ -796,7 +796,6 @@ export type Database = {
       user_anime_lists: {
         Row: {
           anime_detail_id: string | null
-          anime_id: string | null
           created_at: string | null
           episodes_watched: number | null
           finish_date: string | null
@@ -810,7 +809,6 @@ export type Database = {
         }
         Insert: {
           anime_detail_id?: string | null
-          anime_id?: string | null
           created_at?: string | null
           episodes_watched?: number | null
           finish_date?: string | null
@@ -824,7 +822,6 @@ export type Database = {
         }
         Update: {
           anime_detail_id?: string | null
-          anime_id?: string | null
           created_at?: string | null
           episodes_watched?: number | null
           finish_date?: string | null
@@ -836,7 +833,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_anime_lists_title_id"
+            columns: ["anime_detail_id"]
+            isOneToOne: false
+            referencedRelation: "anime_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_content_preferences: {
         Row: {
@@ -964,7 +969,6 @@ export type Database = {
           finish_date: string | null
           id: string
           manga_detail_id: string | null
-          manga_id: string | null
           notes: string | null
           score: number | null
           start_date: string | null
@@ -979,7 +983,6 @@ export type Database = {
           finish_date?: string | null
           id?: string
           manga_detail_id?: string | null
-          manga_id?: string | null
           notes?: string | null
           score?: number | null
           start_date?: string | null
@@ -994,7 +997,6 @@ export type Database = {
           finish_date?: string | null
           id?: string
           manga_detail_id?: string | null
-          manga_id?: string | null
           notes?: string | null
           score?: number | null
           start_date?: string | null
@@ -1003,7 +1005,15 @@ export type Database = {
           user_id?: string | null
           volumes_read?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_manga_lists_title_id"
+            columns: ["manga_detail_id"]
+            isOneToOne: false
+            referencedRelation: "manga_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_points: {
         Row: {
