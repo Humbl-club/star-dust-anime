@@ -36,17 +36,7 @@ import AnimeDetail from "./pages/AnimeDetail";
 const queryClient = new QueryClient();
 
 const AutoSyncProvider = ({ children }: { children: React.ReactNode }) => {
-  const { isVerified, loading, showModal, setVerified } = useAgeVerification();
-  
-  return (
-    <>
-      <AgeVerificationModal 
-        isOpen={showModal} 
-        onComplete={setVerified}
-      />
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 const AppContent = () => {
@@ -61,46 +51,15 @@ const AppContent = () => {
     );
   }
   
-  // Render age verification modal at the very top level
-  if (showModal) {
-    return (
-      <div className="fixed inset-0 z-[99999] bg-black flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-2xl max-w-md w-full p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Age Verification Required</h2>
-          </div>
-          
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-            This app contains anime and manga content. Please confirm you are 16 years or older to continue.
-          </p>
-          
-          <div className="flex flex-col gap-3">
-            <button 
-              onClick={() => setVerified()}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
-            >
-              I am 16 years or older
-            </button>
-            
-            <button 
-              onClick={() => window.location.href = 'https://www.google.com'}
-              className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              I am under 16
-            </button>
-          </div>
-
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-            This verification helps us comply with content rating requirements and ensures appropriate content access.
-          </p>
-        </div>
-      </div>
-    );
-  }
-  
   return (
-    <div className="min-h-screen bg-background pb-16 lg:pb-0">
+    <>
+      {/* Single age verification modal */}
+      <AgeVerificationModal 
+        isOpen={showModal} 
+        onComplete={setVerified}
+      />
+      
+      <div className="min-h-screen bg-background pb-16 lg:pb-0">
       <Routes>
         <Route path="/" element={
           <InitializationWrapper>
@@ -170,7 +129,8 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MobileNavigation />
-    </div>
+      </div>
+    </>
   );
 };
 
