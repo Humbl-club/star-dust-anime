@@ -823,56 +823,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_anime_lists: {
-        Row: {
-          anime_detail_id: string | null
-          created_at: string | null
-          episodes_watched: number | null
-          finish_date: string | null
-          id: string
-          notes: string | null
-          score: number | null
-          start_date: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          anime_detail_id?: string | null
-          created_at?: string | null
-          episodes_watched?: number | null
-          finish_date?: string | null
-          id?: string
-          notes?: string | null
-          score?: number | null
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          anime_detail_id?: string | null
-          created_at?: string | null
-          episodes_watched?: number | null
-          finish_date?: string | null
-          id?: string
-          notes?: string | null
-          score?: number | null
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_user_anime_lists_title_id"
-            columns: ["anime_detail_id"]
-            isOneToOne: false
-            referencedRelation: "anime_details"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_content_preferences: {
         Row: {
           age_verification_date: string | null
@@ -988,59 +938,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_manga_lists: {
-        Row: {
-          chapters_read: number | null
-          created_at: string | null
-          finish_date: string | null
-          id: string
-          manga_detail_id: string | null
-          notes: string | null
-          score: number | null
-          start_date: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-          volumes_read: number | null
-        }
-        Insert: {
-          chapters_read?: number | null
-          created_at?: string | null
-          finish_date?: string | null
-          id?: string
-          manga_detail_id?: string | null
-          notes?: string | null
-          score?: number | null
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          volumes_read?: number | null
-        }
-        Update: {
-          chapters_read?: number | null
-          created_at?: string | null
-          finish_date?: string | null
-          id?: string
-          manga_detail_id?: string | null
-          notes?: string | null
-          score?: number | null
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          volumes_read?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_user_manga_lists_title_id"
-            columns: ["manga_detail_id"]
-            isOneToOne: false
-            referencedRelation: "manga_details"
             referencedColumns: ["id"]
           },
         ]
