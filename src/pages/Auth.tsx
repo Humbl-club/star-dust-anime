@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "use-debounce";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sparkles, Crown, CheckCircle, AlertCircle, Mail } from "lucide-react";
+import { Sparkles, Crown, CheckCircle, AlertCircle, Mail, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedEmailInput from "@/components/auth/EnhancedEmailInput";
 import EnhancedPasswordInput from "@/components/auth/EnhancedPasswordInput";
@@ -23,6 +23,7 @@ interface FormData {
 const Auth = () => {
   const { user, signUp, signIn, signInWithGoogle, resendConfirmation, validateEmailFormat, validatePasswordStrength, loading } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(searchParams.get('tab') === 'signup');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
@@ -210,7 +211,16 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Back to Home Arrow */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 p-3 glass-card border border-primary/20 rounded-full hover:bg-primary/10 transition-all duration-200 hover-scale group z-10"
+        aria-label="Back to home"
+      >
+        <ArrowLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+      </button>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
