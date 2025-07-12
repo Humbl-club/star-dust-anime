@@ -1,5 +1,4 @@
 
-
 -- Drop unused indexes from activity_feed table
 DROP INDEX IF EXISTS idx_activity_feed_user_id;
 
@@ -21,4 +20,3 @@ DROP INDEX IF EXISTS idx_username_history_user;
 
 -- Drop unused indexes from content_sync_status table
 DROP INDEX IF EXISTS idx_content_sync_status_type_status;
-
