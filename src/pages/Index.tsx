@@ -271,7 +271,12 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-8 md:mt-12 space-y-4">
-            <Button variant="hero" size="lg" className="px-8 md:px-12 py-4 text-base md:text-lg hover-scale touch-friendly">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="px-8 md:px-12 py-4 text-base md:text-lg hover-scale touch-friendly"
+              onClick={() => navigate('/auth?tab=signup')}
+            >
               Get Started Today
             </Button>
           </div>

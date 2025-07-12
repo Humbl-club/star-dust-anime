@@ -237,7 +237,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/auth?tab=signup">
                   <Button variant="hero" size="sm">
                     Get Started
                   </Button>
@@ -419,7 +419,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                         Sign In
                       </Button>
                     </Link>
-                    <Link to="/auth">
+                    <Link to="/auth?tab=signup">
                       <Button variant="hero" className="w-full justify-start">
                         Get Started
                       </Button>

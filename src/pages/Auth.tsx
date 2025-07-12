@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "use-debounce";
@@ -22,7 +22,8 @@ interface FormData {
 
 const Auth = () => {
   const { user, signUp, signIn, signInWithGoogle, resendConfirmation, validateEmailFormat, validatePasswordStrength, loading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(searchParams.get('tab') === 'signup');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const [lastSignupEmail, setLastSignupEmail] = useState("");
