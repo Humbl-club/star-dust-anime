@@ -53,13 +53,12 @@ export type Database = {
           aired_to: string | null
           created_at: string | null
           episodes: number | null
-          id: string
           last_sync_check: string | null
           next_episode_date: string | null
           next_episode_number: number | null
           season: string | null
           status: string | null
-          title_id: string | null
+          title_id: string
           trailer_id: string | null
           trailer_site: string | null
           trailer_url: string | null
@@ -71,13 +70,12 @@ export type Database = {
           aired_to?: string | null
           created_at?: string | null
           episodes?: number | null
-          id?: string
           last_sync_check?: string | null
           next_episode_date?: string | null
           next_episode_number?: number | null
           season?: string | null
           status?: string | null
-          title_id?: string | null
+          title_id: string
           trailer_id?: string | null
           trailer_site?: string | null
           trailer_url?: string | null
@@ -89,13 +87,12 @@ export type Database = {
           aired_to?: string | null
           created_at?: string | null
           episodes?: number | null
-          id?: string
           last_sync_check?: string | null
           next_episode_date?: string | null
           next_episode_number?: number | null
           season?: string | null
           status?: string | null
-          title_id?: string | null
+          title_id?: string
           trailer_id?: string | null
           trailer_site?: string | null
           trailer_url?: string | null
@@ -445,14 +442,13 @@ export type Database = {
         Row: {
           chapters: number | null
           created_at: string | null
-          id: string
           last_sync_check: string | null
           next_chapter_date: string | null
           next_chapter_number: number | null
           published_from: string | null
           published_to: string | null
           status: string | null
-          title_id: string | null
+          title_id: string
           type: string | null
           updated_at: string | null
           volumes: number | null
@@ -460,14 +456,13 @@ export type Database = {
         Insert: {
           chapters?: number | null
           created_at?: string | null
-          id?: string
           last_sync_check?: string | null
           next_chapter_date?: string | null
           next_chapter_number?: number | null
           published_from?: string | null
           published_to?: string | null
           status?: string | null
-          title_id?: string | null
+          title_id: string
           type?: string | null
           updated_at?: string | null
           volumes?: number | null
@@ -475,14 +470,13 @@ export type Database = {
         Update: {
           chapters?: number | null
           created_at?: string | null
-          id?: string
           last_sync_check?: string | null
           next_chapter_date?: string | null
           next_chapter_number?: number | null
           published_from?: string | null
           published_to?: string | null
           status?: string | null
-          title_id?: string | null
+          title_id?: string
           type?: string | null
           updated_at?: string | null
           volumes?: number | null

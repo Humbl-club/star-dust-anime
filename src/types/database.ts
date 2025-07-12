@@ -21,7 +21,7 @@ export interface Title {
 }
 
 export interface AnimeDetail {
-  title_id: string; // Now the primary key
+  title_id: string; // Primary key - no more separate id column
   episodes?: number;
   aired_from?: string;
   aired_to?: string;
@@ -39,7 +39,7 @@ export interface AnimeDetail {
 }
 
 export interface MangaDetail {
-  title_id: string; // Now the primary key
+  title_id: string; // Primary key - no more separate id column
   chapters?: number;
   volumes?: number;
   published_from?: string;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,7 +34,8 @@ export const useUserTitleLists = () => {
       notes: entry.notes,
       created_at: entry.created_at,
       updated_at: entry.updated_at,
-      anime_detail_id: entry.anime_details?.id,
+      // Remove anime_detail_id since the column was dropped
+      anime_detail_id: entry.title_id, // Use title_id for backward compatibility
       status: (entry.status?.name as AnimeStatus) || 'plan_to_watch',
       title: entry.title,
       anime_details: {
@@ -62,7 +64,8 @@ export const useUserTitleLists = () => {
       notes: entry.notes,
       created_at: entry.created_at,
       updated_at: entry.updated_at,
-      manga_detail_id: entry.manga_details?.id,
+      // Remove manga_detail_id since the column was dropped
+      manga_detail_id: entry.title_id, // Use title_id for backward compatibility
       status: (statusName as MangaStatus) || 'plan_to_read',
       title: entry.title,
       manga_details: {
@@ -152,9 +155,9 @@ export const useUserTitleLists = () => {
     .filter(entry => entry.media_type === 'manga')
     .map(toMangaEntry);
 
-  // Add to anime list
+  // Add to anime list - now uses title_id directly instead of anime_detail_id
   const addToAnimeList = async (
-    animeDetailId: string, 
+    titleId: string, // Changed from animeDetailId to titleId
     status: AnimeStatus
   ): Promise<UserAnimeListEntry | undefined> => {
     if (!user?.id) {
@@ -163,15 +166,6 @@ export const useUserTitleLists = () => {
     }
 
     try {
-      // Get anime details to find title_id
-      const { data: animeDetails, error: animeError } = await supabase
-        .from('anime_details')
-        .select('title_id')
-        .eq('id', animeDetailId)
-        .single();
-
-      if (animeError) throw animeError;
-
       const statusId = getStatusId(status, 'anime');
       if (!statusId) throw new Error('Invalid status');
 
@@ -179,7 +173,7 @@ export const useUserTitleLists = () => {
         .from('user_title_lists')
         .insert({
           user_id: user.id,
-          title_id: animeDetails.title_id,
+          title_id: titleId, // Direct use of title_id
           media_type: 'anime',
           status_id: statusId
         })
@@ -202,9 +196,9 @@ export const useUserTitleLists = () => {
     }
   };
 
-  // Add to manga list
+  // Add to manga list - now uses title_id directly instead of manga_detail_id
   const addToMangaList = async (
-    mangaDetailId: string, 
+    titleId: string, // Changed from mangaDetailId to titleId
     status: MangaStatus
   ): Promise<UserMangaListEntry | undefined> => {
     if (!user?.id) {
@@ -213,15 +207,6 @@ export const useUserTitleLists = () => {
     }
 
     try {
-      // Get manga details to find title_id
-      const { data: mangaDetails, error: mangaError } = await supabase
-        .from('manga_details')
-        .select('title_id')
-        .eq('id', mangaDetailId)
-        .single();
-
-      if (mangaError) throw mangaError;
-
       const statusId = getStatusId(status, 'manga');
       if (!statusId) throw new Error('Invalid status');
 
@@ -229,7 +214,7 @@ export const useUserTitleLists = () => {
         .from('user_title_lists')
         .insert({
           user_id: user.id,
-          title_id: mangaDetails.title_id,
+          title_id: titleId, // Direct use of title_id
           media_type: 'manga',
           status_id: statusId
         })
@@ -269,7 +254,7 @@ export const useUserTitleLists = () => {
         delete updateData.status;
       }
 
-      // Remove legacy fields
+      // Remove legacy fields that no longer exist
       delete updateData.anime_detail_id;
 
       const { data, error } = await supabase
@@ -313,7 +298,7 @@ export const useUserTitleLists = () => {
         delete updateData.status;
       }
 
-      // Remove legacy fields
+      // Remove legacy fields that no longer exist
       delete updateData.manga_detail_id;
 
       const { data, error } = await supabase
