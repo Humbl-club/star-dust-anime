@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
-import { WelcomeAnimation } from "@/components/WelcomeAnimation";
+
 
 import { LegalFooter } from "@/components/LegalFooter";
 
@@ -25,7 +25,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
-  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+  
 
   // Get anime data from API
   const { data: allAnime, loading } = useSimpleNewApiData({ 
@@ -274,16 +274,6 @@ const Index = () => {
             <Button variant="hero" size="lg" className="px-8 md:px-12 py-4 text-base md:text-lg hover-scale touch-friendly">
               Get Started Today
             </Button>
-            {/* TEST BUTTON - Remove after testing */}
-            <div>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowWelcomeAnimation(true)}
-                className="bg-yellow-500/20 border-yellow-500 text-yellow-700 hover:bg-yellow-500/30"
-              >
-                🧪 Test Welcome Animation
-              </Button>
-            </div>
           </div>
         </div>
       </section>
@@ -293,14 +283,6 @@ const Index = () => {
       {/* Coordinated Email Verification Popup */}
       <EmailVerificationPopup triggerShow={triggerEmailPopup} />
       
-      {/* Test Welcome Animation */}
-      <WelcomeAnimation
-        isVisible={showWelcomeAnimation}
-        isFirstTime={true}
-        username="TestUser"
-        tier="LEGENDARY"
-        onComplete={() => setShowWelcomeAnimation(false)}
-      />
     </div>
   );
 };

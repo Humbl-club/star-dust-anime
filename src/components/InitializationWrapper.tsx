@@ -24,13 +24,15 @@ export const InitializationWrapper: React.FC<InitializationWrapperProps> = ({ ch
   } = useUserInitialization();
 
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+  const [welcomeShownThisSession, setWelcomeShownThisSession] = useState(false);
 
   // Trigger welcome animation for new or uninitialized users
   useEffect(() => {
-    if (user && needsWelcome && !isLoading && !showWelcomeAnimation) {
+    if (user && needsWelcome && !isLoading && !welcomeShownThisSession) {
       setShowWelcomeAnimation(true);
+      setWelcomeShownThisSession(true);
     }
-  }, [user, needsWelcome, isLoading, showWelcomeAnimation]);
+  }, [user, needsWelcome, isLoading, welcomeShownThisSession]);
 
   // For unauthenticated users, just render children
   if (!user) {
