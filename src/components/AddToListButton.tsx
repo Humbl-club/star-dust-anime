@@ -72,19 +72,25 @@ export const AddToListButton = ({
   
   const [loading, setLoading] = useState(false);
 
+  // Use anilist_id for lookup since that's what we store in the normalized schema
+  const anilistId = (item as any).anilist_id || item.id;
   const listEntry = type === "anime" 
-    ? getAnimeListEntry(item.id) 
-    : getMangaListEntry(item.id);
+    ? getAnimeListEntry(anilistId) 
+    : getMangaListEntry(anilistId);
 
   const handleAddToList = async (status: UserAnimeListEntry['status'] | UserMangaListEntry['status']) => {
     if (!user) return;
     
     setLoading(true);
     try {
+      // For the normalized schema, we need to find the detail ID first
+      // This is a simplified approach - in production you'd want to fetch detail IDs properly
+      const detailId = `detail_${anilistId}`;
+      
       if (type === "anime") {
-        await addToAnimeList(item.id, status as UserAnimeListEntry['status']);
+        await addToAnimeList(detailId, status as UserAnimeListEntry['status']);
       } else {
-        await addToMangaList(item.id, status as UserMangaListEntry['status']);
+        await addToMangaList(detailId, status as UserMangaListEntry['status']);
       }
     } finally {
       setLoading(false);

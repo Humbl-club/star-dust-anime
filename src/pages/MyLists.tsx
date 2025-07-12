@@ -117,16 +117,24 @@ const MyLists = () => {
     return mangaData.find(manga => manga.id === mangaId);
   };
 
-  // Get enhanced anime/manga data for search
+  // Get enhanced anime/manga data for search using normalized schema
   const enhancedAnimeList = animeList.map(entry => ({
     ...entry,
-    ...getAnimeDetails(entry.anime_id),
-  })).filter(item => item.title);
+    title: entry.anime_details?.titles?.title || 'Unknown Title',
+    title_english: entry.anime_details?.titles?.title_english,
+    title_japanese: entry.anime_details?.titles?.title_japanese,
+    image_url: entry.anime_details?.titles?.image_url,
+    id: entry.anime_details?.titles?.anilist_id?.toString() || entry.id,
+  })).filter(item => item.title && item.title !== 'Unknown Title');
 
   const enhancedMangaList = mangaList.map(entry => ({
     ...entry,
-    ...getMangaDetails(entry.manga_id),
-  })).filter(item => item.title);
+    title: entry.manga_details?.titles?.title || 'Unknown Title',
+    title_english: entry.manga_details?.titles?.title_english,
+    title_japanese: entry.manga_details?.titles?.title_japanese,
+    image_url: entry.manga_details?.titles?.image_url,
+    id: entry.manga_details?.titles?.anilist_id?.toString() || entry.id,
+  })).filter(item => item.title && item.title !== 'Unknown Title');
 
   // Filter by search query
   const searchedAnimeList = enhancedAnimeList.filter(item => 
@@ -217,8 +225,20 @@ const MyLists = () => {
 
   // Render list item
   const renderAnimeListItem = useCallback((entry: any, index: number) => {
-    const anime = getAnimeDetails(entry.anime_id);
-    if (!anime) return null;
+    // Use data from normalized schema in enhancedAnimeList
+    const anime: Anime = {
+      id: entry.id,
+      title: entry.title,
+      title_english: entry.title_english,
+      title_japanese: entry.title_japanese,
+      image_url: entry.image_url,
+      synopsis: '',
+      type: 'TV',
+      episodes: undefined,
+      status: 'Finished Airing',
+      genres: []
+    };
+    if (!anime.title) return null;
     
     const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
     const statusColor = statusColors[entry.status as keyof typeof statusColors];
@@ -477,9 +497,22 @@ const MyLists = () => {
           <TabsContent value="manga">
             {filteredMangaList.length > 0 ? (
               <div className="space-y-4">
-                {filteredMangaList.map(entry => {
-                  const manga = getMangaDetails(entry.manga_id);
-                  if (!manga) return null;
+                 {filteredMangaList.map(entry => {
+                   // Use data from normalized schema
+                   const manga: Manga = {
+                     id: entry.id,
+                     title: entry.title,
+                     title_english: entry.title_english,
+                     title_japanese: entry.title_japanese,
+                     image_url: entry.image_url,
+                     synopsis: '',
+                     type: 'Manga',
+                     chapters: undefined,
+                     volumes: undefined,
+                     status: 'Publishing',
+                     genres: []
+                   };
+                   if (!manga.title) return null;
                   
                   const StatusIcon = statusIcons[entry.status as keyof typeof statusIcons];
                   const statusColor = statusColors[entry.status as keyof typeof statusColors];

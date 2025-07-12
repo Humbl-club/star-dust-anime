@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export interface UserAnimeListEntry {
   id: string;
   user_id: string;
-  anime_id: string;
+  anime_detail_id: string;
   status: 'watching' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_watch';
   score?: number;
   episodes_watched: number;
@@ -15,12 +15,24 @@ export interface UserAnimeListEntry {
   notes?: string;
   created_at: string;
   updated_at: string;
+  // Joined data from normalized schema
+  anime_details?: {
+    title_id: string;
+    titles?: {
+      id: string;
+      title: string;
+      title_english?: string;
+      title_japanese?: string;
+      anilist_id: number;
+      image_url?: string;
+    };
+  };
 }
 
 export interface UserMangaListEntry {
   id: string;
   user_id: string;
-  manga_id: string;
+  manga_detail_id: string;
   status: 'reading' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_read';
   score?: number;
   chapters_read: number;
@@ -30,6 +42,18 @@ export interface UserMangaListEntry {
   notes?: string;
   created_at: string;
   updated_at: string;
+  // Joined data from normalized schema
+  manga_details?: {
+    title_id: string;
+    titles?: {
+      id: string;
+      title: string;
+      title_english?: string;
+      title_japanese?: string;
+      anilist_id: number;
+      image_url?: string;
+    };
+  };
 }
 
 export const useUserLists = () => {
@@ -38,7 +62,7 @@ export const useUserLists = () => {
   const [mangaList, setMangaList] = useState<UserMangaListEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch user's anime list
+  // Fetch user's anime list with normalized schema
   const fetchAnimeList = async () => {
     if (!user) return;
     
@@ -46,7 +70,20 @@ export const useUserLists = () => {
     try {
       const { data, error } = await supabase
         .from('user_anime_lists')
-        .select('*')
+        .select(`
+          *,
+          anime_details:anime_detail_id (
+            title_id,
+            titles:title_id (
+              id,
+              title,
+              title_english,
+              title_japanese,
+              anilist_id,
+              image_url
+            )
+          )
+        `)
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -60,7 +97,7 @@ export const useUserLists = () => {
     }
   };
 
-  // Fetch user's manga list
+  // Fetch user's manga list with normalized schema
   const fetchMangaList = async () => {
     if (!user) return;
     
@@ -68,7 +105,20 @@ export const useUserLists = () => {
     try {
       const { data, error } = await supabase
         .from('user_manga_lists')
-        .select('*')
+        .select(`
+          *,
+          manga_details:manga_detail_id (
+            title_id,
+            titles:title_id (
+              id,
+              title,
+              title_english,
+              title_japanese,
+              anilist_id,
+              image_url
+            )
+          )
+        `)
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -82,8 +132,8 @@ export const useUserLists = () => {
     }
   };
 
-  // Add anime to list
-  const addToAnimeList = async (animeId: string, status: UserAnimeListEntry['status'] = 'plan_to_watch') => {
+  // Add anime to list - now uses anime_detail_id
+  const addToAnimeList = async (animeDetailId: string, status: UserAnimeListEntry['status'] = 'plan_to_watch') => {
     if (!user) {
       toast.error('Please sign in to add to your list');
       return;
@@ -94,11 +144,24 @@ export const useUserLists = () => {
         .from('user_anime_lists')
         .insert({
           user_id: user.id,
-          anime_id: animeId,
+          anime_detail_id: animeDetailId,
           status,
           episodes_watched: 0
         })
-        .select()
+        .select(`
+          *,
+          anime_details:anime_detail_id (
+            title_id,
+            titles:title_id (
+              id,
+              title,
+              title_english,
+              title_japanese,
+              anilist_id,
+              image_url
+            )
+          )
+        `)
         .single();
 
       if (error) throw error;
@@ -112,8 +175,8 @@ export const useUserLists = () => {
     }
   };
 
-  // Add manga to list
-  const addToMangaList = async (mangaId: string, status: UserMangaListEntry['status'] = 'plan_to_read') => {
+  // Add manga to list - now uses manga_detail_id
+  const addToMangaList = async (mangaDetailId: string, status: UserMangaListEntry['status'] = 'plan_to_read') => {
     if (!user) {
       toast.error('Please sign in to add to your list');
       return;
@@ -124,12 +187,25 @@ export const useUserLists = () => {
         .from('user_manga_lists')
         .insert({
           user_id: user.id,
-          manga_id: mangaId,
+          manga_detail_id: mangaDetailId,
           status,
           chapters_read: 0,
           volumes_read: 0
         })
-        .select()
+        .select(`
+          *,
+          manga_details:manga_detail_id (
+            title_id,
+            titles:title_id (
+              id,
+              title,
+              title_english,
+              title_japanese,
+              anilist_id,
+              image_url
+            )
+          )
+        `)
         .single();
 
       if (error) throw error;
@@ -233,14 +309,18 @@ export const useUserLists = () => {
     }
   };
 
-  // Check if anime is in user's list
-  const getAnimeListEntry = (animeId: string) => {
-    return animeList.find(entry => entry.anime_id === animeId);
+  // Check if anime is in user's list by anilist_id
+  const getAnimeListEntry = (anilistId: string | number) => {
+    return animeList.find(entry => 
+      entry.anime_details?.titles?.anilist_id === parseInt(anilistId.toString())
+    );
   };
 
-  // Check if manga is in user's list
-  const getMangaListEntry = (mangaId: string) => {
-    return mangaList.find(entry => entry.manga_id === mangaId);
+  // Check if manga is in user's list by anilist_id  
+  const getMangaListEntry = (anilistId: string | number) => {
+    return mangaList.find(entry => 
+      entry.manga_details?.titles?.anilist_id === parseInt(anilistId.toString())
+    );
   };
 
   // Get lists by status

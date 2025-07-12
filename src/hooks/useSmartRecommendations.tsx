@@ -115,18 +115,34 @@ export const useSmartRecommendations = () => {
 
     try {
       // Get titles user hasn't seen
-      const { data: userAnimeIds } = await supabase
+      const { data: userAnimeEntries } = await supabase
         .from('user_anime_lists')
-        .select('anime_id')
+        .select(`
+          anime_details:anime_detail_id (
+            titles:title_id (
+              anilist_id
+            )
+          )
+        `)
         .eq('user_id', user.id);
 
-      const { data: userMangaIds } = await supabase
+      const { data: userMangaEntries } = await supabase
         .from('user_manga_lists')
-        .select('manga_id')
+        .select(`
+          manga_details:manga_detail_id (
+            titles:title_id (
+              anilist_id
+            )
+          )
+        `)
         .eq('user_id', user.id);
 
-      const excludeAnimeIds = userAnimeIds?.map(item => item.anime_id).filter(Boolean) || [];
-      const excludeMangaIds = userMangaIds?.map(item => item.manga_id).filter(Boolean) || [];
+      const excludeAnimeIds = userAnimeEntries?.map(item => 
+        item.anime_details?.titles?.anilist_id?.toString()
+      ).filter(Boolean) || [];
+      const excludeMangaIds = userMangaEntries?.map(item => 
+        item.manga_details?.titles?.anilist_id?.toString()
+      ).filter(Boolean) || [];
 
       // Get anime recommendations
       const animeRecommendations = await getContentRecommendations(
