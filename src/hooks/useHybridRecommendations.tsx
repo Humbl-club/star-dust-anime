@@ -23,14 +23,17 @@ export const useHybridRecommendations = () => {
   const getContentBasedRecs = useCallback(async (contentType: 'anime' | 'manga', limit: number) => {
     if (!user) return [];
 
-    // Get user's highest rated content with proper joins
-    const tableName = contentType === 'anime' ? 'user_anime_lists' : 'user_manga_lists';
-    const contentColumn = contentType === 'anime' ? 'anime_id' : 'manga_id';
-    
+    // Get user's highest rated content using unified table
     const { data: userList } = await supabase
-      .from(tableName)
-      .select(`*, ${contentType}:${contentColumn}(*)`)
+      .from('user_title_lists')
+      .select(`
+        *,
+        titles!inner(*),
+        anime_details:titles!inner(anime_details(*)),
+        manga_details:titles!inner(manga_details(*))
+      `)
       .eq('user_id', user.id)
+      .eq('media_type', contentType)
       .gte('score', 8)
       .order('score', { ascending: false })
       .limit(10);

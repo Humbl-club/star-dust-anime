@@ -31,49 +31,31 @@ export const useSmartRecommendations = () => {
     if (!user) return null;
 
     try {
-      // Get user's anime list
-      const { data: animeList } = await supabase
-        .from('user_anime_lists')
+      // Get user's list using unified table
+      const { data: userList } = await supabase
+        .from('user_title_lists')
         .select(`
           score,
-          status,
-          anime_id,
+          media_type,
           titles!inner(title, genres:title_genres(genres(name)))
         `)
         .eq('user_id', user.id)
         .not('score', 'is', null);
 
-      // Get user's manga list
-      const { data: mangaList } = await supabase
-        .from('user_manga_lists')
-        .select(`
-          score,
-          status,
-          manga_id,
-          titles!inner(title, genres:title_genres(genres(name)))
-        `)
-        .eq('user_id', user.id)
-        .not('score', 'is', null);
+      if (!userList) return null;
 
-      if (!animeList && !mangaList) return null;
-
-      const allItems = [...(animeList || []), ...(mangaList || [])];
       const genreFrequency: { [key: string]: number } = {};
       let totalScore = 0;
       let scoredItems = 0;
       let completedCount = 0;
       const typePreferences: { [key: string]: number } = {};
 
-      allItems.forEach((item: any) => {
+      userList.forEach((item: any) => {
         if (item.score) {
           totalScore += item.score;
           scoredItems++;
         }
         
-        if (item.status === 'completed') {
-          completedCount++;
-        }
-
         // Count genre preferences
         if (item.titles?.genres) {
           item.titles.genres.forEach((genreObj: any) => {
@@ -85,8 +67,7 @@ export const useSmartRecommendations = () => {
         }
 
         // Track type preferences
-        const type = item.anime_id ? 'anime' : 'manga';
-        typePreferences[type] = (typePreferences[type] || 0) + 1;
+        typePreferences[item.media_type] = (typePreferences[item.media_type] || 0) + 1;
       });
 
       const favoriteGenres = Object.entries(genreFrequency)
@@ -114,48 +95,30 @@ export const useSmartRecommendations = () => {
     if (!userProfile || !user) return [];
 
     try {
-      // Get titles user hasn't seen
-      const { data: userAnimeEntries } = await supabase
-        .from('user_anime_lists')
+      // Get titles user hasn't seen using unified table
+      const { data: userEntries } = await supabase
+        .from('user_title_lists')
         .select(`
-          anime_details:anime_detail_id (
-            titles:title_id (
-              anilist_id
-            )
-          )
+          titles!inner(anilist_id)
         `)
         .eq('user_id', user.id);
 
-      const { data: userMangaEntries } = await supabase
-        .from('user_manga_lists')
-        .select(`
-          manga_details:manga_detail_id (
-            titles:title_id (
-              anilist_id
-            )
-          )
-        `)
-        .eq('user_id', user.id);
-
-      const excludeAnimeIds = userAnimeEntries?.map(item => 
-        item.anime_details?.titles?.anilist_id?.toString()
-      ).filter(Boolean) || [];
-      const excludeMangaIds = userMangaEntries?.map(item => 
-        item.manga_details?.titles?.anilist_id?.toString()
+      const excludeIds = userEntries?.map(item => 
+        item.titles?.anilist_id?.toString()
       ).filter(Boolean) || [];
 
       // Get anime recommendations
       const animeRecommendations = await getContentRecommendations(
         'anime',
         userProfile,
-        excludeAnimeIds
+        excludeIds
       );
 
       // Get manga recommendations  
       const mangaRecommendations = await getContentRecommendations(
         'manga',
         userProfile,
-        excludeMangaIds
+        excludeIds
       );
 
       // Combine and sort by confidence
