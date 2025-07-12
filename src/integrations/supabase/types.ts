@@ -1123,6 +1123,79 @@ export type Database = {
         }
         Relationships: []
       }
+      user_title_lists: {
+        Row: {
+          chapters_read: number | null
+          created_at: string | null
+          episodes_watched: number | null
+          finish_date: string | null
+          id: string
+          media_type: string
+          notes: string | null
+          score: number | null
+          start_date: string | null
+          status_id: string
+          title_id: string
+          updated_at: string | null
+          user_id: string
+          volumes_read: number | null
+        }
+        Insert: {
+          chapters_read?: number | null
+          created_at?: string | null
+          episodes_watched?: number | null
+          finish_date?: string | null
+          id?: string
+          media_type: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status_id: string
+          title_id: string
+          updated_at?: string | null
+          user_id: string
+          volumes_read?: number | null
+        }
+        Update: {
+          chapters_read?: number | null
+          created_at?: string | null
+          episodes_watched?: number | null
+          finish_date?: string | null
+          id?: string
+          media_type?: string
+          notes?: string | null
+          score?: number | null
+          start_date?: string | null
+          status_id?: string
+          title_id?: string
+          updated_at?: string | null
+          user_id?: string
+          volumes_read?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_title_lists_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "list_statuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_lists_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_lists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       username_history: {
         Row: {
           acquired_at: string | null
