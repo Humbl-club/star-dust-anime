@@ -20,35 +20,27 @@ import {
   Award,
   Zap
 } from "lucide-react";
-import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { useNamePreference } from "@/hooks/useNamePreference";
-import { type Anime } from "@/data/animeData";
 import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
 import { AddToListButton } from "@/components/AddToListButton";
-
 import { Navigation } from "@/components/Navigation";
 import { SEOMetaTags } from "@/components/SEOMetaTags";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { ShareButton } from "@/components/ShareButton";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
-
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { EnhancedTrailerPlayer } from "@/components/EnhancedTrailerPlayer";
+import { useAnimeDetail } from "@/hooks/useAnimeDetail";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish, getDisplayName } = useNamePreference();
   
-  const { data: allAnime, loading } = useSimpleNewApiData({ 
-    contentType: 'anime',
-    limit: 1000,
-    autoFetch: true
-  });
+  // Use the new optimized hook instead of fetching all anime
+  const { anime, loading, error } = useAnimeDetail(id || '');
 
-  const anime = allAnime.find(a => a.id === id);
-
-  // Use the new normalized database structure
+  // Use the new optimized data structure
   const enhancedAnime = anime ? {
     ...anime,
     // Use optimized image handling
@@ -72,11 +64,13 @@ const AnimeDetail = () => {
     );
   }
 
-  if (!anime) {
+  if (error || !anime) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Anime not found</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            {error || 'Anime not found'}
+          </h2>
           <Button onClick={() => navigate('/anime')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Anime List
@@ -85,7 +79,6 @@ const AnimeDetail = () => {
       </div>
     );
   }
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
@@ -113,7 +106,6 @@ const AnimeDetail = () => {
           }}
         />
       </div>
-
 
       <div className="container mx-auto px-4 py-8 pt-24 relative z-10">
         <div className="grid lg:grid-cols-5 gap-8">
@@ -246,6 +238,7 @@ const AnimeDetail = () => {
                   borderColor: enhancedAnime?.color_theme ? `${enhancedAnime.color_theme}30` : undefined
                 }}
               >
+                {/* stats grid and progress bar */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-primary mb-1">
@@ -322,7 +315,7 @@ const AnimeDetail = () => {
               />
             </div>
 
-            {/* Details Grid */}
+            {/* Details Grid, Genres, Studios, Themes, Rating sections */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.5s' }}>
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -397,7 +390,7 @@ const AnimeDetail = () => {
                         className="px-4 py-2 text-base hover:bg-secondary/80 hover:scale-105 transition-all duration-200 cursor-pointer"
                         style={{ animationDelay: `${0.7 + (index * 0.05)}s` }}
                       >
-                        {genre}
+                        {genre.name}
                       </Badge>
                     ))}
                   </div>
@@ -417,7 +410,7 @@ const AnimeDetail = () => {
                         variant="outline" 
                         className="px-4 py-2 text-base border-primary/30 hover:bg-primary/10 hover:scale-105 transition-all duration-200 cursor-pointer"
                       >
-                        {studio}
+                        {studio.name}
                       </Badge>
                     ))}
                   </div>
