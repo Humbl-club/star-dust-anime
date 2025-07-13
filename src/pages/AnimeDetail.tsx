@@ -86,6 +86,10 @@ const AnimeDetail = () => {
     ...anime,
     synopsis: anime.synopsis || '', // Ensure synopsis is never undefined
     image_url: anime.image_url || '', // Ensure image_url is never undefined
+    // Transform genres from objects to strings
+    genres: anime.genres ? anime.genres.map(genre => genre.name) : [],
+    // Transform studios from objects to strings
+    studios: anime.studios ? anime.studios.map(studio => studio.name) : [],
     // Ensure all required Anime properties are present
     mal_id: anime.anilist_id, // Use anilist_id as mal_id fallback
     scored_by: anime.members || 0, // Use members as scored_by fallback
