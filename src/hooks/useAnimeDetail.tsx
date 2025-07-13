@@ -10,7 +10,7 @@ interface AnimeDetail {
   title: string;
   title_english?: string;
   title_japanese?: string;
-  synopsis?: string;
+  synopsis: string; // Made required to match Anime type
   image_url?: string;
   score?: number;
   anilist_score?: number;
@@ -84,6 +84,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       // Transform the data to match the expected format
       const transformedAnime: AnimeDetail = {
         ...animeData,
+        synopsis: animeData.synopsis || '', // Ensure synopsis is never undefined
         // Ensure genres and studios are arrays
         genres: Array.isArray(animeData.genres) ? animeData.genres : [],
         studios: Array.isArray(animeData.studios) ? animeData.studios : [],

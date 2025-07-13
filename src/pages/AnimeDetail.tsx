@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,12 @@ const AnimeDetail = () => {
       </div>
     );
   }
+
+  // Create a compatible anime object for AddToListButton
+  const animeForList = {
+    ...anime,
+    synopsis: anime.synopsis || '', // Ensure synopsis is never undefined
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5 relative overflow-hidden">
@@ -162,7 +169,7 @@ const AnimeDetail = () => {
               {/* Action Buttons */}
               <div className="mt-6 space-y-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <AddToListButton 
-                  item={anime} 
+                  item={animeForList} 
                   type="anime" 
                   className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary shadow-lg"
                 />
@@ -315,7 +322,7 @@ const AnimeDetail = () => {
               />
             </div>
 
-            {/* Details Grid, Genres, Studios, Themes, Rating sections */}
+            {/* Details Grid, Genres, Studios, Rating sections */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.5s' }}>
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -411,26 +418,6 @@ const AnimeDetail = () => {
                         className="px-4 py-2 text-base border-primary/30 hover:bg-primary/10 hover:scale-105 transition-all duration-200 cursor-pointer"
                       >
                         {studio.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Themes */}
-            {anime.themes && anime.themes.length > 0 && (
-              <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold mb-6">Themes</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {anime.themes.map((theme, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="outline" 
-                        className="px-4 py-2 text-base border-accent/30 hover:bg-accent/10 hover:scale-105 transition-all duration-200 cursor-pointer"
-                      >
-                        {theme}
                       </Badge>
                     ))}
                   </div>
