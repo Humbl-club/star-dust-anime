@@ -1174,6 +1174,42 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_anime_detail: {
+        Args: { anime_id_param: string }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          members: number
+          favorites: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          episodes: number
+          aired_from: string
+          aired_to: string
+          season: string
+          status: string
+          type: string
+          trailer_url: string
+          trailer_site: string
+          trailer_id: string
+          next_episode_date: string
+          next_episode_number: number
+          last_sync_check: string
+          genres: Json
+          studios: Json
+        }[]
+      }
       get_user_gamification_summary: {
         Args: { user_id_param: string }
         Returns: {
