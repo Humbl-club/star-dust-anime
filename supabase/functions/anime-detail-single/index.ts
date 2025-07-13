@@ -14,11 +14,27 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get anime ID from URL path or query parameters
-    const url = new URL(req.url)
-    const animeId = url.pathname.split('/').pop() || url.searchParams.get('id')
+    let animeId: string | null = null;
+
+    // Try to get anime ID from different sources
+    if (req.method === 'POST') {
+      // Check request body first
+      try {
+        const body = await req.json();
+        animeId = body.id || body.animeId;
+      } catch {
+        // If JSON parsing fails, continue to other methods
+      }
+    }
+
+    // If not found in body, try URL path and query parameters
+    if (!animeId) {
+      const url = new URL(req.url);
+      animeId = url.pathname.split('/').pop() || url.searchParams.get('id');
+    }
     
     if (!animeId) {
+      console.error('No anime ID provided');
       return new Response(
         JSON.stringify({ error: 'Anime ID is required' }),
         { 
@@ -38,7 +54,7 @@ Deno.serve(async (req) => {
     if (error) {
       console.error('Database error:', error)
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch anime details' }),
+        JSON.stringify({ error: 'Failed to fetch anime details', details: error.message }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -47,6 +63,7 @@ Deno.serve(async (req) => {
     }
 
     if (!data || data.length === 0) {
+      console.log('No anime found for ID:', animeId)
       return new Response(
         JSON.stringify({ error: 'Anime not found' }),
         { 
@@ -73,7 +90,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error('Unexpected error:', err)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: err.message }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

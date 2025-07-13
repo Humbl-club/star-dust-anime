@@ -10,8 +10,8 @@ interface AnimeDetail {
   title: string;
   title_english?: string;
   title_japanese?: string;
-  synopsis: string; // Made required to match Anime type
-  image_url?: string;
+  synopsis: string; // Required to match Anime type
+  image_url: string; // Required to match Anime type
   score?: number;
   anilist_score?: number;
   rank?: number;
@@ -76,7 +76,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       }
 
       if (!response?.success || !response?.data) {
-        throw new Error('Invalid response format');
+        throw new Error(response?.error || 'Invalid response format');
       }
 
       const animeData = response.data;
@@ -85,6 +85,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       const transformedAnime: AnimeDetail = {
         ...animeData,
         synopsis: animeData.synopsis || '', // Ensure synopsis is never undefined
+        image_url: animeData.image_url || '', // Ensure image_url is never undefined
         // Ensure genres and studios are arrays
         genres: Array.isArray(animeData.genres) ? animeData.genres : [],
         studios: Array.isArray(animeData.studios) ? animeData.studios : [],
