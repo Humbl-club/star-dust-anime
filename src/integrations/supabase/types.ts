@@ -767,6 +767,7 @@ export type Database = {
           id: string
           image_url: string | null
           members: number | null
+          num_users_voted: number | null
           popularity: number | null
           rank: number | null
           score: number | null
@@ -786,6 +787,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           members?: number | null
+          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
@@ -805,6 +807,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           members?: number | null
+          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
