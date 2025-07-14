@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🎯 Starting batch num_users_voted sync for titles with scores...');
+    console.log('🎯 Starting comprehensive num_users_voted sync for ALL titles with scores...');
 
     const { batchSize = 50, apiBatchSize = 25 } = await req.json().catch(() => ({}));
     
@@ -28,104 +28,129 @@ serve(async (req) => {
     let totalApiCalls = 0;
     const errors: string[] = [];
 
-    // Get all titles that have a score (not null)
-    console.log('📋 Fetching titles with scores...');
-    const { data: titlesWithScores, error: fetchError } = await supabase
+    // First, get the total count of titles with scores
+    console.log('📊 Counting total titles with scores...');
+    const { count: totalTitlesCount, error: countError } = await supabase
       .from('titles')
-      .select('id, anilist_id, title')
-      .not('score', 'is', null)
-      .order('anilist_id');
+      .select('*', { count: 'exact', head: true })
+      .not('score', 'is', null);
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch titles: ${fetchError.message}`);
+    if (countError) {
+      throw new Error(`Failed to count titles: ${countError.message}`);
     }
 
-    if (!titlesWithScores?.length) {
-      console.log('⚠️ No titles with scores found');
-      return new Response(JSON.stringify({
-        success: true,
-        total_updated: 0,
-        total_processed: 0,
-        message: 'No titles with scores found',
-        timestamp: new Date().toISOString()
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log(`📈 Found ${totalTitlesCount} total titles with scores to process`);
 
-    console.log(`📊 Found ${titlesWithScores.length} titles with scores to process`);
+    // Process all titles in chunks using pagination
+    let processedCount = 0;
+    const pageSize = batchSize * 10; // Fetch larger chunks from DB
+    
+    for (let offset = 0; offset < totalTitlesCount!; offset += pageSize) {
+      console.log(`📄 Fetching titles batch: ${offset + 1} to ${Math.min(offset + pageSize, totalTitlesCount!)} of ${totalTitlesCount}`);
+      
+      // Fetch a chunk of titles
+      const { data: titlesBatch, error: fetchError } = await supabase
+        .from('titles')
+        .select('id, anilist_id, title')
+        .not('score', 'is', null)
+        .order('anilist_id')
+        .range(offset, offset + pageSize - 1);
 
-    // Process titles in database batches
-    for (let i = 0; i < titlesWithScores.length; i += batchSize) {
-      const batch = titlesWithScores.slice(i, i + batchSize);
-      console.log(`📄 Processing database batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(titlesWithScores.length / batchSize)} (${batch.length} titles)...`);
+      if (fetchError) {
+        console.error(`❌ Failed to fetch titles batch at offset ${offset}:`, fetchError);
+        errors.push(`Fetch error at offset ${offset}: ${fetchError.message}`);
+        continue;
+      }
 
-      let batchUpdated = 0;
+      if (!titlesBatch?.length) {
+        console.log(`⚠️ No more titles found at offset ${offset}`);
+        break;
+      }
 
-      // Group titles into API batches for AniList calls
-      for (let j = 0; j < batch.length; j += apiBatchSize) {
-        const apiBatch = batch.slice(j, j + apiBatchSize);
-        console.log(`🔗 Making AniList batch API call for ${apiBatch.length} titles...`);
+      console.log(`📋 Processing ${titlesBatch.length} titles in current chunk...`);
 
-        try {
-          totalApiCalls++;
-          
-          // Fetch voting data from AniList for this batch of titles
-          const batchVotingData = await fetchAniListVotingDataBatch(apiBatch.map(t => t.anilist_id));
-          
-          // Process each title in the API batch
-          for (const title of apiBatch) {
-            try {
-              totalProcessed++;
-              
-              const votingData = batchVotingData[title.anilist_id];
-              
-              if (votingData?.stats?.scoreDistribution) {
-                const numUsersVoted = votingData.stats.scoreDistribution.reduce(
-                  (total: number, dist: any) => total + (dist.amount || 0), 
-                  0
-                ) || 0;
+      // Process this chunk in smaller database batches
+      for (let i = 0; i < titlesBatch.length; i += batchSize) {
+        const batch = titlesBatch.slice(i, i + batchSize);
+        console.log(`📄 Processing database batch ${Math.floor(i / batchSize) + 1} with ${batch.length} titles...`);
 
-                // Update the title with voting data
-                const { error: updateError } = await supabase
-                  .from('titles')
-                  .update({
-                    num_users_voted: numUsersVoted
-                  })
-                  .eq('id', title.id);
+        let batchUpdated = 0;
 
-                if (updateError) {
-                  console.error(`❌ Failed to update title ${title.anilist_id} (${title.title}):`, updateError);
-                  errors.push(`Title ${title.anilist_id}: ${updateError.message}`);
+        // Group titles into API batches for AniList calls
+        for (let j = 0; j < batch.length; j += apiBatchSize) {
+          const apiBatch = batch.slice(j, j + apiBatchSize);
+          console.log(`🔗 Making AniList batch API call for ${apiBatch.length} titles...`);
+
+          try {
+            totalApiCalls++;
+            
+            // Fetch voting data from AniList for this batch of titles
+            const batchVotingData = await fetchAniListVotingDataBatch(apiBatch.map(t => t.anilist_id));
+            
+            // Process each title in the API batch
+            for (const title of apiBatch) {
+              try {
+                totalProcessed++;
+                
+                const votingData = batchVotingData[title.anilist_id];
+                
+                if (votingData?.stats?.scoreDistribution) {
+                  const numUsersVoted = votingData.stats.scoreDistribution.reduce(
+                    (total: number, dist: any) => total + (dist.amount || 0), 
+                    0
+                  ) || 0;
+
+                  // Update the title with voting data
+                  const { error: updateError } = await supabase
+                    .from('titles')
+                    .update({
+                      num_users_voted: numUsersVoted
+                    })
+                    .eq('id', title.id);
+
+                  if (updateError) {
+                    console.error(`❌ Failed to update title ${title.anilist_id} (${title.title}):`, updateError);
+                    errors.push(`Title ${title.anilist_id}: ${updateError.message}`);
+                  } else {
+                    console.log(`✅ Updated num_users_voted for ${title.title} (${title.anilist_id}): voted=${numUsersVoted}`);
+                    batchUpdated++;
+                    totalUpdated++;
+                  }
                 } else {
-                  console.log(`✅ Updated num_users_voted for ${title.title} (${title.anilist_id}): voted=${numUsersVoted}`);
-                  batchUpdated++;
-                  totalUpdated++;
+                  console.log(`⚠️ No voting data found for title ${title.anilist_id} (${title.title})`);
                 }
-              } else {
-                console.log(`⚠️ No voting data found for title ${title.anilist_id} (${title.title})`);
+
+              } catch (itemError) {
+                console.error(`❌ Error processing title ${title.anilist_id} (${title.title}):`, itemError);
+                errors.push(`Title ${title.anilist_id}: ${itemError.message}`);
               }
-
-            } catch (itemError) {
-              console.error(`❌ Error processing title ${title.anilist_id} (${title.title}):`, itemError);
-              errors.push(`Title ${title.anilist_id}: ${itemError.message}`);
             }
+
+            // Rate limiting: delay between API batch calls
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+          } catch (batchError) {
+            console.error(`❌ Error processing API batch:`, batchError);
+            errors.push(`API batch error: ${batchError.message}`);
           }
+        }
 
-          // Rate limiting: delay between API batch calls
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-        } catch (batchError) {
-          console.error(`❌ Error processing API batch:`, batchError);
-          errors.push(`API batch error: ${batchError.message}`);
+        console.log(`✅ Database batch completed: ${batchUpdated}/${batch.length} titles updated`);
+        processedCount += batch.length;
+        
+        // Progress update
+        const progressPercent = ((processedCount / totalTitlesCount!) * 100).toFixed(1);
+        console.log(`📊 Overall progress: ${processedCount}/${totalTitlesCount} (${progressPercent}%)`);
+        
+        // Longer delay between database batches
+        if (i + batchSize < titlesBatch.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      console.log(`✅ Database batch completed: ${batchUpdated}/${batch.length} titles updated`);
-      
-      // Longer delay between database batches
-      if (i + batchSize < titlesWithScores.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Brief pause between chunks
+      if (offset + pageSize < totalTitlesCount!) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
@@ -137,21 +162,21 @@ serve(async (req) => {
       details: {
         total_updated: totalUpdated,
         total_processed: totalProcessed,
-        titles_with_scores: titlesWithScores.length,
+        total_titles_with_scores: totalTitlesCount,
         database_batch_size: batchSize,
         api_batch_size: apiBatchSize,
         total_api_calls: totalApiCalls,
         duration_ms: duration,
-        errors: errors.slice(0, 10)
+        errors: errors.slice(0, 20)
       },
-      error_message: errors.length > 0 ? errors.join('; ') : null
+      error_message: errors.length > 0 ? errors.slice(0, 5).join('; ') : null
     });
 
     return new Response(JSON.stringify({
       success: true,
       total_updated: totalUpdated,
       total_processed: totalProcessed,
-      titles_with_scores: titlesWithScores.length,
+      total_titles_with_scores: totalTitlesCount,
       database_batch_size: batchSize,
       api_batch_size: apiBatchSize,
       total_api_calls: totalApiCalls,
