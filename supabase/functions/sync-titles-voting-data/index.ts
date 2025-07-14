@@ -28,19 +28,19 @@ serve(async (req) => {
     let totalApiCalls = 0;
     const errors: string[] = [];
 
-    // First, get the total count of titles with scores and num_users_voted != 0
-    console.log('📊 Counting total titles with scores and num_users_voted != 0...');
+    // First, get the total count of titles with scores and num_users_voted == 0
+    console.log('📊 Counting total titles with scores and num_users_voted == 0...');
     const { count: totalTitlesCount, error: countError } = await supabase
       .from('titles')
       .select('*', { count: 'exact', head: true })
       .not('score', 'is', null)
-      .neq('num_users_voted', 0);
+      .eq('num_users_voted', 0);
 
     if (countError) {
       throw new Error(`Failed to count titles: ${countError.message}`);
     }
 
-    console.log(`📈 Found ${totalTitlesCount} total titles with scores and num_users_voted != 0 to process`);
+    console.log(`📈 Found ${totalTitlesCount} total titles with scores and num_users_voted == 0 to process`);
 
     // Process all titles in chunks using pagination - NO LIMITS
     let processedCount = 0;
@@ -56,7 +56,7 @@ serve(async (req) => {
         .from('titles')
         .select('id, anilist_id, title')
         .not('score', 'is', null)
-        .neq('num_users_voted', 0)
+        .eq('num_users_voted', 0)
         .range(offset, offset + pageSize - 1);
 
       if (fetchError) {
