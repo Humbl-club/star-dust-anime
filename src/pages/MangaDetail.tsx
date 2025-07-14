@@ -308,18 +308,18 @@ const MangaDetail = () => {
               </Card>
             )}
 
-            {/* Enhanced Rating Component */}
-            <div className="mb-8">
+            {/* Synopsis - Moved before Rating Component */}
+            <div className="animate-fade-in" style={{ animationDelay: '0.7s' }}>
+              <RichSynopsis synopsis={manga.synopsis} />
+            </div>
+
+            {/* Enhanced Rating Component - Now comes after Synopsis */}
+            <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
               <EnhancedRatingComponent
                 contentId={manga.id}
                 contentType="manga"
                 className="w-full"
               />
-            </div>
-
-            {/* Synopsis */}
-            <div className="animate-fade-in" style={{ animationDelay: '0.7s' }}>
-              <RichSynopsis synopsis={manga.synopsis} />
             </div>
           </div>
         </div>
