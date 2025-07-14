@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🎯 Starting manga score and voting data sync...');
+    console.log('🎯 Starting num_users_voted sync for manga...');
 
     const { maxPages = 5 } = await req.json().catch(() => ({}));
     
@@ -31,7 +31,7 @@ serve(async (req) => {
       try {
         console.log(`📄 Processing page ${currentPage}/${maxPages}...`);
         
-        const response = await fetchAniListMangaScoreData(currentPage);
+        const response = await fetchAniListMangaVotingData(currentPage);
         
         if (!response.data?.Page?.media?.length) {
           console.log(`⚠️ No data found on page ${currentPage}`);
@@ -62,8 +62,6 @@ serve(async (req) => {
               const { error: updateError } = await supabase
                 .from('titles')
                 .update({
-                  score: item.averageScore || null,
-                  anilist_score: item.averageScore || null,
                   num_users_voted: numUsersVoted
                 })
                 .eq('anilist_id', item.id);
@@ -72,7 +70,7 @@ serve(async (req) => {
                 console.error(`❌ Failed to update item ${item.id}:`, updateError);
                 errors.push(`Item ${item.id}: ${updateError.message}`);
               } else {
-                console.log(`✅ Updated manga score data for ${item.id}: score=${item.averageScore}, voted=${numUsersVoted}`);
+                console.log(`✅ Updated num_users_voted for ${item.id}: voted=${numUsersVoted}`);
                 pageUpdated++;
                 totalUpdated++;
               }
@@ -100,7 +98,7 @@ serve(async (req) => {
     const duration = Date.now() - startTime;
 
     await supabase.from('cron_job_logs').insert({
-      job_name: 'sync-manga-score-data',
+      job_name: 'sync-manga-voting-data',
       status: errors.length > 0 ? 'partial_success' : 'success',
       details: {
         total_updated: totalUpdated,
@@ -117,17 +115,17 @@ serve(async (req) => {
       pages_processed: currentPage - 1,
       duration: `${duration}ms`,
       errors: errors.slice(0, 10),
-      message: `Successfully updated manga score data for ${totalUpdated} titles`,
+      message: `Successfully updated num_users_voted for ${totalUpdated} manga titles`,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('❌ Manga score sync critical error:', error);
+    console.error('❌ Manga voting sync critical error:', error);
 
     await supabase.from('cron_job_logs').insert({
-      job_name: 'sync-manga-score-data',
+      job_name: 'sync-manga-voting-data',
       status: 'error',
       error_message: error.message,
       details: { error: error.toString() }
@@ -144,7 +142,7 @@ serve(async (req) => {
   }
 });
 
-async function fetchAniListMangaScoreData(page: number = 1) {
+async function fetchAniListMangaVotingData(page: number = 1) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page(page: $page, perPage: $perPage) {
@@ -154,7 +152,6 @@ async function fetchAniListMangaScoreData(page: number = 1) {
         }
         media(type: MANGA, sort: [POPULARITY_DESC]) {
           id
-          averageScore
           stats {
             scoreDistribution {
               amount

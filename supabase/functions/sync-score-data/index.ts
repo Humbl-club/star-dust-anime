@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🎯 Starting score and voting data sync...');
+    console.log('🎯 Starting num_users_voted sync for anime...');
 
     const { maxPages = 5 } = await req.json().catch(() => ({}));
     
@@ -31,8 +31,7 @@ serve(async (req) => {
       try {
         console.log(`📄 Processing page ${currentPage}/${maxPages}...`);
         
-        // Fetch data from AniList with minimal fields for performance
-        const response = await fetchAniListScoreData(currentPage);
+        const response = await fetchAniListVotingData(currentPage);
         
         if (!response.data?.Page?.media?.length) {
           console.log(`⚠️ No data found on page ${currentPage}`);
@@ -48,7 +47,6 @@ serve(async (req) => {
           if (!item.id) continue;
 
           try {
-            // Check if title exists in our database
             const { data: existingTitle } = await supabase
               .from('titles')
               .select('id, anilist_id')
@@ -56,18 +54,14 @@ serve(async (req) => {
               .single();
 
             if (existingTitle) {
-              // Calculate num_users_voted from score distribution
               const numUsersVoted = item.stats?.scoreDistribution?.reduce(
                 (total: number, dist: any) => total + (dist.amount || 0), 
                 0
               ) || 0;
 
-              // Update only score and num_users_voted
               const { error: updateError } = await supabase
                 .from('titles')
                 .update({
-                  score: item.averageScore || null,
-                  anilist_score: item.averageScore || null,
                   num_users_voted: numUsersVoted
                 })
                 .eq('anilist_id', item.id);
@@ -76,15 +70,12 @@ serve(async (req) => {
                 console.error(`❌ Failed to update item ${item.id}:`, updateError);
                 errors.push(`Item ${item.id}: ${updateError.message}`);
               } else {
-                console.log(`✅ Updated score data for ${item.id}: score=${item.averageScore}, voted=${numUsersVoted}`);
+                console.log(`✅ Updated num_users_voted for ${item.id}: voted=${numUsersVoted}`);
                 pageUpdated++;
                 totalUpdated++;
               }
-            } else {
-              console.log(`⚠️ Title with AniList ID ${item.id} not found in database`);
             }
 
-            // Small delay to respect rate limits
             await new Promise(resolve => setTimeout(resolve, 50));
 
           } catch (itemError) {
@@ -94,8 +85,6 @@ serve(async (req) => {
         }
 
         console.log(`✅ Page ${currentPage} completed: ${pageUpdated}/${items.length} items updated`);
-        
-        // Delay between pages
         await new Promise(resolve => setTimeout(resolve, 1000));
         
       } catch (pageError) {
@@ -108,22 +97,17 @@ serve(async (req) => {
 
     const duration = Date.now() - startTime;
 
-    // Log the execution
     await supabase.from('cron_job_logs').insert({
-      job_name: 'sync-score-data',
+      job_name: 'sync-anime-voting-data',
       status: errors.length > 0 ? 'partial_success' : 'success',
       details: {
         total_updated: totalUpdated,
         pages_processed: currentPage - 1,
         duration_ms: duration,
-        errors: errors.slice(0, 10) // Limit error details
+        errors: errors.slice(0, 10)
       },
       error_message: errors.length > 0 ? errors.join('; ') : null
     });
-
-    console.log(`🎉 Score sync completed in ${duration}ms:`);
-    console.log(`   📊 Total updated: ${totalUpdated}`);
-    console.log(`   ❌ Errors: ${errors.length}`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -131,18 +115,17 @@ serve(async (req) => {
       pages_processed: currentPage - 1,
       duration: `${duration}ms`,
       errors: errors.slice(0, 10),
-      message: `Successfully updated score data for ${totalUpdated} titles`,
+      message: `Successfully updated num_users_voted for ${totalUpdated} anime titles`,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('❌ Score sync critical error:', error);
+    console.error('❌ Anime voting sync critical error:', error);
 
-    // Log the error
     await supabase.from('cron_job_logs').insert({
-      job_name: 'sync-score-data',
+      job_name: 'sync-anime-voting-data',
       status: 'error',
       error_message: error.message,
       details: { error: error.toString() }
@@ -159,7 +142,7 @@ serve(async (req) => {
   }
 });
 
-async function fetchAniListScoreData(page: number = 1) {
+async function fetchAniListVotingData(page: number = 1) {
   const query = `
     query ($page: Int, $perPage: Int) {
       Page(page: $page, perPage: $perPage) {
@@ -169,7 +152,6 @@ async function fetchAniListScoreData(page: number = 1) {
         }
         media(type: ANIME, sort: [POPULARITY_DESC]) {
           id
-          averageScore
           stats {
             scoreDistribution {
               amount
@@ -199,17 +181,14 @@ async function fetchAniListScoreData(page: number = 1) {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`AniList API error ${response.status}:`, errorText);
     throw new Error(`AniList API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
   
   if (data.errors) {
-    console.error('AniList GraphQL errors:', data.errors);
     throw new Error(`AniList GraphQL error: ${data.errors[0]?.message || 'Unknown GraphQL error'}`);
   }
   
-  console.log(`✅ Successfully fetched ${data.data?.Page?.media?.length || 0} items from page ${page}`);
   return data;
 }
