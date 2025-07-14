@@ -76,7 +76,7 @@ const AnimeDetail = () => {
     ...(anime.aired_from ? [{ 
       icon: Calendar, 
       label: 'Aired', 
-      value: `${anime.aired_from}${anime.aired_to ? ` to ${anime.aired_to}` : ''}`,
+      value: `${new Date(anime.aired_from).toLocaleDateString('en-GB')}${anime.aired_to ? ` to ${new Date(anime.aired_to).toLocaleDateString('en-GB')}` : ''}`,
       bgColor: 'bg-secondary/10'
     }] : []),
     ...(anime.season ? [{ icon: Clock, label: 'Season', value: anime.season, bgColor: 'bg-accent/10' }] : []),

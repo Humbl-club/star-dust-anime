@@ -66,7 +66,7 @@ const MangaDetail = () => {
     ...(manga.published_from ? [{ 
       icon: Calendar, 
       label: 'Published', 
-      value: `${new Date(manga.published_from).toLocaleDateString()}${manga.published_to ? ` to ${new Date(manga.published_to).toLocaleDateString()}` : ''}`,
+      value: `${new Date(manga.published_from).toLocaleDateString('en-GB')}${manga.published_to ? ` to ${new Date(manga.published_to).toLocaleDateString('en-GB')}` : ''}`,
       bgColor: 'bg-secondary/10'
     }] : []),
     ...(manga.status ? [{ icon: FileText, label: 'Status', value: manga.status, bgColor: 'bg-accent/10' }] : []),
