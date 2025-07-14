@@ -20,6 +20,7 @@ interface AnimeDetail {
   favorites?: number;
   year?: number;
   color_theme?: string;
+  num_users_voted?: number;
   created_at: string;
   updated_at: string;
   // Anime detail fields
@@ -86,12 +87,14 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
         ...animeData,
         synopsis: animeData.synopsis || '', // Ensure synopsis is never undefined
         image_url: animeData.image_url || '', // Ensure image_url is never undefined
+        num_users_voted: animeData.num_users_voted || 0, // Include the new field
         // Ensure genres and studios are arrays
         genres: Array.isArray(animeData.genres) ? animeData.genres : [],
         studios: Array.isArray(animeData.studios) ? animeData.studios : [],
       };
 
       console.log('Successfully fetched anime:', transformedAnime.title);
+      console.log('Number of users voted:', transformedAnime.num_users_voted);
       setAnime(transformedAnime);
 
     } catch (err: any) {

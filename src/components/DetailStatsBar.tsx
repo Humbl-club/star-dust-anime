@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, Users, Heart, Play, Book, BookOpen } from 'lucide-react';
+import { Star, Users, Heart, Play, Book, BookOpen, Vote } from 'lucide-react';
 
 interface DetailStatsBarProps {
   score?: number;
@@ -11,6 +11,7 @@ interface DetailStatsBarProps {
   episodes?: number;
   chapters?: number;
   volumes?: number;
+  numUsersVoted?: number;
   colorTheme?: string;
   contentType: 'anime' | 'manga';
 }
@@ -23,12 +24,13 @@ export const DetailStatsBar = ({
   episodes, 
   chapters, 
   volumes, 
+  numUsersVoted,
   colorTheme,
   contentType 
 }: DetailStatsBarProps) => {
   const displayScore = score || anilistScore;
   
-  if (!displayScore && !members && !favorites && !episodes && !chapters && !volumes) {
+  if (!displayScore && !members && !favorites && !episodes && !chapters && !volumes && !numUsersVoted) {
     return null;
   }
 
@@ -41,7 +43,7 @@ export const DetailStatsBar = ({
       }}
     >
       <CardContent className="p-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {displayScore && (
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-1">
@@ -74,6 +76,18 @@ export const DetailStatsBar = ({
               <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                 <Heart className="w-3 h-3" />
                 Favorites
+              </div>
+            </div>
+          )}
+
+          {numUsersVoted && (
+            <div className="text-center">
+              <div className="text-3xl font-bold text-primary-glow mb-1">
+                {(numUsersVoted / 1000).toFixed(0)}K
+              </div>
+              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                <Vote className="w-3 h-3" />
+                Voted
               </div>
             </div>
           )}

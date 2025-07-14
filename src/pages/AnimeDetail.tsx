@@ -157,6 +157,7 @@ const AnimeDetail = () => {
             members={anime.members}
             favorites={anime.favorites}
             episodes={anime.episodes}
+            numUsersVoted={anime.num_users_voted}
             colorTheme={enhancedAnime?.color_theme}
             contentType="anime"
           />
