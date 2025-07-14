@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -177,7 +178,135 @@ const MangaDetail = () => {
               </div>
             </div>
 
-            
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              {manga.chapters && (
+                <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
+                  <div className="text-center">
+                    <Book className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <div className="text-2xl font-bold">{manga.chapters}</div>
+                    <div className="text-sm text-muted-foreground">Chapters</div>
+                  </div>
+                </Card>
+              )}
+              
+              {manga.volumes && (
+                <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
+                  <div className="text-center">
+                    <BookOpen className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <div className="text-2xl font-bold">{manga.volumes}</div>
+                    <div className="text-sm text-muted-foreground">Volumes</div>
+                  </div>
+                </Card>
+              )}
+              
+              {manga.members && (
+                <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
+                  <div className="text-center">
+                    <Users className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <div className="text-2xl font-bold">{manga.members.toLocaleString()}</div>
+                    <div className="text-sm text-muted-foreground">Members</div>
+                  </div>
+                </Card>
+              )}
+              
+              {manga.favorites && (
+                <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/50">
+                  <div className="text-center">
+                    <Heart className="w-6 h-6 mx-auto mb-2 text-primary" />
+                    <div className="text-2xl font-bold">{manga.favorites.toLocaleString()}</div>
+                    <div className="text-sm text-muted-foreground">Favorites</div>
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Status and Publication Info */}
+            <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        {manga.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Type:</span>
+                      <span>{manga.type}</span>
+                    </div>
+                    {manga.year && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Year:</span>
+                        <span>{manga.year}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    Publication
+                  </h3>
+                  <div className="space-y-3">
+                    {manga.published_from && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">From:</span>
+                        <span>{new Date(manga.published_from).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {manga.published_to && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">To:</span>
+                        <span>{new Date(manga.published_to).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Genres */}
+            {manga.genres && manga.genres.length > 0 && (
+              <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                <h3 className="text-lg font-semibold mb-4">Genres</h3>
+                <div className="flex flex-wrap gap-2">
+                  {manga.genres.map((genre, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="outline" 
+                      className="border-primary/30 hover:bg-primary/10 transition-colors"
+                    >
+                      {genre.name}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Authors */}
+            {manga.authors && manga.authors.length > 0 && (
+              <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                <h3 className="text-lg font-semibold mb-4">Authors</h3>
+                <div className="flex flex-wrap gap-2">
+                  {manga.authors.map((author, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="bg-secondary/20 hover:bg-secondary/30 transition-colors"
+                    >
+                      {author.name}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             {/* Enhanced Rating Component */}
             <div className="mb-8">
@@ -186,6 +315,11 @@ const MangaDetail = () => {
                 contentType="manga"
                 className="w-full"
               />
+            </div>
+
+            {/* Synopsis */}
+            <div className="animate-fade-in" style={{ animationDelay: '0.7s' }}>
+              <RichSynopsis synopsis={manga.synopsis} />
             </div>
           </div>
         </div>

@@ -1210,6 +1210,39 @@ export type Database = {
           studios: Json
         }[]
       }
+      get_manga_detail: {
+        Args: { manga_id_param: string }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          members: number
+          favorites: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          chapters: number
+          volumes: number
+          published_from: string
+          published_to: string
+          status: string
+          type: string
+          next_chapter_date: string
+          next_chapter_number: number
+          last_sync_check: string
+          genres: Json
+          authors: Json
+        }[]
+      }
       get_user_gamification_summary: {
         Args: { user_id_param: string }
         Returns: {
