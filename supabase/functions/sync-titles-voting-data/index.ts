@@ -1,5 +1,4 @@
 
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -43,14 +42,16 @@ serve(async (req) => {
 
     console.log(`📈 Found ${totalTitlesCount} total titles with scores and num_users_voted != 0 to process`);
 
-    // Process all titles in chunks using pagination
+    // Process all titles in chunks using pagination - NO LIMITS
     let processedCount = 0;
     const pageSize = batchSize * 10; // Fetch larger chunks from DB
+    let offset = 0;
+    let hasMoreData = true;
     
-    for (let offset = 0; offset < totalTitlesCount!; offset += pageSize) {
-      console.log(`📄 Fetching titles batch: ${offset + 1} to ${Math.min(offset + pageSize, totalTitlesCount!)} of ${totalTitlesCount}`);
+    while (hasMoreData) {
+      console.log(`📄 Fetching titles batch: ${offset + 1} to ${offset + pageSize} of ${totalTitlesCount}`);
       
-      // Fetch a chunk of titles
+      // Fetch a chunk of titles - removed any implicit limits
       const { data: titlesBatch, error: fetchError } = await supabase
         .from('titles')
         .select('id, anilist_id, title')
@@ -61,11 +62,13 @@ serve(async (req) => {
       if (fetchError) {
         console.error(`❌ Failed to fetch titles batch at offset ${offset}:`, fetchError);
         errors.push(`Fetch error at offset ${offset}: ${fetchError.message}`);
+        offset += pageSize;
         continue;
       }
 
       if (!titlesBatch?.length) {
         console.log(`⚠️ No more titles found at offset ${offset}`);
+        hasMoreData = false;
         break;
       }
 
@@ -150,8 +153,16 @@ serve(async (req) => {
         }
       }
 
+      // Move to next chunk
+      offset += pageSize;
+      
+      // Check if we've processed all available data
+      if (titlesBatch.length < pageSize) {
+        hasMoreData = false;
+      }
+
       // Brief pause between chunks
-      if (offset + pageSize < totalTitlesCount!) {
+      if (hasMoreData) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -265,4 +276,3 @@ async function fetchAniListVotingDataBatch(anilistIds: number[]): Promise<Record
   
   return result;
 }
-
