@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -18,88 +19,96 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🎯 Starting num_users_voted sync for titles...');
+    console.log('🎯 Starting num_users_voted sync for titles with scores...');
 
-    const { maxPages = 5, contentType = 'both' } = await req.json().catch(() => ({}));
+    const { batchSize = 50 } = await req.json().catch(() => ({}));
     
     const startTime = Date.now();
     let totalUpdated = 0;
-    let currentPage = 1;
+    let totalProcessed = 0;
     const errors: string[] = [];
 
-    // Determine which content types to sync
-    const contentTypes = contentType === 'both' ? ['anime', 'manga'] : [contentType];
+    // Get all titles that have a score (not null)
+    console.log('📋 Fetching titles with scores...');
+    const { data: titlesWithScores, error: fetchError } = await supabase
+      .from('titles')
+      .select('id, anilist_id, title')
+      .not('score', 'is', null)
+      .order('anilist_id');
 
-    for (const type of contentTypes) {
-      console.log(`📋 Processing ${type} titles...`);
-      currentPage = 1;
+    if (fetchError) {
+      throw new Error(`Failed to fetch titles: ${fetchError.message}`);
+    }
 
-      while (currentPage <= maxPages) {
+    if (!titlesWithScores?.length) {
+      console.log('⚠️ No titles with scores found');
+      return new Response(JSON.stringify({
+        success: true,
+        total_updated: 0,
+        total_processed: 0,
+        message: 'No titles with scores found',
+        timestamp: new Date().toISOString()
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`📊 Found ${titlesWithScores.length} titles with scores to process`);
+
+    // Process titles in batches
+    for (let i = 0; i < titlesWithScores.length; i += batchSize) {
+      const batch = titlesWithScores.slice(i, i + batchSize);
+      console.log(`📄 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(titlesWithScores.length / batchSize)} (${batch.length} titles)...`);
+
+      let batchUpdated = 0;
+
+      for (const title of batch) {
         try {
-          console.log(`📄 Processing ${type} page ${currentPage}/${maxPages}...`);
+          totalProcessed++;
           
-          const response = await fetchAniListVotingData(currentPage, type);
+          // Fetch voting data from AniList for this specific title
+          const votingData = await fetchAniListVotingDataById(title.anilist_id);
           
-          if (!response.data?.Page?.media?.length) {
-            console.log(`⚠️ No ${type} data found on page ${currentPage}`);
-            break;
-          }
+          if (votingData?.stats?.scoreDistribution) {
+            const numUsersVoted = votingData.stats.scoreDistribution.reduce(
+              (total: number, dist: any) => total + (dist.amount || 0), 
+              0
+            ) || 0;
 
-          const items = response.data.Page.media;
-          console.log(`📊 Found ${items.length} ${type} items on page ${currentPage}`);
-          
-          let pageUpdated = 0;
+            // Update the title with voting data
+            const { error: updateError } = await supabase
+              .from('titles')
+              .update({
+                num_users_voted: numUsersVoted
+              })
+              .eq('id', title.id);
 
-          for (const item of items) {
-            if (!item.id) continue;
-
-            try {
-              const { data: existingTitle } = await supabase
-                .from('titles')
-                .select('id, anilist_id')
-                .eq('anilist_id', item.id)
-                .single();
-
-              if (existingTitle) {
-                const numUsersVoted = item.stats?.scoreDistribution?.reduce(
-                  (total: number, dist: any) => total + (dist.amount || 0), 
-                  0
-                ) || 0;
-
-                const { error: updateError } = await supabase
-                  .from('titles')
-                  .update({
-                    num_users_voted: numUsersVoted
-                  })
-                  .eq('anilist_id', item.id);
-
-                if (updateError) {
-                  console.error(`❌ Failed to update ${type} item ${item.id}:`, updateError);
-                  errors.push(`${type} ${item.id}: ${updateError.message}`);
-                } else {
-                  console.log(`✅ Updated num_users_voted for ${type} ${item.id}: voted=${numUsersVoted}`);
-                  pageUpdated++;
-                  totalUpdated++;
-                }
-              }
-
-              await new Promise(resolve => setTimeout(resolve, 50));
-
-            } catch (itemError) {
-              console.error(`❌ Error processing ${type} item ${item.id}:`, itemError);
-              errors.push(`${type} ${item.id}: ${itemError.message}`);
+            if (updateError) {
+              console.error(`❌ Failed to update title ${title.anilist_id} (${title.title}):`, updateError);
+              errors.push(`Title ${title.anilist_id}: ${updateError.message}`);
+            } else {
+              console.log(`✅ Updated num_users_voted for ${title.title} (${title.anilist_id}): voted=${numUsersVoted}`);
+              batchUpdated++;
+              totalUpdated++;
             }
+          } else {
+            console.log(`⚠️ No voting data found for title ${title.anilist_id} (${title.title})`);
           }
 
-          console.log(`✅ ${type} page ${currentPage} completed: ${pageUpdated}/${items.length} items updated`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-        } catch (pageError) {
-          console.error(`❌ Error processing ${type} page ${currentPage}:`, pageError);
-          errors.push(`${type} page ${currentPage}: ${pageError.message}`);
-        }
+          // Rate limiting: small delay between requests
+          await new Promise(resolve => setTimeout(resolve, 100));
 
-        currentPage++;
+        } catch (itemError) {
+          console.error(`❌ Error processing title ${title.anilist_id} (${title.title}):`, itemError);
+          errors.push(`Title ${title.anilist_id}: ${itemError.message}`);
+        }
+      }
+
+      console.log(`✅ Batch completed: ${batchUpdated}/${batch.length} titles updated`);
+      
+      // Longer delay between batches
+      if (i + batchSize < titlesWithScores.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
@@ -110,8 +119,9 @@ serve(async (req) => {
       status: errors.length > 0 ? 'partial_success' : 'success',
       details: {
         total_updated: totalUpdated,
-        content_types: contentTypes,
-        pages_processed_per_type: currentPage - 1,
+        total_processed: totalProcessed,
+        titles_with_scores: titlesWithScores.length,
+        batch_size: batchSize,
         duration_ms: duration,
         errors: errors.slice(0, 10)
       },
@@ -121,11 +131,12 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       total_updated: totalUpdated,
-      content_types: contentTypes,
-      pages_processed_per_type: currentPage - 1,
+      total_processed: totalProcessed,
+      titles_with_scores: titlesWithScores.length,
+      batch_size: batchSize,
       duration: `${duration}ms`,
       errors: errors.slice(0, 10),
-      message: `Successfully updated num_users_voted for ${totalUpdated} titles`,
+      message: `Successfully updated num_users_voted for ${totalUpdated} out of ${totalProcessed} titles`,
       timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -152,22 +163,14 @@ serve(async (req) => {
   }
 });
 
-async function fetchAniListVotingData(page: number = 1, type: string = 'anime') {
-  const mediaType = type.toUpperCase();
-  
+async function fetchAniListVotingDataById(anilistId: number) {
   const query = `
-    query ($page: Int, $perPage: Int, $type: MediaType) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo {
-          hasNextPage
-          currentPage
-        }
-        media(type: $type, sort: [POPULARITY_DESC]) {
-          id
-          stats {
-            scoreDistribution {
-              amount
-            }
+    query ($id: Int) {
+      Media(id: $id) {
+        id
+        stats {
+          scoreDistribution {
+            amount
           }
         }
       }
@@ -175,9 +178,7 @@ async function fetchAniListVotingData(page: number = 1, type: string = 'anime') 
   `;
 
   const variables = {
-    page,
-    perPage: 50,
-    type: mediaType
+    id: anilistId
   };
 
   const response = await fetch('https://graphql.anilist.co', {
@@ -194,14 +195,15 @@ async function fetchAniListVotingData(page: number = 1, type: string = 'anime') 
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`AniList API error: ${response.status} - ${errorText}`);
+    throw new Error(`AniList API error for ID ${anilistId}: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
   
   if (data.errors) {
-    throw new Error(`AniList GraphQL error: ${data.errors[0]?.message || 'Unknown GraphQL error'}`);
+    throw new Error(`AniList GraphQL error for ID ${anilistId}: ${data.errors[0]?.message || 'Unknown GraphQL error'}`);
   }
   
-  return data;
+  return data.data?.Media;
 }
+
