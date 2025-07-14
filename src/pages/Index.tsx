@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
+import { SyncControl } from "@/components/SyncControl";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +14,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
-
-
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Index = () => {
@@ -169,7 +168,6 @@ const Index = () => {
     );
   }
 
-
   return (
     <div className="min-h-screen relative">
       <Navigation onSearch={handleSearch} />
@@ -177,6 +175,15 @@ const Index = () => {
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
       
+      {/* Admin Sync Control - Only show for authenticated users */}
+      {user && (
+        <section className="py-8 bg-muted/20">
+          <div className="container mx-auto mobile-safe-padding flex justify-center">
+            <SyncControl />
+          </div>
+        </section>
+      )}
+
       {/* Search Results */}
       {isSearching && (
         <section className="py-16">
