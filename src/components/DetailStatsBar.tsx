@@ -26,7 +26,7 @@ export const DetailStatsBar = ({
   colorTheme,
   contentType 
 }: DetailStatsBarProps) => {
-  const displayScore = anilistScore || score;
+  const displayScore = score || anilistScore;
   
   if (!displayScore && !members && !favorites && !episodes && !chapters && !volumes) {
     return null;
@@ -49,7 +49,7 @@ export const DetailStatsBar = ({
               </div>
               <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                 <Star className="w-3 h-3" />
-                {anilistScore ? 'AniList Score' : 'Score'}
+                Score
               </div>
             </div>
           )}
