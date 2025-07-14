@@ -1,3 +1,4 @@
+
 import { AniListResponse } from './types.ts'
 
 export async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1): Promise<AniListResponse> {
@@ -42,6 +43,11 @@ export async function fetchAniListData(type: 'ANIME' | 'MANGA', page: number = 1
           averageScore
           popularity
           favourites
+          stats {
+            scoreDistribution {
+              amount
+            }
+          }
           studios {
             nodes {
               name

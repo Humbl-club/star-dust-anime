@@ -49,6 +49,11 @@ const SEARCH_MEDIA_QUERY = `
         favourites
         countryOfOrigin
         isAdult
+        stats {
+          scoreDistribution {
+            amount
+          }
+        }
         nextAiringEpisode {
           id
           airingAt
@@ -158,6 +163,11 @@ const GET_MEDIA_DETAILS_QUERY = `
       hashtag
       countryOfOrigin
       isAdult
+      stats {
+        scoreDistribution {
+          amount
+        }
+      }
       nextAiringEpisode {
         id
         airingAt
@@ -587,6 +597,7 @@ class AniListService {
       popularity: media.popularity || null,
       members: media.favourites || null,
       favorites: media.favourites || null,
+      num_users_voted: media.stats?.scoreDistribution?.reduce((total, dist) => total + dist.amount, 0) || 0,
       synopsis: media.description ? media.description.replace(/<[^>]*>/g, '') : null,
       image_url: this.getBestImage(media),
       banner_image: media.bannerImage || null,

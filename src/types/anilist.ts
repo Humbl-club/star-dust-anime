@@ -1,3 +1,4 @@
+
 // AniList API Types
 export interface AniListAnime {
   id: number;
@@ -43,6 +44,11 @@ export interface AniListAnime {
     color?: string;
   };
   bannerImage?: string;
+  stats?: {
+    scoreDistribution?: Array<{
+      amount: number;
+    }>;
+  };
   nextAiringEpisode?: {
     id: number;
     airingAt: number;

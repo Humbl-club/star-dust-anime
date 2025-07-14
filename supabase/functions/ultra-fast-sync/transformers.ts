@@ -1,4 +1,5 @@
 
+
 // Transform AniList data to match our normalized database schema
 export function transformToTitleData(item: any) {
   return {
@@ -16,6 +17,7 @@ export function transformToTitleData(item: any) {
     rank: item.meanScore ? Math.floor(item.meanScore * 10) : null,
     year: item.seasonYear || (item.startDate ? item.startDate.year : null),
     color_theme: item.coverImage?.color || null,
+    num_users_voted: item.stats?.scoreDistribution?.reduce((total: number, dist: any) => total + dist.amount, 0) || 0,
   }
 }
 
@@ -100,3 +102,4 @@ function formatDate(dateObj: any): string | null {
     return null
   }
 }
+
