@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Star, Users, Heart, Play, Book, BookOpen } from 'lucide-react';
 
 interface DetailStatsBarProps {
@@ -109,25 +108,6 @@ export const DetailStatsBar = ({
             </div>
           )}
         </div>
-        
-        {/* Score Progress Bar */}
-        {displayScore && (
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Overall Rating</span>
-              <span className="text-sm text-muted-foreground">
-                {displayScore}/10
-              </span>
-            </div>
-            <Progress 
-              value={(displayScore / 10) * 100} 
-              className="h-2 bg-muted/30"
-              style={{
-                background: colorTheme ? `${colorTheme}20` : undefined
-              }}
-            />
-          </div>
-        )}
       </CardContent>
     </Card>
   );
