@@ -16,6 +16,7 @@ export interface Title {
   favorites?: number;
   year?: number;
   color_theme?: string;
+  num_users_voted?: number; // Added the new field
   created_at: string;
   updated_at: string;
 }
