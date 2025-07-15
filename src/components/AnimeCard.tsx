@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ interface AnimeCardProps {
   getDisplayName?: (anime: Anime) => string;
 }
 
-export const AnimeCard = ({ 
+export const AnimeCard = memo(({ 
   anime,
   onClick,
   showCountdown = true,
@@ -28,21 +28,25 @@ export const AnimeCard = ({
 
   const displayName = getDisplayName ? getDisplayName(anime) : anime.title;
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     // Don't trigger card click if clicking on the dropdown or report button
     if ((e.target as HTMLElement).closest('.report-dropdown')) {
       return;
     }
     onClick?.();
-  };
+  }, [onClick]);
 
-  const handleReportClick = () => {
+  const handleReportClick = useCallback(() => {
     if (!user) {
       console.warn('User must be authenticated to report content');
       return;
     }
     setShowReportModal(true);
-  };
+  }, [user]);
+
+  const handleCloseModal = useCallback(() => {
+    setShowReportModal(false);
+  }, []);
 
   return (
     <>
@@ -151,7 +155,7 @@ export const AnimeCard = ({
       {user && (
         <ContentReportModal
           isOpen={showReportModal}
-          onClose={() => setShowReportModal(false)}
+          onClose={handleCloseModal}
           contentType="anime"
           contentId={anime.id}
           contentTitle={displayName}
@@ -159,4 +163,4 @@ export const AnimeCard = ({
       )}
     </>
   );
-};
+});

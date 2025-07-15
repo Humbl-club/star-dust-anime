@@ -85,8 +85,13 @@ export const useUserTitleLists = () => {
     return status?.id || null;
   };
 
-  // Fetch list statuses on mount
+  // Cache list statuses globally to prevent multiple fetches
+  const [statusesFetched, setStatusesFetched] = useState(false);
+
+  // Fetch list statuses on mount - only once
   useEffect(() => {
+    if (statusesFetched) return;
+
     const fetchStatuses = async () => {
       try {
         const { data, error } = await supabase
@@ -96,13 +101,15 @@ export const useUserTitleLists = () => {
 
         if (error) throw error;
         setListStatuses((data || []) as ListStatus[]);
+        setStatusesFetched(true);
       } catch (err) {
         console.error('Error fetching list statuses:', err);
+        setStatusesFetched(true); // Mark as fetched even on error to prevent retry loop
       }
     };
 
     fetchStatuses();
-  }, []);
+  }, [statusesFetched]);
 
   // Fetch user title lists
   const fetchTitleLists = async () => {
