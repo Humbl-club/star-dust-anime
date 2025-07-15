@@ -1591,6 +1591,10 @@ export type Database = {
           message: string
         }[]
       }
+      initialize_user_gamification: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
       log_service_metric: {
         Args: {
           service_name_param: string
