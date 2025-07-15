@@ -1465,6 +1465,10 @@ export type Database = {
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
       }
+      check_email_system_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       check_email_verification_status: {
         Args: { user_id_param: string }
         Returns: {
