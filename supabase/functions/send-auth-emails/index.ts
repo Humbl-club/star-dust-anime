@@ -536,6 +536,8 @@ Deno.serve(async (req) => {
     // Extract email data from different payload formats
     let emailData: any = {}
     
+    console.log(`[${correlationId}] Raw payload:`, JSON.stringify(payload, null, 2))
+    
     if (payload.record || payload.old_record) {
       // Webhook format from database trigger
       const record = payload.record || payload.old_record
@@ -548,7 +550,7 @@ Deno.serve(async (req) => {
         email_action_type: 'signup'
       }
     } else {
-      // Direct API call format
+      // Direct API call format (from database trigger http_post)
       emailData = {
         email: payload.email,
         user_id: payload.user_id,
@@ -558,6 +560,8 @@ Deno.serve(async (req) => {
         email_action_type: payload.email_action_type || 'signup'
       }
     }
+    
+    console.log(`[${correlationId}] Extracted emailData:`, JSON.stringify(emailData, null, 2))
     
     // Validate required fields
     if (!emailData.email || !emailData.user_id) {
