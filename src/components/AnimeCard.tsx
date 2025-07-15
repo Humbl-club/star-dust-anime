@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "@/components/AddToListButton";
-import { useAuth } from "@/hooks/useAuth";
 import { ContentReportModal } from "@/components/ContentReportModal";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";
@@ -24,7 +23,6 @@ export const AnimeCard = memo(({
   getDisplayName
 }: AnimeCardProps) => {
   const [showReportModal, setShowReportModal] = useState(false);
-  const { user } = useAuth();
 
   const displayName = getDisplayName ? getDisplayName(anime) : anime.title;
 
@@ -37,11 +35,6 @@ export const AnimeCard = memo(({
   }, [onClick]);
 
   const handleReportClick = useCallback(() => {
-    // Temporarily disabled authentication check for testing
-    // if (!user) {
-    //   console.warn('User must be authenticated to report content');
-    //   return;
-    // }
     setShowReportModal(true);
   }, []);
 
@@ -170,7 +163,7 @@ export const AnimeCard = memo(({
       
     </Card>
 
-      {/* Temporarily always show modal for testing - removed user authentication check */}
+      {/* Report Modal */}
       <ContentReportModal
         isOpen={showReportModal}
         onClose={handleCloseModal}
