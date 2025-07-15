@@ -82,18 +82,23 @@ export const AnimeCard = memo(({
         )}
 
         {/* Report Button */}
-        <div className="absolute top-12 right-3 z-30 report-dropdown">
+        <div className="absolute top-12 right-3 z-[9998] report-dropdown">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 glass-card border border-border/20 hover:border-primary/30 text-foreground"
+                className="h-8 w-8 p-0 bg-background/90 border border-border hover:bg-background text-foreground z-[9999]"
               >
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="z-50 bg-background border border-border shadow-lg">
+            <DropdownMenuContent 
+              side="bottom" 
+              align="end" 
+              className="z-[9999] bg-background border border-border shadow-lg min-w-[140px]"
+              sideOffset={4}
+            >
               <DropdownMenuItem onClick={handleReportClick} className="hover:bg-accent cursor-pointer">
                 <Flag className="w-4 h-4 mr-2" />
                 Report Content
