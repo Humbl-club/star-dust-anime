@@ -308,9 +308,14 @@ async function sendEmailBackground(emailData: any) {
         console.log(`[${correlationId}] Email send attempt ${attempts}/${maxAttempts}`)
         
         const sendStartTime = Date.now()
+        // Custom domain email configuration
+        const customDomain = 'anithing.space' // Your custom domain
+        const supportEmail = 'support@anithing.space' // Configure email forwarding to your Gmail
+        
         const { data, error } = await resend.emails.send({
-          from: 'AniTracker <noreply@anithing.space>',
+          from: `AniTracker <noreply@${customDomain}>`,
           to: [emailValidation.sanitized],
+          reply_to: supportEmail, // Replies will go to your Gmail via forwarding
           subject: '🎌 Welcome to AniTracker - Confirm Your Email',
           html,
         })
@@ -634,6 +639,6 @@ Deno.serve(async (req) => {
 // Handle graceful shutdown
 addEventListener('beforeunload', (event) => {
   console.log('Edge function shutting down:', event.detail?.reason)
-  // Clear rate limiting cache on shutdown
-  rateLimitCache.clear()
+  // Clear circuit breaker cache on shutdown
+  circuitBreaker.clear()
 })
