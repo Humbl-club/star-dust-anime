@@ -52,7 +52,7 @@ export const AnimeCard = memo(({
   return (
     <>
       <Card 
-        className="anime-card cursor-pointer group relative h-[400px] overflow-hidden hover-scale"
+        className="anime-card cursor-pointer group relative h-[400px] hover-scale"
         onClick={handleCardClick}
       >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
@@ -89,6 +89,10 @@ export const AnimeCard = memo(({
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 bg-background/90 border border-border hover:bg-background text-foreground z-[9999]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
               >
                 <MoreVertical className="w-4 h-4" />
               </Button>
@@ -98,8 +102,16 @@ export const AnimeCard = memo(({
               align="end" 
               className="z-[9999] bg-background border border-border shadow-lg min-w-[140px]"
               sideOffset={4}
+              avoidCollisions={true}
+              onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              <DropdownMenuItem onClick={handleReportClick} className="hover:bg-accent cursor-pointer">
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleReportClick();
+                }} 
+                className="hover:bg-accent cursor-pointer"
+              >
                 <Flag className="w-4 h-4 mr-2" />
                 Report Content
               </DropdownMenuItem>
