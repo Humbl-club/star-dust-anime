@@ -92,17 +92,26 @@ export const EmailVerificationTest = () => {
   };
 
   const testEdgeFunction = async () => {
+    if (!testEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter a test email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      console.log('Testing edge function...');
+      console.log('Testing edge function with email:', testEmail);
       
       const { data, error } = await supabase.functions.invoke('send-auth-emails', {
         body: {
-          email: testEmail || user?.email || 'test@example.com',
-          user_id: user?.id || 'test-user-id',
+          email: testEmail,
+          user_id: 'test-user-id',
           email_action_type: 'signup',
           token: 'test-token',
           token_hash: 'test-token-hash',
-          redirect_to: 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/'
+          redirect_to: window.location.origin
         }
       });
 
@@ -121,8 +130,8 @@ export const EmailVerificationTest = () => {
       setTestResults(prev => ({ ...prev, edgeFunction: 'success' }));
       
       toast({
-        title: "Edge Function Test Passed",
-        description: "Edge function is working correctly",
+        title: "Email Sent Successfully!",
+        description: `Confirmation email sent to ${testEmail}`,
       });
 
     } catch (error) {
