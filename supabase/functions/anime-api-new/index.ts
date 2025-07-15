@@ -82,8 +82,6 @@ serve(async (req) => {
             anilist_score,
             rank,
             popularity,
-            members,
-            favorites,
             year,
             color_theme,
             created_at,
@@ -127,8 +125,6 @@ serve(async (req) => {
             anilist_score,
             rank,
             popularity,
-            members,
-            favorites,
             year,
             color_theme,
             created_at,
@@ -193,12 +189,6 @@ serve(async (req) => {
         case 'popularity':
           sortField = 'popularity';
           break;
-        case 'members':
-          sortField = 'members';
-          break;
-        case 'favorites':
-          sortField = 'favorites';
-          break;
         case 'rank':
           sortField = 'rank';
           break;
@@ -249,8 +239,6 @@ serve(async (req) => {
           anilist_score: item.anilist_score,
           rank: item.rank,
           popularity: item.popularity,
-          members: item.members,
-          favorites: item.favorites,
           year: item.year,
           color_theme: item.color_theme,
           created_at: item.created_at,
@@ -266,7 +254,7 @@ serve(async (req) => {
 
           // Legacy compatibility fields
           mal_id: item.anilist_id,
-          scored_by: item.members || 0
+          scored_by: 0
         };
       });
 
