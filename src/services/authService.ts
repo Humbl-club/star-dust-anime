@@ -174,36 +174,34 @@ export const authService = {
 
       console.log('Resending confirmation to:', sanitizedEmail);
       
-      // Use custom email service for resend
-      const { error: customError } = await supabase.functions.invoke('send-auth-emails', {
-        body: {
-          email: sanitizedEmail,
-          email_action_type: 'signup',
-          redirect_to: `${window.location.origin}/`,
-          token: 'XXXXXX', // Placeholder token for resend
-          token_hash: 'resend-token'
-        }
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { 
+          error: { message: 'User not authenticated' },
+          message: 'Authentication required'
+        };
+      }
+      
+      // Use database function to resend verification email
+      const { data, error } = await supabase.rpc('resend_verification_email', {
+        user_id_param: user.id
       });
 
-      if (customError) {
-        console.error('Custom email service error:', customError);
-        
-        // Fallback to Supabase default
-        const { error } = await supabase.auth.resend({
-          type: 'signup',
-          email: sanitizedEmail,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`
-          }
-        });
+      if (error) {
+        console.error('Resend verification error:', error);
+        return { 
+          error: { message: error.message || 'Failed to resend confirmation email' },
+          message: 'Failed to resend email'
+        };
+      }
 
-        if (error) {
-          console.error('Resend confirmation error:', error);
-          return { 
-            error: { message: error.message || 'Failed to resend confirmation email' },
-            message: 'Failed to resend email'
-          };
-        }
+      // Check if the response contains an error
+      if (data && typeof data === 'object' && 'error' in data) {
+        return { 
+          error: { message: String(data.error) },
+          message: 'Failed to resend email'
+        };
       }
 
       return { 

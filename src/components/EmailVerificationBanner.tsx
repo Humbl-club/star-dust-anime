@@ -18,17 +18,40 @@ export const EmailVerificationBanner = () => {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleVerifyEmail = async () => {
-    if (!user?.email) return;
+    if (!user?.email) {
+      toast({
+        title: "Error",
+        description: "User email not found. Please try signing in again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsVerifying(true);
     try {
       const result = await resendConfirmation(user.email);
       if (result.error) {
-        toast({
-          title: "Failed to Send Email",
-          description: result.error.message || "There was an error sending the verification email.",
-          variant: "destructive",
-        });
+        // Handle specific error cases
+        if (result.error.message.includes('Rate limit exceeded')) {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "Please wait before requesting another verification email.",
+            variant: "destructive",
+          });
+        } else if (result.error.message.includes('already verified')) {
+          toast({
+            title: "Already Verified",
+            description: "Your email is already verified! Refreshing page...",
+          });
+          // Refresh the page to update the verification status
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          toast({
+            title: "Failed to Send Email",
+            description: result.error.message || "There was an error sending the verification email.",
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Verification Email Sent!",
@@ -36,6 +59,7 @@ export const EmailVerificationBanner = () => {
         });
       }
     } catch (error) {
+      console.error('Error sending verification email:', error);
       toast({
         title: "Verification Failed",
         description: "There was an error sending the verification email. Please try again.",

@@ -65,14 +65,21 @@ async function sendEmailBackground(emailData: any) {
       return
     }
     
-    // Render email template
+    // Create proper verification URL using Supabase auth endpoint
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const token = emailData.token || emailData.token_hash
+    const redirectTo = emailData.redirect_to || 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/'
+    
+    console.log(`[${correlationId}] Creating verification URL with token:`, token ? 'present' : 'missing')
+    
+    // Render email template with correct data
     const html = await renderAsync(
       React.createElement(ConfirmationEmail, {
-        supabase_url: Deno.env.get('SUPABASE_URL') ?? '',
-        token: emailData.token,
-        token_hash: emailData.token_hash,
-        redirect_to: emailData.redirect_to,
-        email_action_type: emailData.email_action_type,
+        supabase_url: supabaseUrl,
+        token: token,
+        token_hash: token,
+        redirect_to: redirectTo,
+        email_action_type: 'signup',
         user_email: emailData.email,
       })
     )
