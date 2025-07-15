@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Star } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Star, MessageCircle } from "lucide-react";
 import { useScoreValidation, VALIDATION_LABELS, VALIDATION_ORDER } from "@/hooks/useScoreValidation";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 interface ScoreValidationComponentProps {
   titleId: string;
@@ -26,6 +28,9 @@ export const ScoreValidationComponent = ({
 }: ScoreValidationComponentProps) => {
   const { validationStats, userValidation, loading, submitting, submitValidation, removeValidation } = useScoreValidation(titleId);
   const { user } = useAuth();
+  const [selectedValidation, setSelectedValidation] = useState<keyof typeof VALIDATION_LABELS | null>(null);
+  const [comment, setComment] = useState("");
+  const [showCommentField, setShowCommentField] = useState(false);
 
   if (loading) {
     return (
@@ -40,14 +45,39 @@ export const ScoreValidationComponent = ({
     );
   }
 
-  const handleValidationClick = async (validationType: keyof typeof VALIDATION_LABELS) => {
+  const handleValidationClick = (validationType: keyof typeof VALIDATION_LABELS) => {
     if (userValidation?.validation_type === validationType) {
       // If clicking the same validation, remove it
-      await removeValidation();
+      handleRemoveValidation();
     } else {
-      // Otherwise, submit the new validation
-      await submitValidation(validationType);
+      // Set selected validation and show comment field
+      setSelectedValidation(validationType);
+      setShowCommentField(true);
     }
+  };
+
+  const handleSubmitValidation = async () => {
+    if (!selectedValidation) return;
+    
+    await submitValidation(selectedValidation, comment);
+    
+    // Reset state
+    setSelectedValidation(null);
+    setComment("");
+    setShowCommentField(false);
+  };
+
+  const handleRemoveValidation = async () => {
+    await removeValidation();
+    setSelectedValidation(null);
+    setComment("");
+    setShowCommentField(false);
+  };
+
+  const handleCancelComment = () => {
+    setSelectedValidation(null);
+    setComment("");
+    setShowCommentField(false);
   };
 
   return (
@@ -114,6 +144,57 @@ export const ScoreValidationComponent = ({
             );
           })}
         </div>
+
+        {/* Comment Field */}
+        {showCommentField && selectedValidation && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-lg border">
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                Share your thoughts on why this is {VALIDATION_LABELS[selectedValidation]}
+              </span>
+              <span className="text-xs text-muted-foreground">(optional)</span>
+            </div>
+            
+            <Textarea
+              placeholder="Share your reasoning or additional thoughts..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="min-h-[80px] resize-none"
+              maxLength={500}
+            />
+            
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {comment.length}/500 characters
+              </span>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelComment}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSubmitValidation}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    `Submit ${VALIDATION_LABELS[selectedValidation]}`
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Validation Stats Summary */}
         {validationStats.total > 0 && (

@@ -110,8 +110,8 @@ export const useScoreValidation = (titleId: string) => {
     }
   };
 
-  // Submit or update validation
-  const submitValidation = async (validationType: keyof typeof VALIDATION_LABELS) => {
+  // Submit or update validation with optional comment
+  const submitValidation = async (validationType: keyof typeof VALIDATION_LABELS, comment?: string) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -149,9 +149,48 @@ export const useScoreValidation = (titleId: string) => {
         if (error) throw error;
       }
 
+      // Add comment if provided
+      if (comment && comment.trim()) {
+        // Check if user already has a comment for this title
+        const { data: existingComment } = await supabase
+          .from('title_comments')
+          .select('id')
+          .eq('title_id', titleId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingComment) {
+          // Update existing comment
+          const { error: commentError } = await supabase
+            .from('title_comments')
+            .update({
+              content: comment.trim(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingComment.id);
+
+          if (commentError) {
+            console.error('Error updating comment:', commentError);
+          }
+        } else {
+          // Create new comment
+          const { error: commentError } = await supabase
+            .from('title_comments')
+            .insert({
+              title_id: titleId,
+              user_id: user.id,
+              content: comment.trim()
+            });
+
+          if (commentError) {
+            console.error('Error creating comment:', commentError);
+          }
+        }
+      }
+
       toast({
         title: "Validation Submitted",
-        description: `Marked as ${VALIDATION_LABELS[validationType]}`,
+        description: `Marked as ${VALIDATION_LABELS[validationType]}${comment ? " with comment" : ""}`,
         variant: "default"
       });
 
