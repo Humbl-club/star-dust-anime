@@ -92,8 +92,8 @@ export const AnimeCard = memo(({
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass-card border border-border/30 z-40">
-              <DropdownMenuItem onClick={handleReportClick} className="hover:bg-primary/10">
+            <DropdownMenuContent align="end" className="z-50 bg-background border border-border shadow-lg">
+              <DropdownMenuItem onClick={handleReportClick} className="hover:bg-accent cursor-pointer">
                 <Flag className="w-4 h-4 mr-2" />
                 {user ? 'Report Content' : 'Login to Report'}
               </DropdownMenuItem>
