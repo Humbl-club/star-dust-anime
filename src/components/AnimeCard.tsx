@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "@/components/AddToListButton";
-
+import { useAuth } from "@/hooks/useAuth";
 import { ContentReportModal } from "@/components/ContentReportModal";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";
@@ -24,6 +24,7 @@ export const AnimeCard = ({
   getDisplayName
 }: AnimeCardProps) => {
   const [showReportModal, setShowReportModal] = useState(false);
+  const { user } = useAuth();
 
   const displayName = getDisplayName ? getDisplayName(anime) : anime.title;
 
@@ -33,6 +34,14 @@ export const AnimeCard = ({
       return;
     }
     onClick?.();
+  };
+
+  const handleReportClick = () => {
+    if (!user) {
+      console.warn('User must be authenticated to report content');
+      return;
+    }
+    setShowReportModal(true);
   };
 
   return (
@@ -68,7 +77,7 @@ export const AnimeCard = ({
         )}
 
         {/* Report Button */}
-        <div className="absolute top-12 right-3 z-20 report-dropdown">
+        <div className="absolute top-12 right-3 z-30 report-dropdown">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -79,10 +88,10 @@ export const AnimeCard = ({
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass-card border border-border/30">
-              <DropdownMenuItem onClick={() => setShowReportModal(true)} className="hover:bg-primary/10">
+            <DropdownMenuContent align="end" className="glass-card border border-border/30 z-40">
+              <DropdownMenuItem onClick={handleReportClick} className="hover:bg-primary/10">
                 <Flag className="w-4 h-4 mr-2" />
-                Report Content
+                {user ? 'Report Content' : 'Login to Report'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -139,13 +148,15 @@ export const AnimeCard = ({
       
     </Card>
 
-      <ContentReportModal
-        isOpen={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        contentType="anime"
-        contentId={anime.id}
-        contentTitle={displayName}
-      />
+      {user && (
+        <ContentReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          contentType="anime"
+          contentId={anime.id}
+          contentTitle={displayName}
+        />
+      )}
     </>
   );
 };
