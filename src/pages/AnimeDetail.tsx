@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Clock, Award, Play, Zap } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
-import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
+import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";

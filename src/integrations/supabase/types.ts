@@ -570,48 +570,77 @@ export type Database = {
       }
       reviews: {
         Row: {
-          anime_id: string | null
           content: string
           created_at: string | null
           helpful_count: number | null
           id: string
-          manga_id: string | null
           rating: number | null
           spoiler_warning: boolean | null
           title: string | null
-          title_id: string | null
+          title_id: string
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
-          anime_id?: string | null
           content: string
           created_at?: string | null
           helpful_count?: number | null
           id?: string
-          manga_id?: string | null
           rating?: number | null
           spoiler_warning?: boolean | null
           title?: string | null
-          title_id?: string | null
+          title_id: string
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
-          anime_id?: string | null
           content?: string
           created_at?: string | null
           helpful_count?: number | null
           id?: string
-          manga_id?: string | null
           rating?: number | null
           spoiler_warning?: boolean | null
           title?: string | null
-          title_id?: string | null
+          title_id?: string
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
+      }
+      score_validations: {
+        Row: {
+          created_at: string
+          id: string
+          title_id: string
+          updated_at: string
+          user_id: string
+          validation_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title_id: string
+          updated_at?: string
+          user_id: string
+          validation_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title_id?: string
+          updated_at?: string
+          user_id?: string
+          validation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_validations_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       studios: {
         Row: {
@@ -697,6 +726,41 @@ export type Database = {
           },
         ]
       }
+      title_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          title_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          title_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          title_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_comments_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       title_genres: {
         Row: {
           genre_id: string
@@ -763,11 +827,8 @@ export type Database = {
           anilist_score: number | null
           color_theme: string | null
           created_at: string | null
-          favorites: number | null
           id: string
           image_url: string | null
-          members: number | null
-          num_users_voted: number | null
           popularity: number | null
           rank: number | null
           score: number | null
@@ -783,11 +844,8 @@ export type Database = {
           anilist_score?: number | null
           color_theme?: string | null
           created_at?: string | null
-          favorites?: number | null
           id?: string
           image_url?: string | null
-          members?: number | null
-          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
@@ -803,11 +861,8 @@ export type Database = {
           anilist_score?: number | null
           color_theme?: string | null
           created_at?: string | null
-          favorites?: number | null
           id?: string
           image_url?: string | null
-          members?: number | null
-          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
@@ -1244,6 +1299,14 @@ export type Database = {
           last_sync_check: string
           genres: Json
           authors: Json
+        }[]
+      }
+      get_title_validation_stats: {
+        Args: { title_id_param: string }
+        Returns: {
+          validation_type: string
+          count: number
+          percentage: number
         }[]
       }
       get_user_gamification_summary: {

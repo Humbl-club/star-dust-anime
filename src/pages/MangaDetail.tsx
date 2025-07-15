@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, FileText, Book, BookOpen } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { AddToListButton } from "@/components/AddToListButton";
-import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
+import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useMangaDetail } from "@/hooks/useMangaDetail";
 import { DetailPageLayout } from "@/components/DetailPageLayout";
@@ -137,15 +137,13 @@ const MangaDetail = () => {
           </div>
 
           {/* Stats Bar */}
-          <DetailStatsBar
-            score={manga.score}
-            members={manga.members}
-            favorites={manga.favorites}
-            chapters={manga.chapters}
-            volumes={manga.volumes}
-            colorTheme={manga.color_theme}
-            contentType="manga"
-          />
+        <DetailStatsBar
+          score={manga.score}
+          chapters={manga.chapters}
+          volumes={manga.volumes}
+          colorTheme={manga.color_theme}
+          contentType="manga"
+        />
 
           {/* Synopsis */}
           <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>

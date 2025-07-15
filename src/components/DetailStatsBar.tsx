@@ -6,31 +6,24 @@ import { Star, Users, Heart, Play, Book, BookOpen, Vote } from 'lucide-react';
 interface DetailStatsBarProps {
   score?: number;
   anilistScore?: number;
-  members?: number;
-  favorites?: number;
   episodes?: number;
   chapters?: number;
   volumes?: number;
-  numUsersVoted?: number;
   colorTheme?: string;
   contentType: 'anime' | 'manga';
 }
 
-export const DetailStatsBar = ({ 
-  score, 
-  anilistScore, 
-  members, 
-  favorites, 
-  episodes, 
-  chapters, 
-  volumes, 
-  numUsersVoted,
+export const DetailStatsBar = ({
+  score,
+  anilistScore,
+  episodes,
+  chapters,
+  volumes,
   colorTheme,
-  contentType 
+  contentType
 }: DetailStatsBarProps) => {
-  const displayScore = score || anilistScore;
-  
-  if (!displayScore && !members && !favorites && !episodes && !chapters && !volumes && !numUsersVoted) {
+  // Return null if no data is available
+  if (!score && !anilistScore && !episodes && !chapters && !volumes) {
     return null;
   }
 
@@ -43,82 +36,56 @@ export const DetailStatsBar = ({
       }}
     >
       <CardContent className="p-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-          {displayScore && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-1">
-                {displayScore}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {/* AniList Score */}
+          {anilistScore && (
+            <div className="text-center p-4 rounded-lg bg-secondary/50">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Star className="h-4 w-4 text-primary" fill="currentColor" />
+                <span className="text-lg font-bold text-primary">{anilistScore}</span>
               </div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Star className="w-3 h-3" />
-                Score
-              </div>
-            </div>
-          )}
-          
-          {members && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-secondary mb-1">
-                {(members / 1000).toFixed(0)}K
-              </div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Users className="w-3 h-3" />
-                Members
-              </div>
-            </div>
-          )}
-          
-          {favorites && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-accent mb-1">
-                {(favorites / 1000).toFixed(0)}K
-              </div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Heart className="w-3 h-3" />
-                Favorites
-              </div>
+              <p className="text-xs text-muted-foreground">AniList Score</p>
             </div>
           )}
 
-          {numUsersVoted && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary-glow mb-1">
-                {(numUsersVoted / 1000).toFixed(0)}K
+          {/* Community Score (if different from AniList) */}
+          {score && score !== anilistScore && (
+            <div className="text-center p-4 rounded-lg bg-secondary/50">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="text-lg font-bold text-primary">{score}</span>
               </div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Vote className="w-3 h-3" />
-                Voted
-              </div>
+              <p className="text-xs text-muted-foreground">Community Score</p>
             </div>
           )}
           
           {contentType === 'anime' && episodes && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary-glow mb-1">{episodes}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Play className="w-3 h-3" />
-                Episodes
+            <div className="text-center p-4 rounded-lg bg-secondary/50">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Play className="h-4 w-4 text-primary" />
+                <span className="text-lg font-bold text-primary">{episodes}</span>
               </div>
+              <p className="text-xs text-muted-foreground">Episodes</p>
             </div>
           )}
           
           {contentType === 'manga' && chapters && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary-glow mb-1">{chapters}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Book className="w-3 h-3" />
-                Chapters
+            <div className="text-center p-4 rounded-lg bg-secondary/50">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Book className="h-4 w-4 text-primary" />
+                <span className="text-lg font-bold text-primary">{chapters}</span>
               </div>
+              <p className="text-xs text-muted-foreground">Chapters</p>
             </div>
           )}
           
           {contentType === 'manga' && volumes && (
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary-glow mb-1">{volumes}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <BookOpen className="w-3 h-3" />
-                Volumes
+            <div className="text-center p-4 rounded-lg bg-secondary/50">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <BookOpen className="h-4 w-4 text-primary" />
+                <span className="text-lg font-bold text-primary">{volumes}</span>
               </div>
+              <p className="text-xs text-muted-foreground">Volumes</p>
             </div>
           )}
         </div>
