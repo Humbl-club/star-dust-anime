@@ -563,9 +563,14 @@ Deno.serve(async (req) => {
     
     console.log(`[${correlationId}] Extracted emailData:`, JSON.stringify(emailData, null, 2))
     
-    // Validate required fields
+    // Validate required fields with better error messages
     if (!emailData.email || !emailData.user_id) {
-      throw new Error('Email and user_id are required')
+      console.error(`[${correlationId}] Missing required fields:`, {
+        email: emailData.email,
+        user_id: emailData.user_id,
+        rawPayload: JSON.stringify(payload, null, 2)
+      });
+      throw new Error(`Email and user_id are required. Received: email=${emailData.email}, user_id=${emailData.user_id}`);
     }
     
     // Validate email format
