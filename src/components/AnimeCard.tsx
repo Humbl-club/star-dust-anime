@@ -37,12 +37,13 @@ export const AnimeCard = memo(({
   }, [onClick]);
 
   const handleReportClick = useCallback(() => {
-    if (!user) {
-      console.warn('User must be authenticated to report content');
-      return;
-    }
+    // Temporarily disabled authentication check for testing
+    // if (!user) {
+    //   console.warn('User must be authenticated to report content');
+    //   return;
+    // }
     setShowReportModal(true);
-  }, [user]);
+  }, []);
 
   const handleCloseModal = useCallback(() => {
     setShowReportModal(false);
@@ -95,7 +96,7 @@ export const AnimeCard = memo(({
             <DropdownMenuContent align="end" className="z-50 bg-background border border-border shadow-lg">
               <DropdownMenuItem onClick={handleReportClick} className="hover:bg-accent cursor-pointer">
                 <Flag className="w-4 h-4 mr-2" />
-                {user ? 'Report Content' : 'Login to Report'}
+                Report Content
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -152,15 +153,14 @@ export const AnimeCard = memo(({
       
     </Card>
 
-      {user && (
-        <ContentReportModal
-          isOpen={showReportModal}
-          onClose={handleCloseModal}
-          contentType="anime"
-          contentId={anime.id}
-          contentTitle={displayName}
-        />
-      )}
+      {/* Temporarily always show modal for testing - removed user authentication check */}
+      <ContentReportModal
+        isOpen={showReportModal}
+        onClose={handleCloseModal}
+        contentType="anime"
+        contentId={anime.id}
+        contentTitle={displayName}
+      />
     </>
   );
 });
