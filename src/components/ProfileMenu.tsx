@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
@@ -28,6 +29,7 @@ interface Profile {
 
 export const ProfileMenu = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { stats } = useSimpleGameification();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,10 +59,34 @@ export const ProfileMenu = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log('Starting sign out process...');
+      
+      // Clear any local storage items
+      localStorage.removeItem('justSignedUp');
+      localStorage.removeItem('pendingEmail');
+      sessionStorage.removeItem('justSignedUp');
+      sessionStorage.removeItem('pendingEmail');
+      
+      // Call the signOut function
       const { error } = await signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        toast.error(`Error signing out: ${error.message}`);
+        return;
+      }
+      
+      console.log('Sign out successful, redirecting...');
       toast.success("Signed out successfully");
+      
+      // Force navigation to home page
+      navigate('/', { replace: true });
+      
+      // Force page refresh to clear any cached state
+      window.location.href = '/';
+      
     } catch (error: any) {
+      console.error('Unexpected error during sign out:', error);
       toast.error("Error signing out");
     }
   };

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
 import { AuthResponse } from '@/types/auth';
@@ -154,8 +155,29 @@ export const authService = {
   },
 
   async signOut(): Promise<{ error: any }> {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      console.log('AuthService: Starting sign out process...');
+      
+      // Clear local storage
+      localStorage.removeItem('justSignedUp');
+      localStorage.removeItem('pendingEmail');
+      sessionStorage.removeItem('justSignedUp');
+      sessionStorage.removeItem('pendingEmail');
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('AuthService: Sign out error:', error);
+        return { error };
+      }
+      
+      console.log('AuthService: Sign out successful');
+      return { error: null };
+    } catch (err) {
+      console.error('AuthService: Sign out exception:', err);
+      return { error: { message: 'An unexpected error occurred during sign out' } };
+    }
   },
 
   async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
