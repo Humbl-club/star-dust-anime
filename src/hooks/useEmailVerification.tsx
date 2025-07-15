@@ -180,35 +180,52 @@ export const useEmailVerification = (): EmailVerificationStatus => {
     }
   };
 
-  // Resend verification email
+  // Enhanced resend verification with retry logic and monitoring
   const resendVerification = async () => {
     if (!user || isResending) return;
     
     try {
       setIsResending(true);
       
-      // Call the database function to resend verification email
-      const { data, error } = await supabase
-        .rpc('resend_verification_email', {
-          user_id_param: user.id
-        });
+      // Call the enhanced send-auth-emails function directly
+      const { data: response, error } = await supabase.functions.invoke('send-auth-emails', {
+        body: {
+          email: user.email,
+          user_id: user.id,
+          token: crypto.randomUUID(),
+          email_action_type: 'resend_confirmation',
+          redirect_to: `${window.location.origin}/`,
+        }
+      });
 
       if (error) {
         console.error('Error resending verification:', error);
-        toast.error('Failed to resend verification email');
+        
+        // Enhanced error handling with specific messages
+        if (error.message?.includes('rate limit')) {
+          toast.error('Too many requests. Please wait before requesting another verification email.');
+        } else if (error.message?.includes('circuit breaker')) {
+          toast.error('Email service temporarily unavailable. Please try again later.');
+        } else {
+          toast.error('Failed to resend verification email. Please try again.');
+        }
         return;
       }
 
-      if (data && typeof data === 'object' && 'error' in data) {
-        toast.error(data.error as string);
+      if (response?.error) {
+        console.error('Function returned error:', response.error);
+        toast.error(response.error.message || 'Failed to resend verification email');
         return;
       }
 
-      toast.success('Verification email sent! Please check your inbox.');
+      toast.success('Verification email sent! Please check your inbox.', {
+        description: response?.correlation_id ? `Request ID: ${response.correlation_id}` : undefined
+      });
+      
       checkVerificationStatus();
     } catch (error) {
       console.error('Error in resendVerification:', error);
-      toast.error('Failed to resend verification email');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsResending(false);
     }

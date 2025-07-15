@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, Mail, Database, Play } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Mail, Database, Play, Activity } from 'lucide-react';
+import { ProductionMonitoring } from '@/components/ProductionMonitoring';
 
 export const EmailVerificationTest = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ export const EmailVerificationTest = () => {
   } = useEmailVerification();
   
   const [testEmail, setTestEmail] = useState('');
+  const [showMonitoring, setShowMonitoring] = useState(false);
   const [testResults, setTestResults] = useState<{
     database: 'success' | 'error' | 'pending';
     edgeFunction: 'success' | 'error' | 'pending';
@@ -185,9 +187,19 @@ export const EmailVerificationTest = () => {
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5" />
-            Email Verification System Test
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Email Verification System Test
+            </div>
+            <Button 
+              onClick={() => setShowMonitoring(!showMonitoring)}
+              variant="outline"
+              size="sm"
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              {showMonitoring ? 'Hide' : 'Show'} Monitoring
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -308,6 +320,12 @@ export const EmailVerificationTest = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {showMonitoring && (
+        <div className="mt-6">
+          <ProductionMonitoring />
+        </div>
+      )}
     </div>
   );
 };

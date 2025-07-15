@@ -330,6 +330,129 @@ export type Database = {
         }
         Relationships: []
       }
+      dead_letter_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          max_retries: number | null
+          next_retry_at: string | null
+          operation_type: string
+          payload: Json
+          retry_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          next_retry_at?: string | null
+          operation_type: string
+          payload: Json
+          retry_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          next_retry_at?: string | null
+          operation_type?: string
+          payload?: Json
+          retry_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      email_delivery_tracking: {
+        Row: {
+          correlation_id: string
+          created_at: string | null
+          delivered_at: string | null
+          delivery_status: string
+          email: string
+          email_type: string
+          error_message: string | null
+          external_id: string | null
+          failed_at: string | null
+          id: string
+          metadata: Json | null
+          provider: string
+          retry_count: number | null
+          sent_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          correlation_id: string
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string
+          email: string
+          email_type?: string
+          error_message?: string | null
+          external_id?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          retry_count?: number | null
+          sent_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_status?: string
+          email?: string
+          email_type?: string
+          error_message?: string | null
+          external_id?: string | null
+          failed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          provider?: string
+          retry_count?: number | null
+          sent_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_template_cache: {
+        Row: {
+          cache_key: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          rendered_html: string
+          template_name: string
+          template_version: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          rendered_html: string
+          template_name: string
+          template_version: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          rendered_html?: string
+          template_name?: string
+          template_version?: string
+        }
+        Relationships: []
+      }
       email_verification_status: {
         Row: {
           created_at: string | null
@@ -578,6 +701,39 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          request_count: number | null
+          resource_type: string
+          updated_at: string | null
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          request_count?: number | null
+          resource_type: string
+          updated_at?: string | null
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          request_count?: number | null
+          resource_type?: string
+          updated_at?: string | null
+          user_id?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       review_reactions: {
         Row: {
           created_at: string | null
@@ -683,6 +839,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_health_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          service_name?: string
+          timestamp?: string | null
+        }
+        Relationships: []
       }
       studios: {
         Row: {
@@ -1263,6 +1449,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_to_dead_letter_queue: {
+        Args: {
+          operation_type_param: string
+          payload_param: Json
+          error_message_param: string
+          max_retries_param?: number
+        }
+        Returns: string
+      }
       assign_random_username: {
         Args: { user_id_param: string }
         Returns: {
@@ -1279,7 +1474,20 @@ export type Database = {
           verification_expires_at: string
         }[]
       }
+      check_rate_limit: {
+        Args: {
+          user_id_param: string
+          resource_type_param: string
+          max_requests?: number
+          window_minutes?: number
+        }
+        Returns: Json
+      }
       check_verification_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1378,6 +1586,15 @@ export type Database = {
           needs_welcome: boolean
           message: string
         }[]
+      }
+      log_service_metric: {
+        Args: {
+          service_name_param: string
+          metric_type_param: string
+          metric_value_param: number
+          metadata_param?: Json
+        }
+        Returns: undefined
       }
       open_loot_box_secure: {
         Args: { user_id_param: string; box_type_param: string }
