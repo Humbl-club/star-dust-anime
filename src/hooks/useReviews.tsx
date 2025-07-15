@@ -35,25 +35,21 @@ export const useReviews = (titleId?: string) => {
       
       const { data, error: fetchError } = await supabase
         .from('reviews')
-        .select(`
-          *,
-          profiles (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('title_id', titleId)
         .order('created_at', { ascending: false });
       
       if (fetchError) {
-        throw fetchError;
+        console.error('Error fetching reviews:', fetchError);
+        setReviews([]);
+        setError(fetchError.message);
+      } else {
+        setReviews(data || []);
       }
-      
-      setReviews(data || []);
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching reviews:', err);
+      setReviews([]);
     } finally {
       setLoading(false);
     }

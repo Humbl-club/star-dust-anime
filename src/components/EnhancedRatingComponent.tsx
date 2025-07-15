@@ -34,7 +34,7 @@ export const EnhancedRatingComponent: React.FC<EnhancedRatingComponentProps> = (
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
-  const { createReview, getUserReview, reactToReview, loading } = useReviews();
+  const { addReview, loading } = useReviews(contentId);
   const { toast } = useToast();
 
   const handleRatingClick = (value: number) => {
@@ -53,7 +53,7 @@ export const EnhancedRatingComponent: React.FC<EnhancedRatingComponentProps> = (
     }
 
     try {
-      await createReview(contentId, contentType, {
+      await addReview({
         rating,
         title: reviewTitle.trim() || undefined,
         content: reviewContent,
@@ -223,7 +223,7 @@ export const EnhancedRatingComponent: React.FC<EnhancedRatingComponentProps> = (
                 key={reaction.type}
                 variant="outline"
                 className="cursor-pointer hover:bg-muted transition-colors"
-                onClick={() => reactToReview('sample-review-id', reaction.type as any)}
+                onClick={() => {/* Reaction functionality to be implemented */}}
               >
                 <reaction.icon className="h-3 w-3 mr-1" />
                 {reaction.label}

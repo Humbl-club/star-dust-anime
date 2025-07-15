@@ -13,6 +13,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -154,10 +155,7 @@ const AnimeDetail = () => {
           <DetailStatsBar
             score={anime.score}
             anilistScore={enhancedAnime?.anilist_score}
-            members={anime.members}
-            favorites={anime.favorites}
             episodes={anime.episodes}
-            numUsersVoted={anime.num_users_voted}
             colorTheme={enhancedAnime?.color_theme}
             contentType="anime"
           />

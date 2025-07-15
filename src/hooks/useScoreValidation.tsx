@@ -75,8 +75,8 @@ export const useScoreValidation = (titleId: string) => {
         if (statsData) {
           statsData.forEach((item: any) => {
             const validationType = item.validation_type as keyof ValidationStats;
-            if (stats[validationType]) {
-              stats[validationType] = {
+            if (validationType !== 'total' && stats[validationType]) {
+              (stats[validationType] as { count: number; percentage: number }) = {
                 count: parseInt(item.count),
                 percentage: parseFloat(item.percentage)
               };

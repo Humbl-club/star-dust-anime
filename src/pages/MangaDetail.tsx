@@ -13,6 +13,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
 
 const MangaDetail = () => {
   const { id } = useParams<{ id: string }>();

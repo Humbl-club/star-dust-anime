@@ -34,24 +34,19 @@ export const useComments = (titleId: string) => {
       
       const { data, error } = await supabase
         .from('title_comments')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('title_id', titleId)
         .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching comments:', error);
+        setComments([]);
       } else {
         setComments(data || []);
       }
     } catch (error) {
       console.error('Error in fetchComments:', error);
+      setComments([]);
     } finally {
       setLoading(false);
     }
