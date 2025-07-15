@@ -13,7 +13,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
-import { EnhancedRatingComponent } from "@/components/EnhancedRatingComponent";
+
 
 const MangaDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -201,11 +201,11 @@ const MangaDetail = () => {
             </Card>
           )}
 
-          {/* Enhanced Rating Component */}
+          {/* Score Validation Component */}
           <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-            <EnhancedRatingComponent
-              contentId={manga.id}
-              contentType="manga"
+            <ScoreValidationComponent
+              titleId={manga.id}
+              anilistScore={manga.anilist_score}
               className="w-full"
             />
           </div>
