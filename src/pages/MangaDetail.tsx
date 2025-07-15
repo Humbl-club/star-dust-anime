@@ -57,7 +57,7 @@ const MangaDetail = () => {
     genres: manga.genres ? manga.genres.map(genre => genre.name) : [],
     authors: manga.authors ? manga.authors.map(author => author.name) : [],
     mal_id: manga.anilist_id,
-    scored_by: manga.members || 0,
+    scored_by: manga.num_users_voted || 0,
   };
 
   // Prepare detail info items

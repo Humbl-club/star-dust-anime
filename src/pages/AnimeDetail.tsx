@@ -68,7 +68,7 @@ const AnimeDetail = () => {
     genres: anime.genres ? anime.genres.map(genre => genre.name) : [],
     studios: anime.studios ? anime.studios.map(studio => studio.name) : [],
     mal_id: anime.anilist_id,
-    scored_by: anime.members || 0,
+    scored_by: anime.num_users_voted || 0,
   };
 
   // Prepare detail info items

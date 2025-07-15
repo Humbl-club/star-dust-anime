@@ -1246,8 +1246,7 @@ export type Database = {
           anilist_score: number
           rank: number
           popularity: number
-          members: number
-          favorites: number
+          num_users_voted: number
           year: number
           color_theme: string
           created_at: string
@@ -1282,8 +1281,7 @@ export type Database = {
           anilist_score: number
           rank: number
           popularity: number
-          members: number
-          favorites: number
+          num_users_voted: number
           year: number
           color_theme: string
           created_at: string

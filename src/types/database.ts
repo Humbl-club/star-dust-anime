@@ -12,11 +12,9 @@ export interface Title {
   anilist_score?: number;
   rank?: number;
   popularity?: number;
-  members?: number;
-  favorites?: number;
   year?: number;
   color_theme?: string;
-  num_users_voted?: number; // Added the new field
+  num_users_voted?: number;
   created_at: string;
   updated_at: string;
 }

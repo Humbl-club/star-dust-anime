@@ -16,9 +16,8 @@ interface MangaDetail {
   anilist_score?: number;
   rank?: number;
   popularity?: number;
-  members?: number;
-  favorites?: number;
   year?: number;
+  num_users_voted?: number;
   color_theme?: string;
   created_at: string;
   updated_at: string;
@@ -83,6 +82,7 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
         ...mangaData,
         synopsis: mangaData.synopsis || '', // Ensure synopsis is never undefined
         image_url: mangaData.image_url || '', // Ensure image_url is never undefined
+        num_users_voted: mangaData.num_users_voted || 0, // Include the new field
         // Ensure genres and authors are arrays
         genres: Array.isArray(mangaData.genres) ? mangaData.genres : [],
         authors: Array.isArray(mangaData.authors) ? mangaData.authors : [],

@@ -16,8 +16,6 @@ interface AnimeDetail {
   anilist_score?: number;
   rank?: number;
   popularity?: number;
-  members?: number;
-  favorites?: number;
   year?: number;
   color_theme?: string;
   num_users_voted?: number;
