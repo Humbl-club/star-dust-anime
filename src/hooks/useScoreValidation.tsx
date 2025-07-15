@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { filterContent } from '@/utils/contentModeration';
 
 export interface ValidationStats {
   hidden_gem: { count: number; percentage: number };
@@ -151,6 +152,9 @@ export const useScoreValidation = (titleId: string) => {
 
       // Add comment if provided
       if (comment && comment.trim()) {
+        // Filter content for offensive language
+        const filteredComment = filterContent(comment.trim());
+        
         // Check if user already has a comment for this title
         const { data: existingComment } = await supabase
           .from('title_comments')
@@ -164,7 +168,7 @@ export const useScoreValidation = (titleId: string) => {
           const { error: commentError } = await supabase
             .from('title_comments')
             .update({
-              content: comment.trim(),
+              content: filteredComment,
               updated_at: new Date().toISOString()
             })
             .eq('id', existingComment.id);
@@ -179,7 +183,7 @@ export const useScoreValidation = (titleId: string) => {
             .insert({
               title_id: titleId,
               user_id: user.id,
-              content: comment.trim()
+              content: filteredComment
             });
 
           if (commentError) {

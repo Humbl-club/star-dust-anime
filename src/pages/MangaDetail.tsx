@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, FileText, Book, BookOpen } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { AddToListButton } from "@/components/AddToListButton";
 import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
+import { CommentsSection } from "@/components/CommentsSection";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useMangaDetail } from "@/hooks/useMangaDetail";
 import { DetailPageLayout } from "@/components/DetailPageLayout";
@@ -208,6 +209,11 @@ const MangaDetail = () => {
               anilistScore={manga.anilist_score}
               className="w-full"
             />
+          </div>
+
+          {/* Comments Section */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
+            <CommentsSection titleId={manga.id} />
           </div>
         </div>
       </div>

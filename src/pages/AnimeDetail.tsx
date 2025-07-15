@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Clock, Award, Play, Zap } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
+import { CommentsSection } from "@/components/CommentsSection";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
@@ -226,6 +227,11 @@ const AnimeDetail = () => {
               anilistScore={anime.anilist_score}
               className="w-full"
             />
+          </div>
+
+          {/* Comments Section */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
+            <CommentsSection titleId={anime.id} />
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { filterContent } from '@/utils/contentModeration';
 
 export interface TitleComment {
   id: string;
@@ -65,6 +66,9 @@ export const useComments = (titleId: string) => {
 
     if (!titleId || !content.trim()) return;
 
+    // Filter content for offensive language
+    const filteredContent = filterContent(content.trim());
+
     setSubmitting(true);
     try {
       const { error } = await supabase
@@ -72,7 +76,7 @@ export const useComments = (titleId: string) => {
         .insert({
           title_id: titleId,
           user_id: user.id,
-          content: content.trim()
+          content: filteredContent
         });
 
       if (error) throw error;
@@ -101,12 +105,15 @@ export const useComments = (titleId: string) => {
   const updateComment = async (commentId: string, content: string) => {
     if (!user || !content.trim()) return;
 
+    // Filter content for offensive language
+    const filteredContent = filterContent(content.trim());
+
     setSubmitting(true);
     try {
       const { error } = await supabase
         .from('title_comments')
         .update({
-          content: content.trim(),
+          content: filteredContent,
           updated_at: new Date().toISOString()
         })
         .eq('id', commentId)
