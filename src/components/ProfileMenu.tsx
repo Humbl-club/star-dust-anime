@@ -44,7 +44,7 @@ export const ProfileMenu = () => {
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(data);

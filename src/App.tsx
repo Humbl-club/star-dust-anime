@@ -11,6 +11,7 @@ import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { InitializationWrapper } from "@/components/InitializationWrapper";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { HelmetProvider } from "react-helmet-async";
 import { Shield } from "lucide-react";
 
@@ -60,6 +61,7 @@ const AppContent = () => {
       />
       
       <div className="min-h-screen bg-background pb-16 lg:pb-0">
+      <EmailVerificationBanner />
       <Routes>
         <Route path="/" element={
           <InitializationWrapper>

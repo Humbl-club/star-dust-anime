@@ -330,6 +330,48 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verification_status: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          last_attempt_at: string | null
+          updated_at: string | null
+          user_id: string
+          verification_attempts: number | null
+          verification_expires_at: string | null
+          verification_sent_at: string | null
+          verification_status: string
+          verification_token: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          last_attempt_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_attempts?: number | null
+          verification_expires_at?: string | null
+          verification_sent_at?: string | null
+          verification_status?: string
+          verification_token?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_attempt_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_attempts?: number | null
+          verification_expires_at?: string | null
+          verification_sent_at?: string | null
+          verification_status?: string
+          verification_token?: string | null
+        }
+        Relationships: []
+      }
       generated_characters: {
         Row: {
           character_data: Json
@@ -1228,6 +1270,15 @@ export type Database = {
           tier: Database["public"]["Enums"]["username_tier"]
         }[]
       }
+      check_email_verification_status: {
+        Args: { user_id_param: string }
+        Returns: {
+          is_verified: boolean
+          verification_status: string
+          days_remaining: number
+          verification_expires_at: string
+        }[]
+      }
       check_verification_expiry: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1343,6 +1394,10 @@ export type Database = {
       }
       process_auth_webhook: {
         Args: { event_type: string; user_data: Json }
+        Returns: Json
+      }
+      resend_verification_email: {
+        Args: { user_id_param: string }
         Returns: Json
       }
       safe_date_cast: {
