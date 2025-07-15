@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export function useAuthState() {
   // MOCK AUTHENTICATION FOR TESTING - BYPASS REAL AUTH
   const mockUser: User = {
-    id: 'test-user-id-12345',
+    id: '550e8400-e29b-41d4-a716-446655440000',
     email: 'test@example.com',
     email_confirmed_at: new Date().toISOString(),
     phone: null,
