@@ -15,10 +15,12 @@ const EmailConfirmation = () => {
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
-      // Get all possible confirmation parameters
+      // Get parameters from URL
       const token = searchParams.get('token');
       const tokenHash = searchParams.get('token_hash');
       const type = searchParams.get('type');
+      const email = searchParams.get('email');
+      const userId = searchParams.get('user_id');
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
       
@@ -26,6 +28,8 @@ const EmailConfirmation = () => {
         token,
         tokenHash, 
         type,
+        email,
+        userId,
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken
       });
@@ -98,35 +102,86 @@ const EmailConfirmation = () => {
         return;
       }
 
-      // Handle legacy token verification
-      if (token && type === 'signup') {
+      // Handle our custom token verification
+      if (token && type === 'signup' && email && userId) {
         try {
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'signup'
-          });
+          // Verify the token with our database
+          const { data: verificationData, error: verificationError } = await supabase
+            .from('email_verification_status')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('email', email)
+            .eq('verification_token', token)
+            .eq('verification_status', 'pending')
+            .single();
 
-          console.log('Legacy token verification result:', { data, error });
-
-          if (error) {
-            console.error('Legacy token verification error:', error);
+          if (verificationError || !verificationData) {
+            console.error('Token verification error:', verificationError);
             setStatus('error');
-            setMessage(error.message || 'Failed to confirm email. The link may be expired.');
+            setMessage('Invalid or expired verification link.');
             return;
           }
 
-          if (data.user) {
-            setStatus('success');
-            setMessage('Email confirmed successfully! You are now signed in.');
-            toast.success('Email confirmed successfully!');
-            
-            // Redirect to dashboard after a short delay
-            setTimeout(() => {
-              navigate('/dashboard');
-            }, 2000);
+          // Check if token has expired
+          const expiresAt = new Date(verificationData.verification_expires_at);
+          if (expiresAt < new Date()) {
+            setStatus('error');
+            setMessage('Verification link has expired. Please request a new one.');
+            return;
           }
+
+          // Mark email as verified in our database
+          const { error: updateError } = await supabase
+            .from('email_verification_status')
+            .update({
+              verification_status: 'verified',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', verificationData.id);
+
+          if (updateError) {
+            console.error('Update verification status error:', updateError);
+            setStatus('error');
+            setMessage('Failed to update verification status.');
+            return;
+          }
+
+          // Update the user's email confirmation in Supabase Auth
+          const { error: confirmError } = await supabase.auth.admin.updateUserById(
+            userId,
+            { email_confirm: true }
+          );
+
+          if (confirmError) {
+            console.error('Confirm user email error:', confirmError);
+            // Continue anyway as our custom verification worked
+          }
+
+          // Update profile verification status
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              verification_status: 'verified',
+              verification_required_until: null
+            })
+            .eq('id', userId);
+
+          if (profileError) {
+            console.error('Profile update error:', profileError);
+            // Continue anyway
+          }
+
+          setStatus('success');
+          setMessage('Email confirmed successfully! You can now sign in to your account.');
+          toast.success('Email confirmed successfully!');
+          
+          // Redirect to auth page for sign in
+          setTimeout(() => {
+            navigate('/auth');
+          }, 2000);
+
         } catch (error: any) {
-          console.error('Legacy token verification exception:', error);
+          console.error('Custom token verification exception:', error);
           setStatus('error');
           setMessage('An unexpected error occurred during email confirmation.');
         }
@@ -161,7 +216,7 @@ const EmailConfirmation = () => {
           
           {status === 'success' && (
             <p className="text-sm text-muted-foreground mb-4">
-              Redirecting you to your dashboard...
+              {message.includes('sign in') ? 'Please sign in to continue...' : 'Redirecting you to your dashboard...'}
             </p>
           )}
           

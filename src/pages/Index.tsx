@@ -16,8 +16,8 @@ const Index = () => {
   const isEmailConfirmation = (
     // New Supabase format
     (searchParams.get('token_hash') && searchParams.get('type') === 'signup') ||
-    // Legacy format
-    (searchParams.get('token') && searchParams.get('type') === 'signup') ||
+    // Custom format with our verification token
+    (searchParams.get('token') && searchParams.get('type') === 'signup' && searchParams.get('email')) ||
     // Direct auth callback
     (searchParams.get('access_token') && searchParams.get('refresh_token'))
   );

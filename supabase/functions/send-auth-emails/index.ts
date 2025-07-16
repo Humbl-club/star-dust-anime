@@ -30,8 +30,6 @@ Deno.serve(async (req) => {
   
   const correlationId = crypto.randomUUID()
   console.log(`[${correlationId}] Auth email function triggered`)
-  console.log(`[${correlationId}] Request method: ${req.method}`)
-  console.log(`[${correlationId}] Request headers:`, Object.fromEntries(req.headers.entries()))
   
   try {
     // Parse request body
@@ -88,31 +86,12 @@ Deno.serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured')
     }
     
-    // Generate proper confirmation link using Supabase auth
-    let confirmationUrl = `https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/`
+    // Create a simple confirmation URL with the user's email and a verification token
+    const baseUrl = 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com'
+    const verificationToken = crypto.randomUUID()
+    const confirmationUrl = `${baseUrl}/?token=${verificationToken}&type=signup&email=${encodeURIComponent(emailData.email)}&user_id=${emailData.user_id}`
     
-    try {
-      // Generate email confirmation link through Supabase
-      const { data, error } = await supabase.auth.admin.generateLink({
-        type: 'signup',
-        email: emailData.email,
-        options: {
-          redirectTo: confirmationUrl
-        }
-      })
-      
-      if (error) {
-        console.error(`[${correlationId}] Error generating confirmation link:`, error)
-        // Fall back to basic confirmation URL
-      } else if (data.properties?.action_link) {
-        // Use the proper Supabase confirmation link
-        confirmationUrl = data.properties.action_link
-        console.log(`[${correlationId}] Generated confirmation URL:`, confirmationUrl)
-      }
-    } catch (linkError) {
-      console.error(`[${correlationId}] Exception generating confirmation link:`, linkError)
-      // Continue with fallback URL
-    }
+    console.log(`[${correlationId}] Generated confirmation URL:`, confirmationUrl)
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -179,6 +158,18 @@ Deno.serve(async (req) => {
     
     console.log(`[${correlationId}] Email sent successfully:`, emailResult?.id)
     
+    // Store the verification token in the database for later verification
+    await supabase
+      .from('email_verification_status')
+      .upsert({
+        user_id: emailData.user_id,
+        email: emailData.email,
+        verification_token: verificationToken,
+        verification_status: 'pending',
+        verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+        verification_sent_at: new Date().toISOString()
+      })
+    
     // Log success to database
     await supabase
       .from('cron_job_logs')
@@ -190,7 +181,8 @@ Deno.serve(async (req) => {
           email_id: emailResult?.id,
           user_id: emailData.user_id,
           email: emailData.email,
-          confirmation_url: confirmationUrl
+          confirmation_url: confirmationUrl,
+          verification_token: verificationToken
         }
       })
     
