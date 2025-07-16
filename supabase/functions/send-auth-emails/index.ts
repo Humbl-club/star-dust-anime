@@ -30,6 +30,8 @@ Deno.serve(async (req) => {
   
   const correlationId = crypto.randomUUID()
   console.log(`[${correlationId}] Auth email function triggered`)
+  console.log(`[${correlationId}] Request method: ${req.method}`)
+  console.log(`[${correlationId}] Request headers:`, Object.fromEntries(req.headers.entries()))
   
   try {
     // Parse request body
@@ -81,6 +83,11 @@ Deno.serve(async (req) => {
     
     console.log(`[${correlationId}] Sending email to:`, emailData.email)
     
+    // Check if RESEND_API_KEY is set
+    if (!Deno.env.get('RESEND_API_KEY')) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    
     // Generate email content
     const confirmationUrl = `https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/`
     
@@ -131,6 +138,8 @@ Deno.serve(async (req) => {
         </body>
       </html>
     `
+    
+    console.log(`[${correlationId}] About to send email with Resend...`)
     
     // Send email using Resend
     const { data: emailResult, error: emailError } = await resend.emails.send({
