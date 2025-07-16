@@ -5,12 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AnimeDetail from "./pages/AnimeDetail";
 import MangaDetail from "./pages/MangaDetail";
-import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import EmailDebug from "./pages/EmailDebug";
 
@@ -25,12 +22,9 @@ function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/anime/:id" element={<AnimeDetail />} />
               <Route path="/manga/:id" element={<MangaDetail />} />
-              <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/email-debug" element={<EmailDebug />} />
             </Routes>
