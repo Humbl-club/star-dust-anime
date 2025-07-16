@@ -15,51 +15,127 @@ const EmailConfirmation = () => {
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
+      // Get all possible confirmation parameters
       const token = searchParams.get('token');
+      const tokenHash = searchParams.get('token_hash');
       const type = searchParams.get('type');
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
       
-      console.log('Email confirmation - token:', token, 'type:', type);
+      console.log('Email confirmation - parameters:', {
+        token,
+        tokenHash, 
+        type,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken
+      });
 
-      if (!token || type !== 'signup') {
-        setStatus('error');
-        setMessage('Invalid confirmation link. The link may be expired or malformed.');
+      // Handle direct Supabase auth callback with tokens
+      if (accessToken && refreshToken) {
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+
+          if (error) {
+            console.error('Session set error:', error);
+            setStatus('error');
+            setMessage(error.message || 'Failed to confirm email. The link may be expired.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Email confirmed successfully! You are now signed in.');
+            toast.success('Email confirmed successfully!');
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          }
+        } catch (error: any) {
+          console.error('Session confirmation error:', error);
+          setStatus('error');
+          setMessage('An unexpected error occurred during email confirmation.');
+        }
         return;
       }
 
-      try {
-        // Verify the email using the token
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: 'signup'
-        });
+      // Handle token hash verification (newer Supabase format)
+      if (tokenHash && type === 'signup') {
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'signup'
+          });
 
-        console.log('Email verification result:', { data, error });
+          console.log('Token hash verification result:', { data, error });
 
-        if (error) {
-          console.error('Email verification error:', error);
+          if (error) {
+            console.error('Token hash verification error:', error);
+            setStatus('error');
+            setMessage(error.message || 'Failed to confirm email. The link may be expired.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Email confirmed successfully! You are now signed in.');
+            toast.success('Email confirmed successfully!');
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          }
+        } catch (error: any) {
+          console.error('Token hash verification exception:', error);
           setStatus('error');
-          setMessage(error.message || 'Failed to confirm email. The link may be expired.');
-          return;
+          setMessage('An unexpected error occurred during email confirmation.');
         }
-
-        if (data.user) {
-          setStatus('success');
-          setMessage('Email confirmed successfully! You can now sign in to your account.');
-          toast.success('Email confirmed successfully!');
-          
-          // Redirect to home page after a short delay
-          setTimeout(() => {
-            navigate('/');
-          }, 2000);
-        } else {
-          setStatus('error');
-          setMessage('Email confirmation failed. Please try again.');
-        }
-      } catch (error: any) {
-        console.error('Email confirmation exception:', error);
-        setStatus('error');
-        setMessage('An unexpected error occurred during email confirmation.');
+        return;
       }
+
+      // Handle legacy token verification
+      if (token && type === 'signup') {
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: token,
+            type: 'signup'
+          });
+
+          console.log('Legacy token verification result:', { data, error });
+
+          if (error) {
+            console.error('Legacy token verification error:', error);
+            setStatus('error');
+            setMessage(error.message || 'Failed to confirm email. The link may be expired.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Email confirmed successfully! You are now signed in.');
+            toast.success('Email confirmed successfully!');
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+          }
+        } catch (error: any) {
+          console.error('Legacy token verification exception:', error);
+          setStatus('error');
+          setMessage('An unexpected error occurred during email confirmation.');
+        }
+        return;
+      }
+
+      // No valid confirmation parameters found
+      setStatus('error');
+      setMessage('Invalid confirmation link. The link may be expired or malformed.');
     };
 
     handleEmailConfirmation();
@@ -85,7 +161,7 @@ const EmailConfirmation = () => {
           
           {status === 'success' && (
             <p className="text-sm text-muted-foreground mb-4">
-              Redirecting you to the home page...
+              Redirecting you to your dashboard...
             </p>
           )}
           

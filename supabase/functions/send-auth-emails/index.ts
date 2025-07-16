@@ -88,8 +88,31 @@ Deno.serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured')
     }
     
-    // Generate email content
-    const confirmationUrl = `https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/`
+    // Generate proper confirmation link using Supabase auth
+    let confirmationUrl = `https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/`
+    
+    try {
+      // Generate email confirmation link through Supabase
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'signup',
+        email: emailData.email,
+        options: {
+          redirectTo: confirmationUrl
+        }
+      })
+      
+      if (error) {
+        console.error(`[${correlationId}] Error generating confirmation link:`, error)
+        // Fall back to basic confirmation URL
+      } else if (data.properties?.action_link) {
+        // Use the proper Supabase confirmation link
+        confirmationUrl = data.properties.action_link
+        console.log(`[${correlationId}] Generated confirmation URL:`, confirmationUrl)
+      }
+    } catch (linkError) {
+      console.error(`[${correlationId}] Exception generating confirmation link:`, linkError)
+      // Continue with fallback URL
+    }
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -166,7 +189,8 @@ Deno.serve(async (req) => {
           correlation_id: correlationId,
           email_id: emailResult?.id,
           user_id: emailData.user_id,
-          email: emailData.email
+          email: emailData.email,
+          confirmation_url: confirmationUrl
         }
       })
     

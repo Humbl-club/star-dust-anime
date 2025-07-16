@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import EmailConfirmation from "@/components/auth/EmailConfirmation";
@@ -12,7 +13,14 @@ const Index = () => {
   const navigate = useNavigate();
 
   // Check if this is an email confirmation callback
-  const isEmailConfirmation = searchParams.get('type') === 'signup' && searchParams.get('token');
+  const isEmailConfirmation = (
+    // New Supabase format
+    (searchParams.get('token_hash') && searchParams.get('type') === 'signup') ||
+    // Legacy format
+    (searchParams.get('token') && searchParams.get('type') === 'signup') ||
+    // Direct auth callback
+    (searchParams.get('access_token') && searchParams.get('refresh_token'))
+  );
   
   // If this is an email confirmation, show the confirmation component
   if (isEmailConfirmation) {
