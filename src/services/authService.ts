@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
 import { AuthResponse } from '@/types/auth';
@@ -34,12 +33,13 @@ export const authService = {
       const baseUrl = window.location.origin;
       const redirectUrl = `${baseUrl}/`;
       
+      console.log('AuthService: Starting signup process for:', sanitizedEmail);
+      
       const { data, error } = await supabase.auth.signUp({
         email: sanitizedEmail,
         password: sanitizedPassword,
         options: {
           emailRedirectTo: redirectUrl,
-          // Add mobile-friendly options
           data: {
             signup_source: 'web',
             user_agent: navigator.userAgent,
@@ -47,6 +47,8 @@ export const authService = {
           }
         }
       });
+
+      console.log('AuthService: Signup response:', { data, error });
 
       // Enhanced error handling
       if (error) {
@@ -72,6 +74,27 @@ export const authService = {
       if (data.user && !data.session) {
         // User created but needs email confirmation
         sessionStorage.setItem('pendingEmail', email);
+        
+        // Manually trigger the email sending since the database trigger might not work
+        console.log('AuthService: Manually triggering verification email...');
+        try {
+          const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-auth-emails', {
+            body: {
+              email: sanitizedEmail,
+              user_id: data.user.id,
+              email_action_type: 'signup'
+            }
+          });
+          
+          console.log('AuthService: Manual email trigger response:', { emailResponse, emailError });
+          
+          if (emailError) {
+            console.error('AuthService: Manual email trigger failed:', emailError);
+          }
+        } catch (emailTriggerError) {
+          console.error('AuthService: Exception during manual email trigger:', emailTriggerError);
+        }
+        
         return { 
           error: null,
           needsConfirmation: true,
@@ -205,23 +228,19 @@ export const authService = {
         };
       }
       
-      // Use database function to resend verification email
-      const { data, error } = await supabase.rpc('resend_verification_email', {
-        user_id_param: user.id
+      // Call the edge function directly
+      const { data, error } = await supabase.functions.invoke('send-auth-emails', {
+        body: {
+          email: sanitizedEmail,
+          user_id: user.id,
+          email_action_type: 'resend_confirmation'
+        }
       });
 
       if (error) {
         console.error('Resend verification error:', error);
         return { 
           error: { message: error.message || 'Failed to resend confirmation email' },
-          message: 'Failed to resend email'
-        };
-      }
-
-      // Check if the response contains an error
-      if (data && typeof data === 'object' && 'error' in data) {
-        return { 
-          error: { message: String(data.error) },
           message: 'Failed to resend email'
         };
       }
