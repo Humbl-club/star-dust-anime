@@ -86,10 +86,34 @@ Deno.serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured')
     }
     
-    // Create a simple confirmation URL with the user's email and a verification token
-    const baseUrl = 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com'
+    // Generate a verification token
     const verificationToken = crypto.randomUUID()
-    const confirmationUrl = `${baseUrl}/?token=${verificationToken}&type=signup&email=${encodeURIComponent(emailData.email)}&user_id=${emailData.user_id}`
+    
+    // Store the verification token in the database FIRST
+    const { error: storeError } = await supabase
+      .from('email_verification_status')
+      .upsert({
+        user_id: emailData.user_id,
+        email: emailData.email,
+        verification_token: verificationToken,
+        verification_status: 'pending',
+        verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+        verification_sent_at: new Date().toISOString(),
+        verification_attempts: 1
+      }, {
+        onConflict: 'user_id,email'
+      })
+    
+    if (storeError) {
+      console.error(`[${correlationId}] Error storing verification token:`, storeError)
+      throw new Error(`Failed to store verification token: ${storeError.message}`)
+    }
+    
+    console.log(`[${correlationId}] Verification token stored successfully`)
+    
+    // Create confirmation URL with our custom verification flow
+    const baseUrl = 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com'
+    const confirmationUrl = `${baseUrl}/email-confirmation?token=${verificationToken}&type=signup&email=${encodeURIComponent(emailData.email)}&user_id=${emailData.user_id}`
     
     console.log(`[${correlationId}] Generated confirmation URL:`, confirmationUrl)
     
@@ -123,6 +147,7 @@ Deno.serve(async (req) => {
               </div>
               <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
               <p style="word-break: break-all; color: #8b5cf6;">${confirmationUrl}</p>
+              <p>This verification link will expire in 7 days.</p>
               <p>Once confirmed, you'll be able to:</p>
               <ul>
                 <li>Track your favorite anime and manga</li>
@@ -157,18 +182,6 @@ Deno.serve(async (req) => {
     }
     
     console.log(`[${correlationId}] Email sent successfully:`, emailResult?.id)
-    
-    // Store the verification token in the database for later verification
-    await supabase
-      .from('email_verification_status')
-      .upsert({
-        user_id: emailData.user_id,
-        email: emailData.email,
-        verification_token: verificationToken,
-        verification_status: 'pending',
-        verification_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-        verification_sent_at: new Date().toISOString()
-      })
     
     // Log success to database
     await supabase
