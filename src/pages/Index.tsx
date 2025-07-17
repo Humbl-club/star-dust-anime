@@ -1,11 +1,71 @@
 
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import EmailConfirmation from "@/components/auth/EmailConfirmation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Star, PlayCircle, BookOpen, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
+import { Navigation } from "@/components/Navigation";
+import { type Anime, type Manga } from "@/data/animeData";
+
+const ContentCard = ({ item, type }: { item: Anime | Manga; type: 'anime' | 'manga' }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/${type}/${item.id}`);
+  };
+
+  return (
+    <Card 
+      className="group hover-scale cursor-pointer touch-friendly"
+      onClick={handleClick}
+    >
+      <CardContent className="p-0">
+        <div className="relative overflow-hidden rounded-t-lg">
+          <img 
+            src={item.image_url} 
+            alt={item.title}
+            className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Score Badge */}
+          {item.score && (
+            <Badge className="absolute top-2 right-2 glass-card border border-primary/20 glow-primary">
+              <Star className="w-3 h-3 mr-1" />
+              {item.score}
+            </Badge>
+          )}
+        </div>
+        
+        <div className="p-4">
+          <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-gradient-primary transition-colors">
+            {item.title}
+          </h3>
+          
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>{(item as any).type}</span>
+            {(item as any).status && (
+              <>
+                <span>•</span>
+                <span className={
+                  (item as any).status === 'Currently Airing' || (item as any).status === 'Publishing' ? 'text-green-400' :
+                  (item as any).status === 'Finished Airing' || (item as any).status === 'Finished' ? 'text-blue-400' :
+                  'text-yellow-400'
+                }>
+                  {(item as any).status}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -27,11 +87,24 @@ const Index = () => {
     return <EmailConfirmation />;
   }
 
+  // Fetch featured content
+  const { data: animeData, loading: animeLoading } = useSimpleNewApiData({ 
+    contentType: 'anime',
+    limit: 6,
+    sort_by: 'score',
+    order: 'desc'
+  });
+
+  const { data: mangaData, loading: mangaLoading } = useSimpleNewApiData({ 
+    contentType: 'manga',
+    limit: 6,
+    sort_by: 'score',
+    order: 'desc'
+  });
+
   useEffect(() => {
     if (sessionStorage.getItem('justSignedUp') === 'true') {
-      // Show welcome popup
       sessionStorage.removeItem('justSignedUp');
-      // You can trigger a state update here to show a welcome modal/toast
       alert('Welcome to Anithing! Please explore our platform.');
     }
   }, []);
@@ -50,26 +123,108 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
-      <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="text-center">
-            <h1 className="text-2xl font-semibold mb-4">Welcome to Anithing!</h1>
-            <p className="text-gray-600 mb-4">
-              Explore a vast collection of anime and manga, track your progress, and discover new favorites.
-            </p>
-            {user ? (
-              <>
-                <p className="text-green-500 font-semibold mb-4">You are signed in!</p>
-                <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-              </>
+      <Navigation />
+      
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4 text-gradient-primary">
+            Discover Your Next Favorite
+          </h1>
+          <p className="text-xl text-muted-foreground mb-6">
+            Explore thousands of anime and manga titles
+          </p>
+          {!user && (
+            <Button onClick={() => navigate('/auth')} size="lg" className="mb-8">
+              Get Started
+            </Button>
+          )}
+        </div>
+
+        {/* Featured Anime Section */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <PlayCircle className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Popular Anime</h2>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/anime')}
+              className="flex items-center gap-2"
+            >
+              View All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {animeLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-muted rounded-lg h-48 md:h-64 mb-2"></div>
+                  <div className="bg-muted rounded h-4 w-full"></div>
+                </div>
+              ))
             ) : (
-              <>
-                <p className="text-gray-600 mb-4">Sign up or sign in to get started.</p>
-                <Button onClick={() => navigate('/auth')}>Get Started</Button>
-              </>
+              animeData.slice(0, 6).map((anime) => (
+                <ContentCard key={anime.id} item={anime} type="anime" />
+              ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Featured Manga Section */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-semibold">Popular Manga</h2>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/manga')}
+              className="flex items-center gap-2"
+            >
+              View All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {mangaLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-muted rounded-lg h-48 md:h-64 mb-2"></div>
+                  <div className="bg-muted rounded h-4 w-full"></div>
+                </div>
+              ))
+            ) : (
+              mangaData.slice(0, 6).map((manga) => (
+                <ContentCard key={manga.id} item={manga} type="manga" />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <Card className="cursor-pointer hover-scale" onClick={() => navigate('/anime')}>
+            <CardHeader className="text-center">
+              <PlayCircle className="w-12 h-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Browse Anime</h3>
+              <p className="text-muted-foreground">Discover your next anime series</p>
+            </CardHeader>
+          </Card>
+          
+          <Card className="cursor-pointer hover-scale" onClick={() => navigate('/manga')}>
+            <CardHeader className="text-center">
+              <BookOpen className="w-12 h-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Browse Manga</h3>
+              <p className="text-muted-foreground">Find amazing manga to read</p>
+            </CardHeader>
+          </Card>
+        </div>
       </div>
     </div>
   );
