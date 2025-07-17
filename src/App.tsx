@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Anime from "./pages/Anime";
+import Manga from "./pages/Manga";
 import AnimeDetail from "./pages/AnimeDetail";
 import MangaDetail from "./pages/MangaDetail";
 import Settings from "./pages/Settings";
@@ -27,6 +29,8 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/anime" element={<Anime />} />
+              <Route path="/manga" element={<Manga />} />
               <Route path="/anime/:id" element={<AnimeDetail />} />
               <Route path="/manga/:id" element={<MangaDetail />} />
               <Route path="/settings" element={<Settings />} />
