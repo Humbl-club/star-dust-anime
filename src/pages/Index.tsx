@@ -116,25 +116,25 @@ const Index = () => {
     animeList: Anime[]; 
     className?: string;
   }) => (
-    <section className={`py-12 md:py-16 ${className}`}>
+    <section className={`py-12 md:py-16 ${className} animate-fade-in-up`}>
       <div className="container mx-auto mobile-safe-padding">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 animate-slide-up-fade">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-primary rounded-lg">
+            <div className="p-2 bg-gradient-primary rounded-lg animate-pulse-glow hover:animate-bounce-subtle transition-all duration-300">
               <Icon className="w-6 h-6 text-primary-foreground" />
             </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gradient-primary">{title}</h2>
-              <p className="text-sm md:text-base text-muted-foreground">{subtitle}</p>
+            <div className="animate-slide-in-right">
+              <h2 className="text-2xl md:text-3xl font-bold text-gradient-primary animate-gradient-shift">{title}</h2>
+              <p className="text-sm md:text-base text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>{subtitle}</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="group hover-scale touch-friendly"
+            className="group hover-scale touch-friendly hover:bg-gradient-primary/10 transition-all duration-300 animate-bounce-in"
             onClick={() => navigate('/anime')}
           >
             View All
-            <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform animate-bounce-subtle" />
           </Button>
         </div>
         
@@ -142,14 +142,17 @@ const Index = () => {
           {animeList.map((anime, index) => (
             <div 
               key={anime.id} 
-              className="animate-fade-in hover-scale"
+              className="group animate-slide-up-fade hover:scale-105 transition-all duration-300 hover:z-10"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <AnimeCard 
-                anime={anime} 
-                onClick={() => handleAnimeClick(anime)}
-                getDisplayName={getDisplayName}
-              />
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-primary rounded-lg opacity-0 group-hover:opacity-20 transition-all duration-300 animate-pulse-glow" />
+                <AnimeCard 
+                  anime={anime} 
+                  onClick={() => handleAnimeClick(anime)}
+                  getDisplayName={getDisplayName}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -253,38 +256,45 @@ const Index = () => {
         </>
       )}
 
-      {/* Stats Footer */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/10 to-accent/10">
-        <div className="container mx-auto mobile-safe-padding text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8">
-            Join the Ultimate <span className="text-accent">Ani</span><span className="text-gradient-primary">thing</span> Community
+      {/* Enhanced Stats Footer */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/10 to-accent/10 animate-gradient-shift relative overflow-hidden">
+        {/* Background particles */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-primary/20 rounded-full blur-xl animate-float" />
+          <div className="absolute bottom-10 right-10 w-16 h-16 bg-accent/20 rounded-full blur-lg animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-secondary/10 rounded-full blur-2xl animate-pulse-glow" />
+        </div>
+        
+        <div className="container mx-auto mobile-safe-padding text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 animate-bounce-in">
+            Join the Ultimate <span className="text-accent animate-pulse-glow">Ani</span><span className="text-gradient-primary animate-gradient-shift">thing</span> Community
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl mx-auto">
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl mx-auto animate-slide-up-fade">
+            <div className="space-y-2 group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl md:text-4xl font-bold text-primary animate-pulse-glow group-hover:animate-bounce-subtle">{formatCount(stats.animeCount)}</div>
               <div className="text-sm md:text-base text-muted-foreground">Anime Series</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-accent">{formatCount(stats.mangaCount)}</div>
+            <div className="space-y-2 group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl md:text-4xl font-bold text-accent animate-pulse-glow group-hover:animate-bounce-subtle">{formatCount(stats.mangaCount)}</div>
               <div className="text-sm md:text-base text-muted-foreground">Manga Titles</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-secondary">{formatCount(stats.userCount)}</div>
+            <div className="space-y-2 group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl md:text-4xl font-bold text-secondary animate-pulse-glow group-hover:animate-bounce-subtle">{formatCount(stats.userCount)}</div>
               <div className="text-sm md:text-base text-muted-foreground">Users</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary-glow">24/7</div>
+            <div className="space-y-2 group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl md:text-4xl font-bold text-primary-glow animate-pulse-glow group-hover:animate-bounce-subtle">24/7</div>
               <div className="text-sm md:text-base text-muted-foreground">Updates</div>
             </div>
           </div>
-          <div className="mt-8 md:mt-12 space-y-4">
+          <div className="mt-8 md:mt-12 space-y-4 animate-bounce-in" style={{ animationDelay: '0.5s' }}>
             <Button 
               variant="hero" 
               size="lg" 
-              className="px-8 md:px-12 py-4 text-base md:text-lg hover-scale touch-friendly"
+              className="group px-8 md:px-12 py-4 text-base md:text-lg hover:scale-105 touch-friendly transition-all duration-300 animate-pulse-glow hover:shadow-glow-primary"
               onClick={() => navigate('/auth?tab=signup')}
             >
-              Get Started Today
+              <span className="group-hover:animate-bounce-subtle">Get Started Today</span>
             </Button>
           </div>
         </div>
