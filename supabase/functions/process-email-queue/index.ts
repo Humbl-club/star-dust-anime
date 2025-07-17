@@ -1,10 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
-import { Database } from '../_shared/database.types.ts'
 
+// Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey)
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,6 +88,11 @@ const processEmail = async (email: any) => {
 
 const handler = async (_req: Request) => {
   try {
+    // Handle CORS preflight requests
+    if (_req.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders })
+    }
+
     // Fetch pending emails
     const { data: emails, error } = await supabase
       .from('email_queue')
