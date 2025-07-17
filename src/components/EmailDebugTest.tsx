@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 
 export const EmailDebugTest = () => {
   const { user } = useAuth();
-  const [testEmail, setTestEmail] = useState(user?.email || '');
+  const [testEmail, setTestEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -19,15 +19,6 @@ export const EmailDebugTest = () => {
   };
 
   const testEmailFunction = async () => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to test the email function",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!testEmail) {
       toast({
         title: "Error",
@@ -39,7 +30,6 @@ export const EmailDebugTest = () => {
 
     setIsLoading(true);
     addLog(`Testing email function with: ${testEmail}`);
-    addLog(`Using user ID: ${user.id}`);
 
     try {
       addLog('Calling send-auth-emails function...');
@@ -47,7 +37,7 @@ export const EmailDebugTest = () => {
       const { data, error } = await supabase.functions.invoke('send-auth-emails', {
         body: {
           email: testEmail,
-          user_id: user.id, // Use actual user ID instead of test-user-id
+          user_id: user?.id || 'test-user-id',
           email_action_type: 'signup'
         }
       });
@@ -124,21 +114,6 @@ export const EmailDebugTest = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-gray-600">Please sign in to test the email functions.</p>
-            <Button onClick={() => window.location.href = '/auth'} className="mt-4">
-              Go to Sign In
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <Card>
@@ -170,7 +145,7 @@ export const EmailDebugTest = () => {
             
             <Button 
               onClick={testResendVerification} 
-              disabled={isLoading}
+              disabled={isLoading || !user}
               variant="outline"
               className="flex-1"
             >
@@ -179,8 +154,8 @@ export const EmailDebugTest = () => {
           </div>
           
           <div className="text-sm text-gray-600">
-            <p><strong>Current User:</strong> {user.email}</p>
-            <p><strong>User ID:</strong> {user.id}</p>
+            <p><strong>Current User:</strong> {user?.email || 'Not authenticated'}</p>
+            <p><strong>User ID:</strong> {user?.id || 'N/A'}</p>
           </div>
         </CardContent>
       </Card>

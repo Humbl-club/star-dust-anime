@@ -7,14 +7,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Anime from "./pages/Anime";
-import Manga from "./pages/Manga";
 import AnimeDetail from "./pages/AnimeDetail";
 import MangaDetail from "./pages/MangaDetail";
 import Settings from "./pages/Settings";
 import EmailDebug from "./pages/EmailDebug";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -29,14 +25,10 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/anime" element={<Anime />} />
-              <Route path="/manga" element={<Manga />} />
               <Route path="/anime/:id" element={<AnimeDetail />} />
               <Route path="/manga/:id" element={<MangaDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/email-debug" element={<EmailDebug />} />
-              <Route path="/email-confirmation" element={<EmailConfirmation />} />
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
         </BrowserRouter>
