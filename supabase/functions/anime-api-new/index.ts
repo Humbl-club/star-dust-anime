@@ -20,29 +20,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { method, path } = await req.json();
-    
-    if (method !== 'GET') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const url = new URL(path, 'http://localhost');
-    const pathSegments = url.pathname.split('/').filter(Boolean);
-    const contentType = pathSegments[0]; // 'anime' or 'manga'
-    
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
-    const search = url.searchParams.get('search');
-    const genre = url.searchParams.get('genre');
-    const status = url.searchParams.get('status');
-    const type = url.searchParams.get('type');
-    const year = url.searchParams.get('year');
-    const season = url.searchParams.get('season');
-    const sort_by = url.searchParams.get('sort_by') || 'score';
-    const order = url.searchParams.get('order') || 'desc';
+    const body = await req.json();
+    const {
+      contentType = 'anime',
+      page = 1,
+      limit = 20,
+      search,
+      genre,
+      status,
+      type,
+      year,
+      season,
+      sort_by = 'score',
+      order = 'desc'
+    } = body;
 
     console.log('Query params:', { contentType, page, limit, search, genre, status, type, year, season, sort_by, order });
 
@@ -216,7 +207,7 @@ serve(async (req) => {
 
     // Transform data to flatten the nested structure
     const transformedData = data?.map((item: any) => {
-      const details = contentType === 'anime' ? item.anime_details?.[0] : item.manga_details?.[0];
+      const details = contentType === 'anime' ? item.anime_details : item.manga_details;
       
       return {
         id: item.id,

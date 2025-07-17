@@ -19,13 +19,12 @@ export function SyncControl() {
     try {
       toast({
         title: "Sync Started",
-        description: "Starting voting data sync process...",
+        description: "Starting data sync process...",
       });
 
-      const { data, error } = await supabase.functions.invoke('sync-titles-voting-data', {
+      const { data, error } = await supabase.functions.invoke('sync-anime-dedicated', {
         body: {
-          batchSize: 50,
-          apiBatchSize: 25
+          batchSize: 50
         }
       });
 
@@ -64,10 +63,10 @@ export function SyncControl() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Database className="w-5 h-5" />
-          Voting Data Sync
+          Data Sync
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Sync voting data from AniList for all titles with scores
+          Sync anime and manga data from external sources
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
