@@ -77,38 +77,22 @@ export const authService = {
         
         // Send verification email immediately after successful signup
         console.log('AuthService: Sending verification email...');
-        try {
-          const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-auth-emails', {
-            body: {
+try {
+          // Queue verification email instead of sending directly
+          const { error: queueError } = await supabase
+            .from('email_queue')
+            .insert({
               email: sanitizedEmail,
               user_id: data.user.id,
-              email_action_type: 'signup',
-              token: crypto.randomUUID(),
-              redirect_to: redirectUrl
-            }
-          });
+              email_type: 'signup',
+              metadata: {
+                redirect_to: redirectUrl
+              },
+              correlation_id: crypto.randomUUID()
+            });
           
-          console.log('AuthService: Email sending response:', { emailResponse, emailError });
-          
-          if (emailError) {
-            console.error('AuthService: Email sending failed:', emailError);
-            // Retry once if it fails
-            try {
-              const { error: retryError } = await supabase.functions.invoke('send-auth-emails', {
-                body: {
-                  email: sanitizedEmail,
-                  user_id: data.user.id,
-                  email_action_type: 'signup',
-                  token: crypto.randomUUID(),
-                  redirect_to: redirectUrl
-                }
-              });
-              if (retryError) {
-                console.error('AuthService: Email retry also failed:', retryError);
-              }
-            } catch (retryException) {
-              console.error('AuthService: Exception during email retry:', retryException);
-            }
+          if (queueError) {
+            console.error('AuthService: Failed to queue email:', queueError);
           }
         } catch (emailTriggerError) {
           console.error('AuthService: Exception during email sending:', emailTriggerError);
@@ -247,19 +231,23 @@ export const authService = {
         };
       }
       
-      // Call the edge function directly
-      const { data, error } = await supabase.functions.invoke('send-auth-emails', {
-        body: {
+      // Queue resend confirmation email
+      const { error } = await supabase
+        .from('email_queue')
+        .insert({
           email: sanitizedEmail,
           user_id: user.id,
-          email_action_type: 'resend_confirmation'
-        }
-      });
+          email_type: 'resend_confirmation',
+          metadata: {
+            redirect_to: window.location.origin
+          },
+          correlation_id: crypto.randomUUID()
+        });
 
       if (error) {
-        console.error('Resend verification error:', error);
+        console.error('Failed to queue resend confirmation:', error);
         return { 
-          error: { message: error.message || 'Failed to resend confirmation email' },
+          error: { message: 'Failed to queue confirmation email' },
           message: 'Failed to resend email'
         };
       }
