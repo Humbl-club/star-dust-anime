@@ -75,24 +75,43 @@ export const authService = {
         // User created but needs email confirmation
         sessionStorage.setItem('pendingEmail', email);
         
-        // Manually trigger the email sending since the database trigger might not work
-        console.log('AuthService: Manually triggering verification email...');
+        // Send verification email immediately after successful signup
+        console.log('AuthService: Sending verification email...');
         try {
           const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-auth-emails', {
             body: {
               email: sanitizedEmail,
               user_id: data.user.id,
-              email_action_type: 'signup'
+              email_action_type: 'signup',
+              token: crypto.randomUUID(),
+              redirect_to: redirectUrl
             }
           });
           
-          console.log('AuthService: Manual email trigger response:', { emailResponse, emailError });
+          console.log('AuthService: Email sending response:', { emailResponse, emailError });
           
           if (emailError) {
-            console.error('AuthService: Manual email trigger failed:', emailError);
+            console.error('AuthService: Email sending failed:', emailError);
+            // Retry once if it fails
+            try {
+              const { error: retryError } = await supabase.functions.invoke('send-auth-emails', {
+                body: {
+                  email: sanitizedEmail,
+                  user_id: data.user.id,
+                  email_action_type: 'signup',
+                  token: crypto.randomUUID(),
+                  redirect_to: redirectUrl
+                }
+              });
+              if (retryError) {
+                console.error('AuthService: Email retry also failed:', retryError);
+              }
+            } catch (retryException) {
+              console.error('AuthService: Exception during email retry:', retryException);
+            }
           }
         } catch (emailTriggerError) {
-          console.error('AuthService: Exception during manual email trigger:', emailTriggerError);
+          console.error('AuthService: Exception during email sending:', emailTriggerError);
         }
         
         return { 
