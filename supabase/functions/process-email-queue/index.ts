@@ -1,8 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
-// Initialize Supabase client
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+// Initialize Supabase client with error handling
+const supabaseUrl = Deno.env.get('SUPABASE_URL')
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+console.log('🔧 Environment check:', {
+  hasUrl: !!supabaseUrl,
+  hasServiceKey: !!supabaseServiceKey,
+  urlPrefix: supabaseUrl?.substring(0, 20) + '...'
+})
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -87,12 +97,21 @@ const processEmail = async (email: any) => {
 }
 
 const handler = async (_req: Request) => {
+  console.log('🚀 process-email-queue handler called:', {
+    method: _req.method,
+    url: _req.url,
+    timestamp: new Date().toISOString()
+  })
+  
   try {
     // Handle CORS preflight requests
     if (_req.method === 'OPTIONS') {
+      console.log('📋 Handling CORS preflight request')
       return new Response(null, { headers: corsHeaders })
     }
 
+    console.log('📧 Fetching pending emails from queue...')
+    
     // Fetch pending emails
     const { data: emails, error } = await supabase
       .from('email_queue')
@@ -102,9 +121,16 @@ const handler = async (_req: Request) => {
       .order('created_at')
       .limit(10)
 
+    console.log('📊 Query result:', { 
+      emailCount: emails?.length || 0, 
+      error: error?.message,
+      hasEmails: !!emails 
+    })
+
     if (error) throw error
 
     if (!emails || emails.length === 0) {
+      console.log('✅ No pending emails to process')
       return new Response(JSON.stringify({ processed: 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
