@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
-import { SyncControl } from "@/components/SyncControl";
+
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -170,15 +170,6 @@ const Index = () => {
       
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
-      
-      {/* Admin Sync Control - Only show for authenticated users */}
-      {user && (
-        <section className="py-8 bg-muted/20">
-          <div className="container mx-auto mobile-safe-padding flex justify-center">
-            <SyncControl />
-          </div>
-        </section>
-      )}
 
       {/* Search Results */}
       {isSearching && (

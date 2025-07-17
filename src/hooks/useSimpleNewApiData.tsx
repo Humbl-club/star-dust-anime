@@ -43,27 +43,33 @@ export const useSimpleNewApiData = (options: UseSimpleNewApiDataOptions) => {
     setError(null);
 
     try {
-      // Use the new edge function instead of direct Supabase queries
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+      console.log('Calling anime-api-new with params:', {
+        contentType,
+        page,
+        limit,
+        search,
+        genre,
+        status,
+        type,
+        year,
+        season,
         sort_by,
         order
       });
-
-      if (search) params.append('search', search);
-      if (genre) params.append('genre', genre);
-      if (status) params.append('status', status);
-      if (type) params.append('type', type);
-      if (year) params.append('year', year);
-      if (season && contentType === 'anime') params.append('season', season);
-
-      console.log('Calling anime-api-new with params:', params.toString());
       
       const { data: response, error } = await supabase.functions.invoke('anime-api-new', {
         body: {
-          method: 'GET',
-          path: `/${contentType}?${params.toString()}`
+          contentType,
+          page,
+          limit,
+          search,
+          genre,
+          status,
+          type,
+          year,
+          season,
+          sort_by,
+          order
         }
       });
 
