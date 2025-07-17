@@ -116,31 +116,39 @@ const Index = () => {
     animeList: Anime[]; 
     className?: string;
   }) => (
-    <section className={`py-12 md:py-16 ${className}`}>
+    <section className={`py-8 md:py-16 ${className}`}>
       <div className="container mx-auto mobile-safe-padding">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Icon className="w-6 h-6 text-primary" />
+        {/* Mobile-optimized header */}
+        <div className="flex items-start justify-between mb-6 md:mb-8">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="p-2 bg-primary/10 rounded-xl touch-friendly">
+              <Icon className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold">{title}</h2>
-              <p className="text-sm md:text-base text-muted-foreground">{subtitle}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl md:text-3xl font-bold truncate">{title}</h2>
+              <p className="text-xs md:text-base text-muted-foreground line-clamp-1 md:line-clamp-none">{subtitle}</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="group"
+            size="sm"
+            className="group touch-friendly ml-2 shrink-0"
             onClick={() => navigate('/anime')}
           >
-            View All
-            <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <span className="hidden sm:inline">View All</span>
+            <span className="sm:hidden">More</span>
+            <ChevronRight className="w-4 h-4 ml-1 md:ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-          {animeList.map((anime) => (
-            <div key={anime.id} className="group">
+        {/* Mobile-optimized grid with horizontal scroll on small screens */}
+        <div className="lg:grid lg:grid-cols-5 xl:grid-cols-6 lg:gap-6 hidden">
+          {animeList.map((anime, index) => (
+            <div 
+              key={anime.id} 
+              className="group animate-fade-in"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <AnimeCard 
                 anime={anime} 
                 onClick={() => handleAnimeClick(anime)}
@@ -148,6 +156,25 @@ const Index = () => {
               />
             </div>
           ))}
+        </div>
+
+        {/* Mobile horizontal scroll */}
+        <div className="lg:hidden">
+          <div className="flex gap-3 overflow-x-auto pb-4 native-scroll">
+            {animeList.slice(0, 8).map((anime, index) => (
+              <div 
+                key={anime.id} 
+                className="flex-none w-40 animate-fade-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <AnimeCard 
+                  anime={anime} 
+                  onClick={() => handleAnimeClick(anime)}
+                  getDisplayName={getDisplayName}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -165,10 +192,10 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative native-app">
       <Navigation onSearch={handleSearch} />
       
-      {/* Hero Section */}
+      {/* Mobile-optimized Hero Section */}
       <HeroSection onSearch={handleSearch} />
 
       {/* Search Results */}
@@ -240,35 +267,35 @@ const Index = () => {
         </>
       )}
 
-      {/* Stats Footer */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/10 to-accent/10">
+      {/* Mobile-optimized Stats Footer */}
+      <section className="py-12 md:py-20 bg-gradient-to-br from-primary/10 to-accent/10">
         <div className="container mx-auto mobile-safe-padding text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 px-4">
             Join the Ultimate <span className="text-accent">Ani</span><span className="text-primary">thing</span> Community
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-4xl mx-auto">
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
-              <div className="text-sm md:text-base text-muted-foreground">Anime Series</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-4xl mx-auto">
+            <div className="space-y-1 md:space-y-2 p-4 glass-card border border-primary/20 rounded-xl hover-scale">
+              <div className="text-2xl md:text-4xl font-bold text-primary">{formatCount(stats.animeCount)}</div>
+              <div className="text-xs md:text-base text-muted-foreground">Anime Series</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-accent">{formatCount(stats.mangaCount)}</div>
-              <div className="text-sm md:text-base text-muted-foreground">Manga Titles</div>
+            <div className="space-y-1 md:space-y-2 p-4 glass-card border border-accent/20 rounded-xl hover-scale">
+              <div className="text-2xl md:text-4xl font-bold text-accent">{formatCount(stats.mangaCount)}</div>
+              <div className="text-xs md:text-base text-muted-foreground">Manga Titles</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-secondary">{formatCount(stats.userCount)}</div>
-              <div className="text-sm md:text-base text-muted-foreground">Users</div>
+            <div className="space-y-1 md:space-y-2 p-4 glass-card border border-secondary/20 rounded-xl hover-scale">
+              <div className="text-2xl md:text-4xl font-bold text-secondary">{formatCount(stats.userCount)}</div>
+              <div className="text-xs md:text-base text-muted-foreground">Users</div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">24/7</div>
-              <div className="text-sm md:text-base text-muted-foreground">Updates</div>
+            <div className="space-y-1 md:space-y-2 p-4 glass-card border border-primary/20 rounded-xl hover-scale">
+              <div className="text-2xl md:text-4xl font-bold text-primary">24/7</div>
+              <div className="text-xs md:text-base text-muted-foreground">Updates</div>
             </div>
           </div>
-          <div className="mt-8 md:mt-12">
+          <div className="mt-8 md:mt-12 px-4">
             <Button 
               variant="hero" 
               size="lg" 
-              className="px-8 md:px-12 py-4 text-base md:text-lg"
+              className="px-8 md:px-12 py-4 text-base md:text-lg w-full sm:w-auto touch-friendly"
               onClick={() => navigate('/auth?tab=signup')}
             >
               Get Started Today

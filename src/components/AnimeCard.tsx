@@ -45,7 +45,7 @@ export const AnimeCard = memo(({
   return (
     <>
       <Card 
-        className="anime-card cursor-pointer group relative h-[400px] hover-scale"
+        className="anime-card cursor-pointer group relative h-[320px] sm:h-[400px] hover-scale touch-spring"
         onClick={handleCardClick}
       >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
@@ -58,36 +58,36 @@ export const AnimeCard = memo(({
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         
-        {/* Floating Status Badge */}
+        {/* Mobile-optimized Status Badge */}
         <Badge 
-          className="absolute top-3 right-3 z-20 glass-card border border-primary/20 glow-primary"
+          className="absolute top-2 right-2 z-20 glass-card border border-primary/20 glow-primary text-xs px-2 py-1"
           variant="default"
         >
           {anime.status}
         </Badge>
 
-        {/* Score Badge */}
+        {/* Mobile-optimized Score Badge */}
         {anime.score && (
-          <div className="absolute top-3 left-3 z-20 p-2 glass-card border border-yellow-400/20 rounded-full flex items-center gap-1" style={{boxShadow: '0 0 15px rgba(251, 191, 36, 0.3)'}}>
+          <div className="absolute top-2 left-2 z-20 p-1.5 glass-card border border-yellow-400/20 rounded-full flex items-center gap-1" style={{boxShadow: '0 0 15px rgba(251, 191, 36, 0.3)'}}>
             <Star className="w-3 h-3 text-yellow-400" />
             <span className="text-xs font-semibold text-foreground">{anime.score}</span>
           </div>
         )}
 
-        {/* Report Button */}
-        <div className="absolute top-12 right-3 z-[9998] report-dropdown">
+        {/* Mobile-optimized Report Button */}
+        <div className="absolute top-10 right-2 z-[9998] report-dropdown">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 bg-background/90 border border-border hover:bg-background text-foreground z-[9999]"
+                className="h-8 w-8 p-0 bg-background/90 border border-border hover:bg-background text-foreground z-[9999] touch-friendly"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                 }}
               >
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -113,45 +113,45 @@ export const AnimeCard = memo(({
         </div>
       </div>
       
-      {/* Content Overlay */}
-      <CardContent className="absolute bottom-0 left-0 right-0 z-20 p-4">
-        <div className="glass-card p-4 border border-border/20 space-y-2">
-          <h3 className="font-bold text-lg line-clamp-2 group-hover:text-gradient-primary transition-all duration-300">
+      {/* Mobile-optimized Content Overlay */}
+      <CardContent className="absolute bottom-0 left-0 right-0 z-20 p-3">
+        <div className="glass-card p-3 border border-border/20 space-y-2">
+          <h3 className="font-bold text-sm sm:text-lg line-clamp-2 group-hover:text-gradient-primary transition-all duration-300">
             {displayName}
           </h3>
           
-          {/* Simple info */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>{anime.year}</span>
+          {/* Mobile-optimized info */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground overflow-hidden">
+            <span className="truncate">{anime.year}</span>
             <span>•</span>
-            <span>{anime.type}</span>
+            <span className="truncate">{anime.type}</span>
             {anime.episodes && (
               <>
                 <span>•</span>
-                <span>{anime.episodes} eps</span>
+                <span className="truncate">{anime.episodes}ep</span>
               </>
             )}
           </div>
           
-          {/* Add to List Button */}
-          <div className="mt-3">
+          {/* Mobile-optimized Add to List Button */}
+          <div className="mt-2">
             <AddToListButton 
               item={anime} 
               type="anime" 
               variant="outline" 
               size="sm"
-              className="w-full glass-input border-primary/20 hover:border-primary/40 hover:bg-primary/10"
+              className="w-full glass-input border-primary/20 hover:border-primary/40 hover:bg-primary/10 text-xs py-2 touch-friendly"
             />
           </div>
 
-          {/* Trailer Preview - Subtle */}
+          {/* Mobile-optimized Trailer Preview */}
           {(anime as any).trailer_id && (
-            <div className="absolute -top-12 right-3 z-20">
+            <div className="absolute -top-10 right-2 z-20">
               <TrailerPreview
                 videoId={(anime as any).trailer_id}
                 title={`${displayName} Trailer`}
                 size="sm"
-                className="w-8 h-8 glass-card border border-accent/20 opacity-70 hover:opacity-100 transition-opacity hover:glow-accent"
+                className="w-7 h-7 glass-card border border-accent/20 opacity-70 hover:opacity-100 transition-opacity hover:glow-accent touch-friendly"
               />
             </div>
           )}

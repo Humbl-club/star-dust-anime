@@ -30,7 +30,7 @@ import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
-
+import { MobileSearchBar } from "@/components/MobileSearchBar";
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { Switch } from "@/components/ui/switch";
@@ -50,6 +50,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const { performSearch, isSearching, searchResults, clearSearch } = useConsolidatedSearch();
   const { isNative, keyboardVisible } = useNativeSetup();
   const { triggerHaptic } = useNativeActions();
@@ -205,11 +206,23 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             </div>
           </div>
 
-          {/* Right Side Actions - Condensed */}
+          {/* Right Side Actions - Mobile Optimized */}
           <div className="flex items-center space-x-1">
+            {/* Mobile Search Button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="xl:hidden touch-friendly"
+              onClick={async () => {
+                await triggerHaptic('light');
+                setShowMobileSearch(true);
+              }}
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+
             {!loading && user && (
               <>
-
                 {/* Username Display */}
                 <div className="hidden md:flex items-center gap-3">
                   {stats?.currentUsername && (
@@ -227,18 +240,23 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   )}
                   <ProfileMenu />
                 </div>
+
+                {/* Mobile Profile for authenticated users */}
+                <div className="md:hidden">
+                  <ProfileMenu />
+                </div>
               </>
             )}
 
             {!loading && !user && (
               <div className="hidden sm:flex items-center space-x-2">
                 <Link to="/auth">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="touch-friendly">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth?tab=signup">
-                  <Button variant="hero" size="sm">
+                  <Button variant="hero" size="sm" className="touch-friendly">
                     Get Started
                   </Button>
                 </Link>
@@ -431,6 +449,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           </div>
         )}
       </div>
+
+      {/* Mobile Search Overlay */}
+      {showMobileSearch && (
+        <MobileSearchBar onClose={() => setShowMobileSearch(false)} />
+      )}
     </nav>
   );
 };
