@@ -69,7 +69,7 @@ serve(async (req) => {
           color_theme,
           created_at,
           updated_at,
-          anime_details!inner (
+          anime_details (
             episodes,
             aired_from,
             aired_to,
@@ -88,7 +88,7 @@ serve(async (req) => {
 
       countQuery = supabase
         .from('titles')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .not('anime_details', 'is', null);
     } else if (contentType === 'manga') {
       // Query for manga with details
@@ -110,7 +110,7 @@ serve(async (req) => {
           color_theme,
           created_at,
           updated_at,
-          manga_details!inner (
+          manga_details (
             chapters,
             volumes,
             published_from,
@@ -126,7 +126,7 @@ serve(async (req) => {
 
       countQuery = supabase
         .from('titles')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .not('manga_details', 'is', null);
     } else {
       return new Response(JSON.stringify({ error: 'Invalid content type' }), {
@@ -216,7 +216,7 @@ serve(async (req) => {
 
     // Transform data to flatten the nested structure
     const transformedData = data?.map((item: any) => {
-      const details = contentType === 'anime' ? item.anime_details : item.manga_details;
+      const details = contentType === 'anime' ? item.anime_details?.[0] : item.manga_details?.[0];
       
       return {
         id: item.id,
@@ -235,7 +235,7 @@ serve(async (req) => {
         created_at: item.created_at,
         updated_at: item.updated_at,
         // Add details fields
-        ...details
+        ...(details || {})
       };
     }) || [];
 
