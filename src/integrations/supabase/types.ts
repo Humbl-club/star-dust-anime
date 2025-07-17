@@ -423,6 +423,81 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          correlation_id: string | null
+          created_at: string | null
+          email: string
+          email_type: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          next_retry_at: string | null
+          retries: number | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string | null
+          email: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          next_retry_at?: string | null
+          retries?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string | null
+          email?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          next_retry_at?: string | null
+          retries?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_sent: {
+        Row: {
+          correlation_id: string | null
+          email: string
+          email_type: string
+          id: string
+          metadata: Json | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          email: string
+          email_type: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          email?: string
+          email_type?: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_template_cache: {
         Row: {
           cache_key: string
