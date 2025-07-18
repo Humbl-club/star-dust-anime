@@ -158,54 +158,79 @@ export const shouldLazyLoad = (componentName: string): boolean => {
   return lazyComponents.includes(componentName);
 };
 
-// Performance monitoring setup
+// Simplified performance monitoring - Web Vitals only
 export const setupPerformanceObserver = () => {
-  if ('PerformanceObserver' in window) {
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.entryType === 'largest-contentful-paint') {
-          console.log('LCP:', entry.startTime);
-        }
-        
-        if (entry.entryType === 'first-input') {
-          const firstInput = entry as any;
-          console.log('FID:', firstInput.processingStart - firstInput.startTime);
-        }
-        
-        if (entry.entryType === 'layout-shift') {
-          const layoutShift = entry as any;
-          if (layoutShift.hadRecentInput === false) {
-            console.log('CLS:', layoutShift.value);
-          }
-        }
-      }
-    });
+  // Only run if monitoring is enabled
+  if (!('PerformanceObserver' in window) || 
+      (!import.meta.env.PROD && localStorage.getItem('enable-performance-monitoring') !== 'true')) {
+    return;
+  }
 
-    observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
+  // Import web-vitals for comprehensive monitoring
+  import('web-vitals').then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
+    onCLS((metric) => {
+      if (!import.meta.env.PROD) console.log('CLS:', metric.value);
+    });
+    onINP((metric) => {
+      if (!import.meta.env.PROD) console.log('INP:', metric.value);
+    });
+    onFCP((metric) => {
+      if (!import.meta.env.PROD) console.log('FCP:', metric.value);
+    });
+    onLCP((metric) => {
+      if (!import.meta.env.PROD) console.log('LCP:', metric.value);
+    });
+    onTTFB((metric) => {
+      if (!import.meta.env.PROD) console.log('TTFB:', metric.value);
+    });
+  }).catch(() => {
+    // Fallback if web-vitals not available
+    console.warn('Web Vitals monitoring not available');
+  });
+};
+
+// Clear performance observers
+export const clearPerformanceObservers = () => {
+  // Clear any running performance observers
+  if ('PerformanceObserver' in window) {
+    try {
+      PerformanceObserver.supportedEntryTypes.forEach(type => {
+        const observer = new PerformanceObserver(() => {});
+        observer.disconnect();
+      });
+    } catch (error) {
+      console.warn('Could not clear performance observers:', error);
+    }
   }
 };
 
 // Initialize all optimizations
 export const initializePerformanceOptimizations = () => {
-  // Only run optimizations in production or when explicitly enabled
-  if (import.meta.env.PROD || localStorage.getItem('enable-performance-optimizations') === 'true') {
-    addCriticalCSS();
-    preloadCriticalResources();
-    optimizeNetworkRequests();
-    setupPerformanceObserver();
-    
-    // Run after DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        optimizeImageLoading();
-        optimizeAnimations();
-      });
-    } else {
+  // Always run core optimizations (no overhead)
+  addCriticalCSS();
+  preloadCriticalResources();
+  optimizeNetworkRequests();
+  
+  // Run after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
       optimizeImageLoading();
       optimizeAnimations();
-    }
+    });
+  } else {
+    optimizeImageLoading();
+    optimizeAnimations();
+  }
+  
+  // Conditional monitoring and cleanup
+  const monitoringEnabled = import.meta.env.PROD || localStorage.getItem('enable-performance-monitoring') === 'true';
+  
+  if (monitoringEnabled) {
+    setupPerformanceObserver();
     
-    // Cleanup periodically
-    setInterval(cleanupUnusedResources, 5 * 60 * 1000); // Every 5 minutes
+    // Cleanup periodically - 30 minutes in production, none in development
+    if (import.meta.env.PROD) {
+      setInterval(cleanupUnusedResources, 30 * 60 * 1000); // Every 30 minutes
+    }
   }
 };

@@ -4,8 +4,12 @@ import './index.css'
 import './native.css'
 import { register as registerSW } from './utils/serviceWorkerRegistration'
 import { initializePerformanceOptimizations } from './utils/performanceOptimizations'
-// Initialize performance optimizations
-initializePerformanceOptimizations();
+
+// Initialize performance optimizations conditionally
+// Only run in production or when explicitly enabled by user preference
+if (import.meta.env.PROD || localStorage.getItem('enable-performance-monitoring') === 'true') {
+  initializePerformanceOptimizations();
+}
 
 // Register service worker for offline support
 if (import.meta.env.PROD) {
