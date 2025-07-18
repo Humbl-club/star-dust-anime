@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { 
+  generateCorrelationId, 
+  classifyError, 
+  logError, 
+  formatErrorForUser 
+} from '@/utils/errorUtils';
 
 interface MangaDetail {
   // Title fields
@@ -57,17 +63,18 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
     setLoading(true);
     setError(null);
 
+    const correlationId = generateCorrelationId();
+    
     try {
-      console.log('Fetching manga detail for ID:', mangaId);
+      console.log(`[${correlationId.slice(-8)}] Fetching manga detail for ID:`, mangaId);
       
       const { data: response, error: edgeError } = await supabase.functions.invoke('manga-detail-single', {
-        body: { id: mangaId }
+        body: { id: mangaId, correlationId }
       });
 
-      console.log('Edge function response:', { response, edgeError });
+      console.log(`[${correlationId.slice(-8)}] Edge function response:`, { response, edgeError });
 
       if (edgeError) {
-        console.error('Edge function error:', edgeError);
         throw new Error(edgeError.message || 'Failed to fetch manga details');
       }
 
@@ -88,14 +95,21 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
         authors: Array.isArray(mangaData.authors) ? mangaData.authors : [],
       };
 
-      console.log('Successfully fetched manga:', transformedManga.title);
+      console.log(`[${correlationId.slice(-8)}] Successfully fetched manga:`, transformedManga.title);
       setManga(transformedManga);
 
     } catch (err: any) {
-      console.error('Error fetching manga detail:', err);
-      const errorMessage = err.message || 'Failed to fetch manga details';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      // Enhanced error handling with classification
+      const classifiedError = classifyError(err, correlationId, 'fetch_manga_detail');
+      
+      // Log error with context
+      await logError(classifiedError, err);
+      
+      // Set error state with user-friendly message
+      setError(classifiedError.userMessage);
+      
+      // Show toast with formatted error
+      toast.error(formatErrorForUser(classifiedError));
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -17,26 +19,59 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/anime/:id" element={<AnimeDetail />} />
-                <Route path="/manga/:id" element={<MangaDetail />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/email-debug" element={<EmailDebug />} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <SonnerToaster />
+            <BrowserRouter>
+              <ErrorBoundary>
+                <AuthProvider>
+                  <Routes>
+                    <Route path="/" element={
+                      <ErrorBoundary>
+                        <Index />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/auth" element={
+                      <ErrorBoundary>
+                        <Auth />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/dashboard" element={
+                      <ErrorBoundary>
+                        <Dashboard />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/anime/:id" element={
+                      <ErrorBoundary>
+                        <AnimeDetail />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/manga/:id" element={
+                      <ErrorBoundary>
+                        <MangaDetail />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/settings" element={
+                      <ErrorBoundary>
+                        <Settings />
+                      </ErrorBoundary>
+                    } />
+                    <Route path="/email-debug" element={
+                      <ErrorBoundary>
+                        <EmailDebug />
+                      </ErrorBoundary>
+                    } />
+                  </Routes>
+                </AuthProvider>
+              </ErrorBoundary>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }
 

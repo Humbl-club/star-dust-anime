@@ -1,6 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { 
+  generateCorrelationId, 
+  classifyError, 
+  logError, 
+  formatErrorForUser 
+} from '@/utils/errorUtils';
 
 interface UseSimpleNewApiDataOptions {
   contentType: 'anime' | 'manga';
@@ -75,7 +81,8 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
     order = 'desc'
   } = options;
 
-  console.log('Fetching data with optimized query:', options);
+  const correlationId = generateCorrelationId();
+  console.log(`[${correlationId.slice(-8)}] Fetching data with optimized query:`, options);
 
   // Build optimized query with server-side filtering
   let query = supabase
@@ -138,11 +145,13 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
   const { data: response, error, count } = await query;
 
   if (error) {
-    console.error('Database error:', error);
-    throw error;
+    console.error(`[${correlationId.slice(-8)}] Database error:`, error);
+    const classifiedError = classifyError(error, correlationId, 'fetch_titles_data');
+    await logError(classifiedError, error);
+    throw classifiedError;
   }
 
-  console.log('Database response:', { count, dataLength: response?.length });
+  console.log(`[${correlationId.slice(-8)}] Database response:`, { count, dataLength: response?.length });
 
   // Transform data to match expected format
   const transformedData = response?.map((item: any) => {
@@ -279,25 +288,27 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
 
   // Sync from external API function
   const syncFromExternal = async (pages = 1) => {
+    const correlationId = generateCorrelationId();
+    
     try {
-      console.log(`Starting ${contentType} sync using ultra-fast-sync...`);
+      console.log(`[${correlationId.slice(-8)}] Starting ${contentType} sync using ultra-fast-sync...`);
       
       const { data: response, error } = await supabase.functions.invoke('ultra-fast-sync', {
         body: {
           contentType,
-          maxPages: pages
+          maxPages: pages,
+          correlationId
         }
       });
 
       if (error) {
-        console.error(`${contentType} sync error:`, error);
         throw error;
       }
 
       if (response?.success) {
         const processed = response.results?.processed || 0;
         toast.success(`Successfully synced ${processed} new ${contentType} items`);
-        console.log(`${contentType} sync completed:`, response);
+        console.log(`[${correlationId.slice(-8)}] ${contentType} sync completed:`, response);
         
         // Invalidate all title queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['titles'] });
@@ -305,9 +316,13 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
         throw new Error(`Sync failed: ${response?.message || 'Unknown error'}`);
       }
     } catch (err: any) {
-      console.error(`Error syncing ${contentType}:`, err);
-      toast.error(`Failed to sync ${contentType} data`);
-      throw err;
+      // Enhanced error handling with classification
+      const classifiedError = classifyError(err, correlationId, `sync_${contentType}`);
+      await logError(classifiedError, err);
+      
+      // Show user-friendly error message
+      toast.error(formatErrorForUser(classifiedError));
+      throw classifiedError;
     }
   };
 
