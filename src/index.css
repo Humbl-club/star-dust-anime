@@ -2,7 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Anime-inspired design system with vibrant gradients and modern aesthetics */
+  /* Anime-inspired design system with vibrant gradients and modern aesthetics */
+  
+  /* Performance Optimizations */
+  * {
+    /* Enable hardware acceleration for animations */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Critical font loading */
+  @font-face {
+    font-family: 'Inter';
+    font-display: swap;
+    src: local('Inter'), url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ.woff2') format('woff2');
+    font-weight: 400;
+  }
 
 @layer base {
   :root {
