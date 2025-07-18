@@ -284,10 +284,12 @@
   /* Enhanced Mobile-friendly utilities */
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105 active:scale-95;
+    will-change: transform;
   }
 
   .touch-friendly {
     @apply min-h-[44px] min-w-[44px] touch-manipulation;
+    will-change: transform;
   }
 
   .mobile-safe-padding {
@@ -479,6 +481,7 @@
   /* Micro-interactions */
   .spring-bounce {
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    will-change: transform;
   }
 
   .spring-bounce:hover {
