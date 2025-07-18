@@ -24,7 +24,7 @@ export const DataTestComponent = () => {
             {animeData.slice(0, 5).map(anime => (
               <div key={anime.id} className="border p-2 mb-2">
                 <h3 className="font-semibold">{anime.title}</h3>
-                <p>Episodes: {anime.episodes}</p>
+                <p>Episodes: {'episodes' in anime ? anime.episodes : 'N/A'}</p>
                 <p>Score: {anime.score}</p>
                 <p>Status: {anime.status}</p>
               </div>
@@ -43,7 +43,7 @@ export const DataTestComponent = () => {
             {mangaData.slice(0, 5).map(manga => (
               <div key={manga.id} className="border p-2 mb-2">
                 <h3 className="font-semibold">{manga.title}</h3>
-                <p>Chapters: {manga.chapters}</p>
+                <p>Chapters: {'chapters' in manga ? manga.chapters : 'N/A'}</p>
                 <p>Score: {manga.score}</p>
                 <p>Status: {manga.status}</p>
               </div>
