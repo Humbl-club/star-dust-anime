@@ -212,7 +212,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
     // Apply sorting and pagination to main query
     const sortField = sort_by === 'score' ? 'titles.score' : `titles.${sort_by}`;
-    query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false })
+    query = query.order(sortField, { ascending: order === 'asc' })
       .not('titles', 'is', null);
 
     // Apply pagination
