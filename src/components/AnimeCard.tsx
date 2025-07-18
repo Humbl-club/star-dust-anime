@@ -145,10 +145,10 @@ export const AnimeCard = memo(({
           </div>
 
           {/* Mobile-optimized Trailer Preview */}
-          {(anime as any).trailer_id && (
+          {'trailer_id' in anime && anime.trailer_id && (
             <div className="absolute -top-10 right-2 z-20">
               <TrailerPreview
-                videoId={(anime as any).trailer_id}
+                videoId={'trailer_id' in anime ? anime.trailer_id : undefined}
                 title={`${displayName} Trailer`}
                 size="sm"
                 className="w-7 h-7 glass-card border border-accent/20 opacity-70 hover:opacity-100 transition-opacity hover:glow-accent touch-friendly"

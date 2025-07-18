@@ -27,10 +27,7 @@ import {
   Eye,
   Star
 } from 'lucide-react';
-
-interface AnalyticsChartsProps {
-  analytics: any;
-}
+import { AnalyticsChartsProps, StatCardProps } from '@/types/components';
 
 export const AnalyticsCharts = ({ analytics }: AnalyticsChartsProps) => {
   if (!analytics) return null;
@@ -60,7 +57,7 @@ export const AnalyticsCharts = ({ analytics }: AnalyticsChartsProps) => {
     { name: 'AI Enhanced', value: searchAnalytics.aiSearches }
   ];
 
-  const StatCard = ({ title, value, subtitle, icon: Icon, trend }: any) => (
+  const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) => (
     <Card className="border-primary/20">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
@@ -246,7 +243,7 @@ export const AnalyticsCharts = ({ analytics }: AnalyticsChartsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {contentStats.mostPopular.slice(0, 8).map((anime: any, index: number) => (
+              {contentStats.mostPopular.slice(0, 8).map((anime, index: number) => (
                 <div key={index} className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-6 h-6 bg-primary/10 rounded-full text-xs font-bold">
                     {index + 1}

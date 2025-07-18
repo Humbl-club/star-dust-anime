@@ -25,16 +25,10 @@ import { useUserLists, type UserAnimeListEntry, type UserMangaListEntry } from "
 import { FeatureWrapper } from "@/components/FeatureWrapper";
 import { type Anime, type Manga } from "@/data/animeData";
 import { toast } from "sonner";
+import { AddToListButtonProps, StatusConfigMap } from "@/types/components";
+import { isNumber } from "@/types/guards";
 
-interface AddToListButtonProps {
-  item: Anime | Manga;
-  type: "anime" | "manga";
-  variant?: "default" | "outline" | "ghost";
-  size?: "sm" | "default" | "lg";
-  className?: string;
-}
-
-const statusConfig = {
+const statusConfig: StatusConfigMap = {
   anime: {
     watching: { label: "Watching", icon: Play, color: "bg-green-500/90" },
     completed: { label: "Completed", icon: Check, color: "bg-blue-500/90" },
@@ -73,7 +67,9 @@ export const AddToListButton = ({
   const [loading, setLoading] = useState(false);
 
   // Use anilist_id for lookup since that's what we store in the normalized schema
-  const anilistId = (item as any).anilist_id || item.id;
+  const anilistId = 'anilist_id' in item && isNumber(item.anilist_id) 
+    ? item.anilist_id 
+    : item.id;
   const listEntry = type === "anime" 
     ? getAnimeListEntry(anilistId) 
     : getMangaListEntry(anilistId);
@@ -171,7 +167,7 @@ export const AddToListButton = ({
           return (
             <DropdownMenuItem
               key={status}
-              onClick={() => handleUpdateStatus(status as any)}
+              onClick={() => handleUpdateStatus(status as UserAnimeListEntry['status'] | UserMangaListEntry['status'])}
               className={`cursor-pointer ${isActive ? 'bg-primary/10' : ''}`}
             >
               <div className={`w-3 h-3 rounded-full ${config.color} mr-2`} />
@@ -219,7 +215,7 @@ export const AddToListButton = ({
           return (
             <DropdownMenuItem
               key={status}
-              onClick={() => handleAddToList(status as any)}
+              onClick={() => handleAddToList(status as UserAnimeListEntry['status'] | UserMangaListEntry['status'])}
               className="cursor-pointer"
             >
               <div className={`w-3 h-3 rounded-full ${config.color} mr-2`} />

@@ -97,7 +97,7 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
       } else {
         throw new Error('Invalid response format');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const classifiedError = classifyError(err, correlationId, `fetch_${contentType}`);
       await logError(classifiedError, err);
       
@@ -135,7 +135,7 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
 
       // Refresh local data after sync
       await fetchData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const classifiedError = classifyError(err, correlationId, `sync_${contentType}`);
       await logError(classifiedError, err);
       
@@ -163,7 +163,7 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
       
       // Refresh local data after image sync
       await fetchData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const classifiedError = classifyError(err, correlationId, `sync_images_${contentType}`);
       await logError(classifiedError, err);
       

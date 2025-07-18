@@ -102,7 +102,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       console.log(`[${correlationId.slice(-8)}] Successfully fetched anime:`, transformedAnime.title);
       setAnime(transformedAnime);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Enhanced error handling with classification
       const classifiedError = classifyError(err, correlationId, 'fetch_anime_detail');
       

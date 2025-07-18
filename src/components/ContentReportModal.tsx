@@ -74,11 +74,11 @@ export const ContentReportModal = ({
         setDescription("");
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Report submission error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to submit report. Please try again.",
+        description: (error instanceof Error ? error.message : "Unknown error") || "Failed to submit report. Please try again.",
         variant: "destructive",
       });
     } finally {
