@@ -24,6 +24,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
 import { LegalFooter } from "@/components/LegalFooter";
+import { VirtualizedList } from "@/components/VirtualizedList";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -247,16 +248,35 @@ const Anime = () => {
           </div>
         ) : filteredAnime.length > 0 ? (
           <>
-            {/* Desktop Grid */}
-            <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {filteredAnime.map((anime) => (
-                <AnimeCard 
-                  key={anime.id} 
-                  anime={anime} 
-                  onClick={() => handleAnimeClick(anime)}
+            {/* Desktop Grid with virtualization for large lists */}
+            {filteredAnime.length > 50 ? (
+              <div className="hidden lg:block">
+                <VirtualizedList
+                  items={filteredAnime}
+                  itemHeight={350}
+                  containerHeight={800}
+                  renderItem={(anime) => (
+                    <div className="p-3">
+                      <AnimeCard 
+                        anime={anime} 
+                        onClick={() => handleAnimeClick(anime)}
+                      />
+                    </div>
+                  )}
+                  className="grid-cols-4 xl:grid-cols-5"
                 />
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {filteredAnime.map((anime) => (
+                  <AnimeCard 
+                    key={anime.id} 
+                    anime={anime} 
+                    onClick={() => handleAnimeClick(anime)}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Mobile Grid */}
             <div className="grid lg:hidden grid-cols-2 gap-3">

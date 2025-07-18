@@ -55,6 +55,7 @@ export const AnimeCard = memo(({
         <img 
           src={anime.image_url} 
           alt={displayName}
+          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         

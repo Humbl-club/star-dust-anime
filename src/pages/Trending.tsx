@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Navigation } from "@/components/Navigation";
+import { useNavigate } from "react-router-dom";
+import { TrendingAnimeCard } from "@/components/TrendingAnimeCard";
+import { TrendingMangaCard } from "@/components/TrendingMangaCard";
 
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
@@ -26,107 +29,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
-const TrendingAnimeCard = ({ anime, rank, getDisplayName }: { anime: Anime; rank: number; getDisplayName: (anime: Anime) => string }) => (
-  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
-    <div className="p-4">
-      <div className="flex gap-4">
-        <div className="relative flex-shrink-0">
-          <img 
-            src={anime.image_url} 
-            alt={getDisplayName(anime)}
-            className="w-16 h-20 object-cover rounded-lg"
-          />
-          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
-            {rank}
-          </div>
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
-            {getDisplayName(anime)}
-          </h3>
-          
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <Badge variant="secondary" className="text-xs glass-card border-0">
-              <Play className="w-3 h-3 mr-1" />
-              {anime.type}
-            </Badge>
-            {anime.score && (
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400" />
-                <span>{anime.score}</span>
-              </div>
-            )}
-          </div>
-          
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-            {anime.synopsis}
-          </p>
-          
-          <div className="flex flex-wrap gap-1">
-            {anime.genres.slice(0, 2).map(genre => (
-              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
-                {genre}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const TrendingMangaCard = ({ manga, rank, getDisplayName }: { manga: Manga; rank: number; getDisplayName: (manga: Manga) => string }) => (
-  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
-    <div className="p-4">
-      <div className="flex gap-4">
-        <div className="relative flex-shrink-0">
-          <img 
-            src={manga.image_url} 
-            alt={getDisplayName(manga)}
-            className="w-16 h-20 object-cover rounded-lg"
-          />
-          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
-            {rank}
-          </div>
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
-            {getDisplayName(manga)}
-          </h3>
-          
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-            <Badge variant="secondary" className="text-xs glass-card border-0">
-              <BookOpen className="w-3 h-3 mr-1" />
-              {manga.type}
-            </Badge>
-            {manga.score && (
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400" />
-                <span>{manga.score}</span>
-              </div>
-            )}
-          </div>
-          
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-            {manga.synopsis}
-          </p>
-          
-          <div className="flex flex-wrap gap-1">
-            {manga.genres.slice(0, 2).map(genre => (
-              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
-                {genre}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+// Card components moved to dedicated files for performance optimization
 
 const Trending = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("anime");
   const { toast } = useToast();
   const { stats, formatCount } = useStats();
@@ -448,14 +354,15 @@ const Trending = () => {
               </div>
               <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
-                  {trendingAnime.map((anime, index) => (
-                    <TrendingAnimeCard 
-                      key={anime.id} 
-                      anime={anime} 
-                      rank={index + 1} 
-                      getDisplayName={getDisplayName}
-                    />
-                  ))}
+              {trendingAnime.map((anime, index) => (
+                <TrendingAnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  rank={index + 1}
+                  getDisplayName={getDisplayName}
+                  onClick={() => navigate(`/anime/${anime.id}`)}
+                />
+              ))}
                 </div>
               </div>
             </div>
@@ -471,14 +378,15 @@ const Trending = () => {
               </div>
               <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
-                  {trendingManga.map((manga, index) => (
-                    <TrendingMangaCard 
-                      key={manga.id} 
-                      manga={manga} 
-                      rank={index + 1} 
-                      getDisplayName={getDisplayName}
-                    />
-                  ))}
+              {trendingManga.map((manga, index) => (
+                <TrendingMangaCard 
+                  key={manga.id} 
+                  manga={manga} 
+                  rank={index + 1}
+                  getDisplayName={getDisplayName}
+                  onClick={() => navigate(`/manga/${manga.id}`)}
+                />
+              ))}
                 </div>
               </div>
             </div>
