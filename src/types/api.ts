@@ -1,5 +1,57 @@
 // API Response Types for comprehensive type safety
 
+// Enhanced content interfaces
+export interface BaseContent {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis: string;
+  image_url: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  year?: number;
+  color_theme?: string;
+  genres: string[];
+  members: number;
+  status: string;
+  type: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AnimeContent extends BaseContent {
+  episodes: number;
+  aired_from?: string;
+  aired_to?: string;
+  season?: string;
+  trailer_url?: string;
+  next_episode_date?: string;
+  studios: string[];
+}
+
+export interface MangaContent extends BaseContent {
+  chapters: number;
+  volumes: number;
+  published_from?: string;
+  published_to?: string;
+  next_chapter_date?: string;
+  authors: string[];
+}
+
+// Enhanced pagination interface
+export interface PaginationInfo {
+  current_page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_prev_page: boolean;
+}
+
 // Base API Response Structure
 export interface ApiResponse<T> {
   data: T[];
@@ -68,14 +120,7 @@ export interface UseApiDataOptions {
 // API Data Hook Return Type
 export interface UseApiDataResult<T> {
   data: T[];
-  pagination: {
-    current_page: number;
-    per_page: number;
-    total: number;
-    total_pages: number;
-    has_next_page: boolean;
-    has_prev_page: boolean;
-  };
+  pagination: PaginationInfo;
   loading: boolean;
   error: string | null;
   fetchData: () => Promise<void>;

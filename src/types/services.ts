@@ -242,3 +242,27 @@ export interface LoggerConfig {
   bufferSize: number;
   flushInterval: number;
 }
+
+// Additional service types
+export interface AuthenticationResult {
+  success: boolean;
+  user?: {
+    id: string;
+    email: string;
+    username?: string;
+  };
+  error?: string;
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  code: string;
+}
+
+export interface ServiceResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  correlationId?: string;
+}

@@ -6,8 +6,17 @@ export type {
   PopularContentItem, 
   ContentItem, 
   SyncResponse, 
-  ImageSyncResponse,
-  ErrorResponse 
+  ErrorResponse,
+  BaseContent,
+  AnimeContent,
+  MangaContent,
+  PaginationInfo,
+  ApiResponse,
+  UseEnhancedQueryOptions,
+  UseEnhancedQueryResult,
+  UseApiDataOptions,
+  UseApiDataResult,
+  SupabaseFunctionResponse
 } from './api';
 
 // Component Types
@@ -16,7 +25,15 @@ export type {
   AnalyticsChartsProps, 
   StatCardProps,
   AddToListButtonProps,
-  FilterOptions 
+  FilterOptions,
+  SEOMetaTagsProps,
+  ContentReportModalProps,
+  DropdownResult,
+  NavigationHandler,
+  FormEventHandler,
+  ClickEventHandler,
+  ChangeEventHandler,
+  SubmitEventHandler
 } from './components';
 
 // Hook Types
@@ -26,7 +43,11 @@ export type {
   UseAnimeDetailResult, 
   UseMangaDetailResult,
   AnalyticsResults,
-  UseAnalyticsResult 
+  UseAnalyticsResult,
+  AsyncActionHandler,
+  DataTransformer,
+  ErrorHandler,
+  RefreshHandler
 } from './hooks';
 
 // Service Types
@@ -35,8 +56,96 @@ export type {
   EmailValidationResult, 
   CorrelationContext, 
   ErrorContext,
-  ClassifiedError 
+  ClassifiedError,
+  AuthenticationResult,
+  ValidationError,
+  ServiceResponse
 } from './services';
+
+// Queue Types
+export type {
+  EmailQueueItem,
+  EmailDeliveryTracking,
+  EmailSent,
+  EmailVerificationStatus,
+  QueueMetrics,
+  EmailQueueResult,
+  BulkEmailOperation,
+  EmailTemplate,
+  EmailContext
+} from './queue';
+
+// Edge Function Types
+export type {
+  EdgeFunctionRequest,
+  EdgeFunctionResponse,
+  AuthEmailRequest,
+  AuthEmailResponse,
+  SyncRequest,
+  ImageSyncRequest,
+  AISearchRequest,
+  AISearchResponse,
+  BulkOperationRequest,
+  BulkOperationResponse,
+  ProcessEmailQueueRequest,
+  ProcessEmailQueueResponse,
+  ContentReportRequest,
+  ContentReportResponse,
+  AnalyticsRequest,
+  AnalyticsResponse,
+  HealthCheckResponse,
+  EdgeFunctionError
+} from './edge-functions';
+
+// Validation Types
+export type {
+  ProfileData,
+  EmailData,
+  PasswordData,
+  SignUpData,
+  LoginData,
+  ReviewData,
+  CommentData,
+  ListEntryData,
+  SearchFiltersData,
+  ContentReportData,
+  UserPreferencesData,
+  ContentPreferencesData,
+  ApiDataRequestData,
+  SyncRequestData
+} from './validation';
+
+// Validation Functions
+export {
+  validateProfile,
+  validateEmail,
+  validatePassword,
+  validateSignUp,
+  validateLogin,
+  validateReview,
+  validateComment,
+  validateListEntry,
+  validateSearchFilters,
+  validateContentReport,
+  validateUserPreferences,
+  validateContentPreferences,
+  validateApiDataRequest,
+  validateSyncRequest,
+  profileSchema,
+  emailSchema,
+  passwordSchema,
+  signUpSchema,
+  loginSchema,
+  reviewSchema,
+  commentSchema,
+  listEntrySchema,
+  searchFiltersSchema,
+  contentReportSchema,
+  userPreferencesSchema,
+  contentPreferencesSchema,
+  apiDataRequestSchema,
+  syncRequestSchema
+} from './validation';
 
 // Type Guards
 export * from './guards';

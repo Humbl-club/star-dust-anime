@@ -65,8 +65,18 @@ interface MangaContent extends BaseContent {
   authors: string[];
 }
 
+// Enhanced pagination interface
+interface PaginationInfo {
+  current_page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_prev_page: boolean;
+}
+
 // Optimized database query function with server-side filtering
-const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ data: any[], pagination: any }> => {
+const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ data: (AnimeContent | MangaContent)[], pagination: PaginationInfo }> => {
   const {
     contentType,
     page = 1,
@@ -215,28 +225,18 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
   return { data: transformedData, pagination };
 };
 
-// Overload declarations for proper TypeScript typing
-export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions & { contentType: 'anime' }): {
-  data: AnimeContent[];
-  pagination: any;
+// Hook return type interface
+interface UseSimpleApiDataReturn<T> {
+  data: T[];
+  pagination: PaginationInfo | null;
   loading: boolean;
   error: string | null;
   fetchData: () => Promise<void>;
   syncFromExternal: (pages?: number) => Promise<void>;
-  refetch: () => Promise<any>;
-};
+  refetch: () => Promise<unknown>;
+}
 
-export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions & { contentType: 'manga' }): {
-  data: MangaContent[];
-  pagination: any;
-  loading: boolean;
-  error: string | null;
-  fetchData: () => Promise<void>;
-  syncFromExternal: (pages?: number) => Promise<void>;
-  refetch: () => Promise<any>;
-};
-
-// Implementation
+// Implementation function
 export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
   const queryClient = useQueryClient();
   const {

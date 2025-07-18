@@ -2,6 +2,28 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+interface PopularContentItem {
+  id: string;
+  title: string;
+  popularity: number;
+  score: number;
+  image_url: string;
+  type: string;
+}
+
+interface RecentlyAddedItem {
+  id: string;
+  title: string;
+  created_at: string;
+  score: number;
+  image_url: string;
+  type: 'anime' | 'manga';
+}
+
+interface ActivityMetadata {
+  [key: string]: string | number | boolean | null;
+}
+
 interface AnalyticsData {
   userActivity: {
     totalUsers: number;
@@ -12,8 +34,8 @@ interface AnalyticsData {
   contentStats: {
     totalAnime: number;
     totalManga: number;
-    mostPopular: any[];
-    recentlyAdded: any[];
+    mostPopular: PopularContentItem[];
+    recentlyAdded: RecentlyAddedItem[];
   };
   searchAnalytics: {
     totalSearches: number;
@@ -66,6 +88,7 @@ export const useAnalytics = () => {
       supabase.from('titles').select('id', { count: 'exact' }).not('manga_details', 'is', null),
       supabase.from('titles')
         .select(`
+          id,
           title, 
           popularity, 
           score, 
@@ -79,6 +102,7 @@ export const useAnalytics = () => {
     const { data: recentAnime } = await supabase
       .from('titles')
       .select(`
+        id,
         title, 
         created_at, 
         score, 
@@ -88,11 +112,29 @@ export const useAnalytics = () => {
       .order('created_at', { ascending: false })
       .limit(10);
 
+    const transformedPopular: PopularContentItem[] = (popularAnime.data || []).map(item => ({
+      id: item.id || '',
+      title: item.title || '',
+      popularity: item.popularity || 0,
+      score: item.score || 0,
+      image_url: item.image_url || '',
+      type: 'anime'
+    }));
+
+    const transformedRecent: RecentlyAddedItem[] = (recentAnime || []).map(item => ({
+      id: item.id || '',
+      title: item.title || '',
+      created_at: item.created_at || '',
+      score: item.score || 0,
+      image_url: item.image_url || '',
+      type: 'anime' as const
+    }));
+
     return {
       totalAnime: animeCount.count || 0,
       totalManga: mangaCount.count || 0,
-      mostPopular: popularAnime.data || [],
-      recentlyAdded: recentAnime || []
+      mostPopular: transformedPopular,
+      recentlyAdded: transformedRecent
     };
   }, []);
 
@@ -139,14 +181,14 @@ export const useAnalytics = () => {
   }, [fetchUserActivity, fetchContentStats, fetchSearchAnalytics, fetchRecommendationMetrics]);
 
   // Track user action
-  const trackAction = useCallback(async (action: string, metadata: any = {}) => {
+  const trackAction = useCallback(async (action: string, metadata: ActivityMetadata = {}) => {
     if (!user) return;
 
     try {
       await supabase.from('activity_feed').insert({
         user_id: user.id,
         activity_type: action,
-        metadata
+        metadata: JSON.parse(JSON.stringify(metadata)) // Convert to Json type
       });
     } catch (error) {
       console.error('Error tracking action:', error);

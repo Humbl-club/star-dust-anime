@@ -54,7 +54,7 @@ export interface AnalyticsChartsProps {
         id: string;
         title: string;
         type: 'anime' | 'manga';
-        added_date: string;
+        created_at: string;
       }>;
     };
     searchAnalytics: {
@@ -190,11 +190,36 @@ export interface AdvancedFilteringProps {
   contentType: 'anime' | 'manga';
 }
 
+// SEO Meta Tags Props
+export interface SEOMetaTagsProps {
+  title: string;
+  description: string;
+  image?: string;
+  url?: string;
+  type?: 'article' | 'website' | 'video';
+}
+
+// Dropdown and navigation types
+export interface DropdownResult {
+  id: string;
+  title: string;
+  type: 'anime' | 'manga';
+  image_url?: string;
+}
+
+export type NavigationHandler = (path: string) => void;
+
 // Event Handler Types
 export type ClickHandler = (event: MouseEvent<HTMLElement>) => void;
 export type ChangeHandler = (event: ChangeEvent<HTMLInputElement>) => void;
 export type FormSubmitHandler = (event: FormEvent<HTMLFormElement>) => void;
 export type SelectHandler = (value: string) => void;
+
+// Additional event handler types
+export type ClickEventHandler = (event: MouseEvent<HTMLElement>) => void;
+export type ChangeEventHandler = (event: ChangeEvent<HTMLInputElement>) => void;
+export type FormEventHandler = (event: FormEvent<HTMLFormElement>) => void;
+export type SubmitEventHandler<T> = (data: T) => void | Promise<void>;
 
 // Status Configuration Types
 export interface StatusConfig {

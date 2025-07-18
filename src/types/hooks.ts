@@ -242,3 +242,9 @@ export interface FilterState {
   sort_by: string;
   order: 'asc' | 'desc';
 }
+
+// Additional hook types
+export type AsyncActionHandler<T = void> = (...args: unknown[]) => Promise<T>;
+export type DataTransformer<TInput, TOutput> = (input: TInput) => TOutput;
+export type ErrorHandler = (error: Error) => void;
+export type RefreshHandler = () => Promise<void> | void;
