@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
+import { DataTestComponent } from "@/components/DataTestComponent";
 
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
+  const [showTestData, setShowTestData] = useState(false);
   
 
   // Get anime data from API
@@ -197,6 +200,20 @@ const Index = () => {
       
       {/* Mobile-optimized Hero Section */}
       <HeroSection onSearch={handleSearch} />
+
+      {/* Debug Toggle Button */}
+      <div className="container mx-auto px-4 py-4">
+        <Button 
+          onClick={() => setShowTestData(!showTestData)}
+          variant="outline"
+          size="sm"
+        >
+          {showTestData ? 'Hide' : 'Show'} Test Data
+        </Button>
+      </div>
+
+      {/* Test Data Component */}
+      {showTestData && <DataTestComponent />}
 
       {/* Search Results */}
       {isSearching && (
