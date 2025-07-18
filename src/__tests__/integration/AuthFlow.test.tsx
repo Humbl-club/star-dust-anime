@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders, screen } from '../utils/renderWithProviders';
+import { renderWithProviders } from '../utils/renderWithProviders';
 import { createMockSupabaseClient, mockUser, mockSession } from '../mocks/supabase';
 
 // Mock the Supabase client

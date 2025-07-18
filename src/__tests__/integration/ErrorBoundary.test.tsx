@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
+import { screen } from '@testing-library/dom';
 import { Component, ReactNode } from 'react';
-
-// Import screen separately
-const { screen } = await import('@testing-library/react');
 
 // Mock Error Boundary Component
 class TestErrorBoundary extends Component<
