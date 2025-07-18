@@ -113,7 +113,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
           type,
           trailer_url,
           next_episode_date,
-          titles!inner(
+          titles(
             id,
             anilist_id,
             title,
@@ -146,7 +146,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
           status,
           type,
           next_chapter_date,
-          titles!inner(
+          titles(
             id,
             anilist_id,
             title,
@@ -212,7 +212,8 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
     // Apply sorting and pagination to main query
     const sortField = sort_by === 'score' ? 'titles.score' : `titles.${sort_by}`;
-    query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false });
+    query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false })
+      .not('titles', 'is', null);
 
     // Apply pagination
     const from = (page - 1) * limit;
