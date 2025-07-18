@@ -30,11 +30,19 @@ export default defineConfig(({ mode }) => ({
           supabase: ['@supabase/supabase-js'],
           icons: ['lucide-react'],
           animations: ['framer-motion'],
-          utils: ['clsx', 'class-variance-authority', 'date-fns', 'date-fns-tz']
+          utils: ['clsx', 'class-variance-authority', 'date-fns', 'date-fns-tz'],
+          debounce: ['use-debounce'],
+          charts: ['recharts'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          dnd: ['@dnd-kit/core', '@dnd-kit/modifiers', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          virtual: ['@tanstack/react-virtual']
         }
       }
     },
     sourcemap: mode === 'development',
-    minify: mode === 'production' ? 'esbuild' : false
+    minify: mode === 'production' ? 'esbuild' : false,
+    target: 'esnext',
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1000
   }
 }));

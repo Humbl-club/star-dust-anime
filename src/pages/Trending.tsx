@@ -257,6 +257,7 @@ const Trending = () => {
                 <img 
                   src={topAnime.image_url} 
                   alt={getDisplayName(topAnime)}
+                  loading="lazy"
                   className="w-24 h-32 object-cover rounded-lg"
                 />
                 <div className="flex-1">
@@ -297,6 +298,7 @@ const Trending = () => {
                   <img 
                     src={topManga.image_url} 
                     alt={getDisplayName(topManga)}
+                    loading="lazy"
                     className="w-24 h-32 object-cover rounded-lg"
                   />
                   <div className="flex-1">

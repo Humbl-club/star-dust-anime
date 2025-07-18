@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useDebouncedCallback } from "use-debounce";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,11 @@ const Manga = () => {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Debounced search handler
+  const debouncedSetSearchQuery = useDebouncedCallback((value: string) => {
+    setSearchQuery(value);
+  }, 300);
   const { toast } = useToast();
 
   // Fetch manga data from database
@@ -139,7 +145,7 @@ const Manga = () => {
                 <Input
                   placeholder="Search by title, author, or description..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => debouncedSetSearchQuery(e.target.value)}
                   className="pl-10 glass-input"
                 />
               </div>

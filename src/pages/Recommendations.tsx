@@ -353,6 +353,7 @@ const RecommendationsList = ({ recommendations, onDismiss }: RecommendationsList
               <img 
                 src={rec.content?.image_url}
                 alt={rec.content?.title}
+                loading="lazy"
                 className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
               />
               

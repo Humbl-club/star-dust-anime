@@ -56,8 +56,8 @@ export const TrailerPreview = ({
           <img
             src={thumbnailUrl}
             alt={`${title} trailer`}
-            className="w-full h-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
+            className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
           
           {/* Play Button Overlay */}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDebouncedCallback } from "use-debounce";
 import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { SearchInput, SearchResults } from "@/components/search";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,11 @@ export const WorkingSearchDropdown = ({
   
   const { query, isSearching, searchResults, handleInputChange, clearSearch } = useConsolidatedSearch();
 
+  // Debounced search to prevent API spam
+  const debouncedHandleInputChange = useDebouncedCallback((value: string) => {
+    handleInputChange(value);
+  }, 300);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,8 +37,12 @@ export const WorkingSearchDropdown = ({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      // Cleanup debounced search
+      debouncedHandleInputChange.cancel();
+    };
+  }, [debouncedHandleInputChange]);
 
   const handleInputFocus = () => {
     setIsOpen(true);
@@ -40,7 +50,7 @@ export const WorkingSearchDropdown = ({
 
   const handleInputChange_ = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    handleInputChange(value);
+    debouncedHandleInputChange(value);
     setIsOpen(value.length >= 2 || searchResults.length > 0);
   };
 

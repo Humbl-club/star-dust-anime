@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useDebouncedCallback } from "use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -81,18 +82,23 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     }
   };
 
-  // Handle real-time search as user types
-  const handleInputChange = (value: string) => {
-    console.log('Input changed:', value);
-    setSearchQuery(value);
+  // Debounced search handler to prevent API spam
+  const debouncedSearch = useDebouncedCallback((value: string) => {
     if (value.trim().length > 2) {
-      console.log('Triggering search for:', value.trim());
+      console.log('Triggering debounced search for:', value.trim());
       setShowResults(true);
       performSearch(value.trim(), 'both');
     } else if (value.trim().length === 0) {
       setShowResults(false);
       clearSearch();
     }
+  }, 300);
+
+  // Handle real-time search as user types
+  const handleInputChange = (value: string) => {
+    console.log('Input changed:', value);
+    setSearchQuery(value);
+    debouncedSearch(value);
   };
 
   const handleAnimeClick = (anime: any) => {
@@ -109,9 +115,13 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
     if (showResults) {
       document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+        // Cleanup debounced search
+        debouncedSearch.cancel();
+      };
     }
-  }, [showResults]);
+  }, [showResults, debouncedSearch]);
 
   const navItems = [
     { icon: Home, label: "Home", href: "/", active: window.location.pathname === "/" },
