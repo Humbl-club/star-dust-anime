@@ -67,6 +67,7 @@ export function AnimeListItem({
           <img 
             src={anime.image_url}
             alt={anime.title}
+            loading="lazy"
             className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
           />
           

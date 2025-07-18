@@ -252,6 +252,7 @@ export const AnalyticsCharts = ({ analytics }: AnalyticsChartsProps) => {
                     <img 
                       src={anime.image_url} 
                       alt={anime.title}
+                      loading="lazy"
                       className="w-8 h-10 object-cover rounded"
                     />
                   )}

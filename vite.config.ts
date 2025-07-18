@@ -19,4 +19,22 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          query: ['@tanstack/react-query'],
+          supabase: ['@supabase/supabase-js'],
+          icons: ['lucide-react'],
+          animations: ['framer-motion'],
+          utils: ['clsx', 'class-variance-authority', 'date-fns', 'date-fns-tz']
+        }
+      }
+    },
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'esbuild' : false
+  }
 }));

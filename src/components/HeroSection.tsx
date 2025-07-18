@@ -33,6 +33,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
         <img 
           src={heroImage} 
           alt="Anime Hero Background"
+          fetchPriority="high"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-background" />
