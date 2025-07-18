@@ -100,72 +100,50 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
     let countQuery;
 
     if (contentType === 'anime') {
-      // Start from anime_details and join with titles
+      // Query from titles and join with anime_details
       query = supabase
-        .from('anime_details')
+        .from('titles')
         .select(`
-          title_id,
-          episodes,
-          aired_from,
-          aired_to,
-          season,
-          status,
-          type,
-          trailer_url,
-          next_episode_date,
-          titles(
-            id,
-            anilist_id,
-            title,
-            title_english,
-            title_japanese,
-            synopsis,
-            image_url,
-            score,
-            anilist_score,
-            rank,
-            popularity,
-            year,
-            color_theme
+          *,
+          anime_details(
+            episodes,
+            aired_from,
+            aired_to,
+            season,
+            status,
+            type,
+            trailer_url,
+            next_episode_date
           )
-        `);
+        `)
+        .not('anime_details', 'is', null);
 
       countQuery = supabase
-        .from('anime_details')
-        .select('title_id', { count: 'exact', head: true });
+        .from('titles')
+        .select('id', { count: 'exact', head: true })
+        .not('anime_details', 'is', null);
     } else {
-      // Start from manga_details and join with titles
+      // Query from titles and join with manga_details
       query = supabase
-        .from('manga_details')
+        .from('titles')
         .select(`
-          title_id,
-          chapters,
-          volumes,
-          published_from,
-          published_to,
-          status,
-          type,
-          next_chapter_date,
-          titles(
-            id,
-            anilist_id,
-            title,
-            title_english,
-            title_japanese,
-            synopsis,
-            image_url,
-            score,
-            anilist_score,
-            rank,
-            popularity,
-            year,
-            color_theme
+          *,
+          manga_details(
+            chapters,
+            volumes,
+            published_from,
+            published_to,
+            status,
+            type,
+            next_chapter_date
           )
-        `);
+        `)
+        .not('manga_details', 'is', null);
 
       countQuery = supabase
-        .from('manga_details')
-        .select('title_id', { count: 'exact', head: true });
+        .from('titles')
+        .select('id', { count: 'exact', head: true })
+        .not('manga_details', 'is', null);
     }
 
     // Apply filters to both query and count query
@@ -173,24 +151,28 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       if (search) {
         const searchTerm = search.trim();
         if (searchTerm) {
-          q = q.or(`titles.title.ilike.%${searchTerm}%,titles.title_english.ilike.%${searchTerm}%,titles.title_japanese.ilike.%${searchTerm}%`);
+          q = q.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
         }
       }
 
       if (year) {
-        q = q.eq('titles.year', parseInt(year));
+        q = q.eq('year', parseInt(year));
       }
 
-      if (status) {
-        q = q.eq('status', status);
+      if (status && contentType === 'anime') {
+        q = q.eq('anime_details.status', status);
+      } else if (status && contentType === 'manga') {
+        q = q.eq('manga_details.status', status);
       }
 
-      if (type) {
-        q = q.eq('type', type);
+      if (type && contentType === 'anime') {
+        q = q.eq('anime_details.type', type);
+      } else if (type && contentType === 'manga') {
+        q = q.eq('manga_details.type', type);
       }
 
       if (season && contentType === 'anime') {
-        q = q.eq('season', season);
+        q = q.eq('anime_details.season', season);
       }
 
       return q;
@@ -210,10 +192,9 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
     console.log(`[${correlationId.slice(-8)}] Total ${contentType} count:`, count || 0);
 
-    // Apply sorting and pagination to main query
-    const sortField = sort_by === 'score' ? 'titles.score' : `titles.${sort_by}`;
-    query = query.order(sortField, { ascending: order === 'asc' })
-      .not('titles', 'is', null);
+    // Apply sorting and pagination to main query  
+    const sortField = sort_by === 'score' ? 'score' : sort_by;
+    query = query.order(sortField, { ascending: order === 'asc' });
 
     // Apply pagination
     const from = (page - 1) * limit;
@@ -246,52 +227,65 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
     // Transform the data
     const transformedData = data
-      .filter(item => item.titles) // Ensure we have title data
+      .filter(item => item && (item.anime_details || item.manga_details)) // Ensure we have detail data
       .map((item: any): AnimeContent | MangaContent => {
-        const titleData = item.titles;
-        
         const baseData = {
-          id: titleData.id,
-          anilist_id: titleData.anilist_id,
-          title: titleData.title || 'Unknown Title',
-          title_english: titleData.title_english,
-          title_japanese: titleData.title_japanese,
-          synopsis: titleData.synopsis || '',
-          image_url: titleData.image_url || '',
-          score: titleData.score,
-          anilist_score: titleData.anilist_score,
-          rank: titleData.rank,
-          popularity: titleData.popularity,
-          year: titleData.year,
-          color_theme: titleData.color_theme,
+          id: item.id,
+          anilist_id: item.anilist_id,
+          title: item.title || 'Unknown Title',
+          title_english: item.title_english,
+          title_japanese: item.title_japanese,
+          synopsis: item.synopsis || '',
+          image_url: item.image_url || '',
+          score: item.score,
+          anilist_score: item.anilist_score,
+          rank: item.rank,
+          popularity: item.popularity,
+          year: item.year,
+          color_theme: item.color_theme,
           genres: [],
-          members: titleData.popularity || 0,
-          status: item.status || 'Unknown',
-          type: item.type || (contentType === 'anime' ? 'TV' : 'Manga')
+          members: item.popularity || 0,
+          status: '',
+          type: ''
         };
 
-        if (contentType === 'anime') {
+        if (contentType === 'anime' && item.anime_details) {
+          const details = item.anime_details;
           return {
             ...baseData,
-            episodes: item.episodes || 0,
-            aired_from: item.aired_from,
-            aired_to: item.aired_to,
-            season: item.season,
-            trailer_url: item.trailer_url,
-            next_episode_date: item.next_episode_date,
+            status: details.status || 'Unknown',
+            type: details.type || 'TV',
+            episodes: details.episodes || 0,
+            aired_from: details.aired_from,
+            aired_to: details.aired_to,
+            season: details.season,
+            trailer_url: details.trailer_url,
+            next_episode_date: details.next_episode_date,
             studios: []
           } as AnimeContent;
-        } else {
+        } else if (contentType === 'manga' && item.manga_details) {
+          const details = item.manga_details;
           return {
             ...baseData,
-            chapters: item.chapters || 0,
-            volumes: item.volumes || 0,
-            published_from: item.published_from,
-            published_to: item.published_to,
-            next_chapter_date: item.next_chapter_date,
+            status: details.status || 'Unknown',
+            type: details.type || 'Manga',
+            chapters: details.chapters || 0,
+            volumes: details.volumes || 0,
+            published_from: details.published_from,
+            published_to: details.published_to,
+            next_chapter_date: details.next_chapter_date,
             authors: []
           } as MangaContent;
         }
+
+        // Fallback
+        return {
+          ...baseData,
+          status: 'Unknown',
+          type: contentType === 'anime' ? 'TV' : 'Manga',
+          episodes: 0,
+          studios: []
+        } as AnimeContent;
       });
 
     // Build pagination info
