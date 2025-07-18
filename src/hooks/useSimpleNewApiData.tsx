@@ -132,8 +132,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
       countQuery = supabase
         .from('anime_details')
-        .select('title_id', { count: 'exact', head: true })
-        .inner('titles', 'title_id', 'id');
+        .select('title_id', { count: 'exact', head: true });
     } else {
       // Start from manga_details and join with titles
       query = supabase
@@ -166,8 +165,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
       countQuery = supabase
         .from('manga_details')
-        .select('title_id', { count: 'exact', head: true })
-        .inner('titles', 'title_id', 'id');
+        .select('title_id', { count: 'exact', head: true });
     }
 
     // Apply filters to both query and count query
