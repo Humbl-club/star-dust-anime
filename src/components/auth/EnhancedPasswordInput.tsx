@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import PasswordStrengthIndicator from './PasswordStrengthIndicator';
-import PasswordChecklist from 'react-password-checklist';
 
 interface EnhancedPasswordInputProps {
   value: string;
@@ -56,34 +55,51 @@ const EnhancedPasswordInput: React.FC<EnhancedPasswordInputProps> = ({
       )}
 
       {showChecklist && value && (
-        <div className="text-sm">
-          <PasswordChecklist
-            rules={["minLength", "specialChar", "number", "capital", "lowercase"]}
-            minLength={8}
-            value={value}
-            valueAgain={confirmPassword}
-            messages={{
-              minLength: "Has at least 8 characters",
-              specialChar: "Has special characters (!@#$%^&*)",
-              number: "Has a number",
-              capital: "Has uppercase letters",
-              lowercase: "Has lowercase letters",
-              match: "Passwords match"
-            }}
-            className="password-checklist"
-            style={{
-              fontSize: '12px',
-              color: 'hsl(var(--muted-foreground))',
-            }}
-            iconComponents={{
-              ValidIcon: <span className="text-green-500">✓</span>,
-              InvalidIcon: <span className="text-destructive">✗</span>
-            }}
+        <div className="text-sm space-y-1">
+          <PasswordChecklistItem 
+            isValid={value.length >= 8}
+            text="Has at least 8 characters"
           />
+          <PasswordChecklistItem 
+            isValid={/[!@#$%^&*(),.?":{}|<>]/.test(value)}
+            text="Has special characters (!@#$%^&*)"
+          />
+          <PasswordChecklistItem 
+            isValid={/\d/.test(value)}
+            text="Has a number"
+          />
+          <PasswordChecklistItem 
+            isValid={/[A-Z]/.test(value)}
+            text="Has uppercase letters"
+          />
+          <PasswordChecklistItem 
+            isValid={/[a-z]/.test(value)}
+            text="Has lowercase letters"
+          />
+          {confirmPassword && (
+            <PasswordChecklistItem 
+              isValid={value === confirmPassword && value.length > 0}
+              text="Passwords match"
+            />
+          )}
         </div>
       )}
     </div>
   );
 };
+
+// Custom PasswordChecklistItem component to replace react-password-checklist
+const PasswordChecklistItem: React.FC<{ isValid: boolean; text: string }> = ({ isValid, text }) => (
+  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    {isValid ? (
+      <Check className="w-3 h-3 text-green-500" />
+    ) : (
+      <X className="w-3 h-3 text-destructive" />
+    )}
+    <span className={isValid ? "text-green-500" : "text-muted-foreground"}>
+      {text}
+    </span>
+  </div>
+);
 
 export default EnhancedPasswordInput;
