@@ -915,6 +915,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_health_metrics: {
         Row: {
           created_at: string | null
@@ -1402,6 +1435,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_activity: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_title_lists: {
         Row: {
           chapters_read: number | null
@@ -1571,6 +1640,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      check_auth_rate_limit: {
+        Args: { user_ip: string; action_type: string }
+        Returns: Json
+      }
       check_email_system_alerts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1594,6 +1667,10 @@ export type Database = {
         Returns: Json
       }
       check_verification_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1750,6 +1827,15 @@ export type Database = {
       }
       initialize_user_gamification: {
         Args: { user_id_param: string }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          user_id_param: string
+          event_type_param: string
+          event_data_param?: Json
+          severity_param?: string
+        }
         Returns: undefined
       }
       log_service_metric: {

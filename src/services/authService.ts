@@ -2,12 +2,35 @@ import { supabase } from '@/integrations/supabase/client';
 import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
 import { AuthResponse } from '@/types/auth';
 import { generateCorrelationId, classifyError, logError, formatErrorForUser } from '@/utils/errorUtils';
+import { authRateLimiter, logSecurityEvent } from '@/utils/securityUtils';
+import { CSRFProtection, SessionManager, clearAllSensitiveData } from '@/utils/encryptionUtils';
 
 export const authService = {
   async signUp(email: string, password: string): Promise<AuthResponse> {
     const correlationId = generateCorrelationId();
     
     try {
+      // Rate limiting check
+      const clientId = navigator.userAgent + (await this.getClientFingerprint());
+      if (!authRateLimiter.isAllowed(clientId)) {
+        logSecurityEvent({
+          type: 'auth_rate_limit_exceeded',
+          severity: 'warning',
+          message: 'Sign up rate limit exceeded',
+          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
+        });
+        
+        const resetTime = authRateLimiter.getResetTime(clientId);
+        const remainingMs = resetTime ? resetTime - Date.now() : 0;
+        const remainingMin = Math.ceil(remainingMs / (1000 * 60));
+        
+        return { 
+          error: { 
+            message: `Too many signup attempts. Please try again in ${remainingMin} minutes.` 
+          } 
+        };
+      }
+      
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
       const sanitizedPassword = sanitizeInput(password);
@@ -46,7 +69,8 @@ export const authService = {
           data: {
             signup_source: 'web',
             user_agent: navigator.userAgent,
-            password_strength_score: passwordValidation.score
+            password_strength_score: passwordValidation.score,
+            csrf_token: CSRFProtection.generateToken()
           }
         }
       });
@@ -123,6 +147,27 @@ try {
     const correlationId = generateCorrelationId();
     
     try {
+      // Rate limiting check
+      const clientId = navigator.userAgent + (await this.getClientFingerprint());
+      if (!authRateLimiter.isAllowed(clientId)) {
+        logSecurityEvent({
+          type: 'auth_rate_limit_exceeded',
+          severity: 'warning',
+          message: 'Sign in rate limit exceeded',
+          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
+        });
+        
+        const resetTime = authRateLimiter.getResetTime(clientId);
+        const remainingMs = resetTime ? resetTime - Date.now() : 0;
+        const remainingMin = Math.ceil(remainingMs / (1000 * 60));
+        
+        return { 
+          error: { 
+            message: `Too many signin attempts. Please try again in ${remainingMin} minutes.` 
+          } 
+        };
+      }
+      
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
       const sanitizedPassword = sanitizeInput(password);
@@ -136,6 +181,16 @@ try {
         email: sanitizedEmail,
         password: sanitizedPassword,
       });
+      
+      // Log successful sign in
+      if (!error) {
+        logSecurityEvent({
+          type: 'auth_signin_success',
+          severity: 'info',
+          message: 'User signed in successfully',
+          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
+        });
+      }
 
       if (error) {
         const classifiedError = classifyError(error, correlationId, 'auth_signin');
@@ -206,14 +261,19 @@ try {
     try {
       console.log('AuthService: Starting sign out process...');
       
-      // Clear local storage
-      localStorage.removeItem('justSignedUp');
-      localStorage.removeItem('pendingEmail');
-      sessionStorage.removeItem('justSignedUp');
-      sessionStorage.removeItem('pendingEmail');
+      // Clear all sensitive data using secure utilities
+      clearAllSensitiveData();
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
+      
+      // Log security event
+      logSecurityEvent({
+        type: 'auth_signout',
+        severity: 'info',
+        message: 'User signed out',
+        data: { timestamp: new Date().toISOString() }
+      });
       
       if (error) {
         const classifiedError = classifyError(error, correlationId, 'auth_signout');
@@ -295,5 +355,31 @@ try {
         message: 'Unexpected error'
       };
     }
+  },
+
+  // Helper method for client fingerprinting
+  async getClientFingerprint(): Promise<string> {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('Browser fingerprint', 2, 2);
+    }
+    
+    const fingerprint = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      canvas.toDataURL()
+    ].join('|');
+    
+    // Hash the fingerprint
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 };
