@@ -38,6 +38,31 @@ export function isNumberArray(value: unknown): value is number[] {
 }
 
 // Content Type Guards
+export function isAnimeContent(item: unknown): item is import('./api').AnimeContent {
+  if (!isObject(item)) return false;
+  
+  return (
+    isString(item.title) &&
+    (item.id === undefined || isString(item.id)) &&
+    (item.episodes !== undefined || 'episodes' in item) &&
+    (item.aired_from !== undefined || 'aired_from' in item) &&
+    (item.studios !== undefined || 'studios' in item)
+  );
+}
+
+export function isMangaContent(item: unknown): item is import('./api').MangaContent {
+  if (!isObject(item)) return false;
+  
+  return (
+    isString(item.title) &&
+    (item.id === undefined || isString(item.id)) &&
+    (item.chapters !== undefined || 'chapters' in item) &&
+    (item.volumes !== undefined || 'volumes' in item) &&
+    (item.published_from !== undefined || 'published_from' in item) &&
+    (item.authors !== undefined || 'authors' in item)
+  );
+}
+
 export function isAnime(item: unknown): item is Anime {
   if (!isObject(item)) return false;
   

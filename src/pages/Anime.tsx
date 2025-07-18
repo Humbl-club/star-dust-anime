@@ -110,7 +110,7 @@ const Anime = () => {
         case "title":
           return a.title.localeCompare(b.title);
         case "episodes":
-          return (b.episodes || 0) - (a.episodes || 0);
+          return ((b as any).episodes || 0) - ((a as any).episodes || 0);
         case "popularity":
         default:
           return (a.popularity || 999999) - (b.popularity || 999999);

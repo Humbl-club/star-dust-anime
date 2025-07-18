@@ -92,8 +92,8 @@ const Index = () => {
   // Recently added - Latest entries by aired_from
   const recentlyAdded = [...processedAnime]
     .sort((a, b) => {
-      const aDate = new Date(a.aired_from || '1900-01-01');
-      const bDate = new Date(b.aired_from || '1900-01-01');
+      const aDate = new Date((a as any).aired_from || (a as any).published_from || '1900-01-01');
+      const bDate = new Date((b as any).aired_from || (b as any).published_from || '1900-01-01');
       return bDate.getTime() - aDate.getTime();
     })
     .slice(0, 12);
