@@ -1,9 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
 import { AuthResponse } from '@/types/auth';
+import { generateCorrelationId, classifyError, logError, formatErrorForUser } from '@/utils/errorUtils';
 
 export const authService = {
   async signUp(email: string, password: string): Promise<AuthResponse> {
+    const correlationId = generateCorrelationId();
+    
     try {
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
@@ -50,22 +53,23 @@ export const authService = {
 
       console.log('AuthService: Signup response:', { data, error });
 
-      // Enhanced error handling
+      // Enhanced error handling with classification
       if (error) {
-        console.error('Signup error:', error);
+        const classifiedError = classifyError(error, correlationId, 'auth_signup');
+        await logError(classifiedError, error);
         
         // Provide more user-friendly error messages
         if (error.message.includes('User already registered')) {
-          return { error: { message: 'An account with this email already exists. Please sign in instead.' } };
+          return { error: { message: `An account with this email already exists. Please sign in instead.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
         if (error.message.includes('Password should be at least')) {
-          return { error: { message: 'Password must be at least 6 characters long.' } };
+          return { error: { message: `Password must be at least 6 characters long.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
         if (error.message.includes('Unable to validate email address')) {
-          return { error: { message: 'Please enter a valid email address.' } };
+          return { error: { message: `Please enter a valid email address.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
         
-        return { error: { message: error.message || 'Failed to create account' } };
+        return { error: { message: formatErrorForUser(classifiedError) } };
       }
 
       // Always set justSignedUp flag for new users
@@ -108,12 +112,16 @@ try {
       // User created and confirmed (confirmations disabled)
       return { error: null, data };
     } catch (err) {
-      console.error('Signup exception:', err);
-      return { error: { message: 'An unexpected error occurred during signup' } };
+      const classifiedError = classifyError(err, correlationId, 'auth_signup_exception');
+      await logError(classifiedError, err);
+      
+      return { error: { message: formatErrorForUser(classifiedError) } };
     }
   },
 
   async signIn(email: string, password: string): Promise<{ error: any }> {
+    const correlationId = generateCorrelationId();
+    
     try {
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
@@ -130,28 +138,35 @@ try {
       });
 
       if (error) {
+        const classifiedError = classifyError(error, correlationId, 'auth_signin');
+        await logError(classifiedError, error);
+        
         // Provide more user-friendly error messages
         if (error.message.includes('Invalid login credentials')) {
-          return { error: { message: 'Invalid email or password. Please try again.' } };
+          return { error: { message: `Invalid email or password. Please try again.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
         if (error.message.includes('Email not confirmed')) {
-          return { error: { message: 'Please check your email and confirm your account before signing in.' } };
+          return { error: { message: `Please check your email and confirm your account before signing in.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
         if (error.message.includes('Too many requests')) {
-          return { error: { message: 'Too many sign-in attempts. Please wait a moment and try again.' } };
+          return { error: { message: `Too many sign-in attempts. Please wait a moment and try again.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
         }
 
-        return { error: { message: error.message || 'Failed to sign in' } };
+        return { error: { message: formatErrorForUser(classifiedError) } };
       }
 
       return { error: null };
     } catch (err) {
-      console.error('Signin exception:', err);
-      return { error: { message: 'An unexpected error occurred during sign in' } };
+      const classifiedError = classifyError(err, correlationId, 'auth_signin_exception');
+      await logError(classifiedError, err);
+      
+      return { error: { message: formatErrorForUser(classifiedError) } };
     }
   },
 
   async signInWithGoogle(): Promise<{ error: any }> {
+    const correlationId = generateCorrelationId();
+    
     try {
       // Better mobile redirect handling
       const baseUrl = window.location.origin;
@@ -170,17 +185,24 @@ try {
       });
       
       if (error) {
-        console.error('Google signin error:', error);
+        const classifiedError = classifyError(error, correlationId, 'auth_google_signin');
+        await logError(classifiedError, error);
+        
+        return { error: { message: formatErrorForUser(classifiedError) } };
       }
       
-      return { error };
+      return { error: null };
     } catch (err) {
-      console.error('Google signin exception:', err);
-      return { error: { message: 'Failed to sign in with Google' } };
+      const classifiedError = classifyError(err, correlationId, 'auth_google_signin_exception');
+      await logError(classifiedError, err);
+      
+      return { error: { message: formatErrorForUser(classifiedError) } };
     }
   },
 
   async signOut(): Promise<{ error: any }> {
+    const correlationId = generateCorrelationId();
+    
     try {
       console.log('AuthService: Starting sign out process...');
       
@@ -194,19 +216,25 @@ try {
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('AuthService: Sign out error:', error);
-        return { error };
+        const classifiedError = classifyError(error, correlationId, 'auth_signout');
+        await logError(classifiedError, error);
+        
+        return { error: { message: formatErrorForUser(classifiedError) } };
       }
       
       console.log('AuthService: Sign out successful');
       return { error: null };
     } catch (err) {
-      console.error('AuthService: Sign out exception:', err);
-      return { error: { message: 'An unexpected error occurred during sign out' } };
+      const classifiedError = classifyError(err, correlationId, 'auth_signout_exception');
+      await logError(classifiedError, err);
+      
+      return { error: { message: formatErrorForUser(classifiedError) } };
     }
   },
 
   async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
+    const correlationId = generateCorrelationId();
+    
     try {
       // Sanitize email input
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
@@ -245,9 +273,11 @@ try {
         });
 
       if (error) {
-        console.error('Failed to queue resend confirmation:', error);
+        const classifiedError = classifyError(error, correlationId, 'auth_resend_confirmation');
+        await logError(classifiedError, error);
+        
         return { 
-          error: { message: 'Failed to queue confirmation email' },
+          error: { message: formatErrorForUser(classifiedError) },
           message: 'Failed to resend email'
         };
       }
@@ -257,9 +287,11 @@ try {
         message: 'Confirmation email sent! Please check your inbox.'
       };
     } catch (error: any) {
-      console.error('Unexpected error during resend confirmation:', error);
+      const classifiedError = classifyError(error, correlationId, 'auth_resend_confirmation_exception');
+      await logError(classifiedError, error);
+      
       return { 
-        error: { message: 'An unexpected error occurred. Please try again.' },
+        error: { message: formatErrorForUser(classifiedError) },
         message: 'Unexpected error'
       };
     }

@@ -945,6 +945,33 @@ export type Database = {
         }
         Relationships: []
       }
+      service_metrics: {
+        Row: {
+          created_at: string | null
+          id: number
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          service_name?: string
+        }
+        Relationships: []
+      }
       studios: {
         Row: {
           created_at: string | null
@@ -1730,7 +1757,7 @@ export type Database = {
           service_name_param: string
           metric_type_param: string
           metric_value_param: number
-          metadata_param?: Json
+          metadata_param: Json
         }
         Returns: undefined
       }
