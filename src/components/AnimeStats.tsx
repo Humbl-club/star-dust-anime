@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Star, Clock, Calendar } from 'lucide-react';
 
 interface AnimeStatsProps {
-  userAnimeData?: any[];
-  userMangaData?: any[];
+  userAnimeData?: Array<{ status: string; score?: number; start_date?: string; finish_date?: string }>;
+  userMangaData?: Array<{ status: string; score?: number; start_date?: string; finish_date?: string }>;
   className?: string;
 }
 

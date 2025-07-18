@@ -23,6 +23,61 @@ interface UseSimpleNewApiDataOptions {
   autoFetch?: boolean;
 }
 
+// Database response interfaces
+interface DatabaseAnimeDetails {
+  episodes?: number;
+  aired_from?: string;
+  aired_to?: string;
+  season?: string;
+  status?: string;
+  type?: string;
+  trailer_url?: string;
+  next_episode_date?: string;
+}
+
+interface DatabaseMangaDetails {
+  chapters?: number;
+  volumes?: number;
+  published_from?: string;
+  published_to?: string;
+  status?: string;
+  type?: string;
+  next_chapter_date?: string;
+}
+
+interface DatabaseTitleGenre {
+  genres?: { name: string };
+}
+
+interface DatabaseTitleStudio {
+  studios?: { name: string };
+}
+
+interface DatabaseTitleAuthor {
+  authors?: { name: string };
+}
+
+interface DatabaseResponse {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  image_url?: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  year?: number;
+  color_theme?: string;
+  anime_details?: DatabaseAnimeDetails;
+  manga_details?: DatabaseMangaDetails;
+  title_genres?: DatabaseTitleGenre[];
+  title_studios?: DatabaseTitleStudio[];
+  title_authors?: DatabaseTitleAuthor[];
+}
+
 // Common interface for all content types
 interface BaseContent {
   id: string;
@@ -164,7 +219,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
   console.log(`[${correlationId.slice(-8)}] Database response:`, { count, dataLength: response?.length });
 
   // Transform data to match expected format
-  const transformedData = response?.map((item: any) => {
+  const transformedData = response?.map((item: DatabaseResponse): AnimeContent | MangaContent => {
     const baseData = {
       id: item.id,
       anilist_id: item.anilist_id,
@@ -179,7 +234,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       popularity: item.popularity,
       year: item.year,
       color_theme: item.color_theme,
-      genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+      genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
       members: item.popularity || 0
     };
 
@@ -194,7 +249,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
         type: item.anime_details?.type || 'TV',
         trailer_url: item.anime_details?.trailer_url,
         next_episode_date: item.anime_details?.next_episode_date,
-        studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || []
+        studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
       };
     } else {
       return {
@@ -206,7 +261,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
         status: item.manga_details?.status || 'Unknown',
         type: item.manga_details?.type || 'Manga',
         next_chapter_date: item.manga_details?.next_chapter_date,
-        authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+        authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
       };
     }
   }) || [];
@@ -315,7 +370,7 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
       } else {
         throw new Error(`Sync failed: ${response?.message || 'Unknown error'}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Enhanced error handling with classification
       const classifiedError = classifyError(err, correlationId, `sync_${contentType}`);
       await logError(classifiedError, err);

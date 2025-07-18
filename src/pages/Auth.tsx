@@ -164,7 +164,7 @@ const Auth = () => {
           toast.success("Welcome back to AnimeHub!");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Auth error:', error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
@@ -180,7 +180,7 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to sign in with Google");
     } finally {
       setIsSubmitting(false);
@@ -197,7 +197,7 @@ const Auth = () => {
       } else {
         toast.success(result.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to resend confirmation email");
     }
   };

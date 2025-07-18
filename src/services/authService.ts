@@ -286,7 +286,7 @@ try {
         error: null,
         message: 'Confirmation email sent! Please check your inbox.'
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const classifiedError = classifyError(error, correlationId, 'auth_resend_confirmation_exception');
       await logError(classifiedError, error);
       

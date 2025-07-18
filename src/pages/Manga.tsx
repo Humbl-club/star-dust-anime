@@ -132,11 +132,11 @@ const Manga = () => {
         title: "Manga Sync Complete!",
         description: "Successfully synced manga data from external sources.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Manga sync failed:', error);
       toast({
         title: "Sync Failed",
-        description: error.message || "Failed to sync manga data. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to sync manga data. Please try again.",
         variant: "destructive",
       });
     } finally {

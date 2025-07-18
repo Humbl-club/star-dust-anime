@@ -206,11 +206,11 @@ const Trending = () => {
           description: `${data.remaining} anime still need AniList data. Run sync again to continue.`,
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AniList sync error:', error);
       toast({
         title: "AniList sync failed",
-        description: error.message || "Failed to sync AniList data. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to sync AniList data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -225,20 +225,24 @@ const Trending = () => {
     return scores.reduce((sum, score) => sum + score!, 0) / scores.length;
   };
 
-  const calculateAniListTrendingScore = (item: any): number => {
+  const calculateAniListTrendingScore = (item: Anime | Manga): number => {
     let score = 0;
     
     // Prioritize AniList data for trending calculation
-    if (item.anilist_score) score += item.anilist_score * 0.3;
+    const anilistScore = 'anilist_score' in item ? item.anilist_score : null;
+    if (anilistScore) score += anilistScore * 0.3;
     if (item.popularity) score += Math.log(item.popularity) * 0.4; // AniList popularity is key
-    if (item.favorites) score += Math.log(item.favorites) * 0.2;
+    const favorites = 'favorites' in item ? item.favorites : null;
+    if (favorites) score += Math.log(favorites) * 0.2;
     
     // Timeline constraints for "hot right now"
     const isCurrentlyAiring = item.status === 'Currently Airing' || item.status === 'Ongoing';
     if (isCurrentlyAiring) score *= 1.8; // Strong boost for currently airing
     
     // Recent activity boost (within last 6 months)
-    const releaseDate = new Date(item.aired_from || item.published_from || 0);
+    const airedFrom = 'aired_from' in item ? item.aired_from : null;
+    const publishedFrom = 'published_from' in item ? item.published_from : null;
+    const releaseDate = new Date(airedFrom || publishedFrom || 0);
     const monthsAgo = (Date.now() - releaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
     if (monthsAgo < 6) score *= (1 + (6 - monthsAgo) / 12);
     
@@ -249,7 +253,7 @@ const Trending = () => {
   const trendingAnime = [...animeData]
     .map(anime => ({
       ...anime,
-      averageScore: calculateAverageScore(anime.score, anime.anilist_score),
+      averageScore: calculateAverageScore(anime.score, 'anilist_score' in anime ? anime.anilist_score : null),
       trendingScore: calculateAniListTrendingScore(anime)
     }))
     .sort((a, b) => b.trendingScore - a.trendingScore)

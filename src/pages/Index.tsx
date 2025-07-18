@@ -112,7 +112,7 @@ const Index = () => {
   }: { 
     title: string; 
     subtitle: string; 
-    icon: any; 
+    icon: React.ComponentType<{ className?: string }>; 
     animeList: Anime[]; 
     className?: string;
   }) => (

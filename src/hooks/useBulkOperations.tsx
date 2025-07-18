@@ -10,9 +10,9 @@ export interface BulkOperationsHook<T> {
   toggleSelectAll: (items: T[]) => void;
   isSelected: (id: string) => boolean;
   selectedCount: number;
-  bulkUpdateStatus: (status: string, updateFn: (id: string, updates: any) => Promise<any>) => Promise<void>;
-  bulkDelete: (deleteFn: (id: string) => Promise<any>) => Promise<void>;
-  bulkUpdateRating: (rating: number, updateFn: (id: string, updates: any) => Promise<any>) => Promise<void>;
+  bulkUpdateStatus: (status: string, updateFn: (id: string, updates: Record<string, unknown>) => Promise<unknown>) => Promise<void>;
+  bulkDelete: (deleteFn: (id: string) => Promise<unknown>) => Promise<void>;
+  bulkUpdateRating: (rating: number, updateFn: (id: string, updates: Record<string, unknown>) => Promise<unknown>) => Promise<void>;
 }
 
 export const useBulkOperations = <T extends { id: string }>(): BulkOperationsHook<T> => {
@@ -52,7 +52,7 @@ export const useBulkOperations = <T extends { id: string }>(): BulkOperationsHoo
 
   const bulkUpdateStatus = async (
     status: string, 
-    updateFn: (id: string, updates: any) => Promise<any>
+    updateFn: (id: string, updates: Record<string, unknown>) => Promise<unknown>
   ) => {
     if (selectedItems.size === 0) {
       toast.error('No items selected');
@@ -73,7 +73,7 @@ export const useBulkOperations = <T extends { id: string }>(): BulkOperationsHoo
     }
   };
 
-  const bulkDelete = async (deleteFn: (id: string) => Promise<any>) => {
+  const bulkDelete = async (deleteFn: (id: string) => Promise<unknown>) => {
     if (selectedItems.size === 0) {
       toast.error('No items selected');
       return;
@@ -92,7 +92,7 @@ export const useBulkOperations = <T extends { id: string }>(): BulkOperationsHoo
 
   const bulkUpdateRating = async (
     rating: number,
-    updateFn: (id: string, updates: any) => Promise<any>
+    updateFn: (id: string, updates: Record<string, unknown>) => Promise<unknown>
   ) => {
     if (selectedItems.size === 0) {
       toast.error('No items selected');

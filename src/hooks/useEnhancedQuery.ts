@@ -123,9 +123,9 @@ export function useEnhancedQuery<TData = unknown, TError = Error>(
  * Useful for manual error handling in event handlers
  */
 export const useAsyncErrorHandler = (action?: string) => {
-  return (asyncFn: () => Promise<any>, options?: { 
+  return (asyncFn: () => Promise<unknown>, options?: { 
     showToast?: boolean;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
   }) => {
     const correlationId = generateCorrelationId();
     
@@ -156,7 +156,7 @@ export const useAsyncErrorHandler = (action?: string) => {
  */
 export const useMutationErrorHandler = (action?: string) => {
   return {
-    onError: async (error: any) => {
+    onError: async (error: unknown) => {
       const correlationId = generateCorrelationId();
       const classifiedError = classifyError(error, correlationId, action);
       
@@ -164,7 +164,7 @@ export const useMutationErrorHandler = (action?: string) => {
       toast.error(formatErrorForUser(classifiedError));
     },
     
-    onSuccess: (data: any) => {
+    onSuccess: (data: unknown) => {
       console.log(`Mutation successful [${action}]:`, data);
     }
   };
