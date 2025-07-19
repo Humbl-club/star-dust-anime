@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { queryKeys } from '@/utils/queryKeys';
 import { toast } from 'sonner';
 
 interface InitializationResult {
@@ -18,7 +19,7 @@ export const useUserInitialization = () => {
 
   // Check and initialize user atomically
   const initializationQuery = useQuery({
-    queryKey: ['user-initialization', user?.id],
+    queryKey: queryKeys.user.initialization(user?.id || ''),
     queryFn: async (): Promise<InitializationResult> => {
       if (!user?.id) throw new Error('No user found');
 
@@ -64,8 +65,8 @@ export const useUserInitialization = () => {
     },
     onSuccess: (data) => {
       console.log('Repair successful:', data);
-      queryClient.invalidateQueries({ queryKey: ['user-initialization'] });
-      queryClient.refetchQueries({ queryKey: ['user-initialization'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.initialization(user?.id || '') });
+      queryClient.refetchQueries({ queryKey: queryKeys.user.initialization(user?.id || '') });
       
       if (data?.success) {
         toast.success(`Account repaired! Welcome ${data.username}!`);

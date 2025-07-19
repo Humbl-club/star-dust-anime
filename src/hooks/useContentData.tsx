@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { animeService, mangaService, AnimeContent, MangaContent } from '@/services/api';
+import { queryKeys } from '@/utils/queryKeys';
 
 export interface PaginationInfo {
   current_page: number;
@@ -146,7 +147,11 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       : await mangaService.syncManga(pages);
 
     if (response.success) {
-      queryClient.invalidateQueries({ queryKey: ['content', contentType] });
+      // Use specific invalidation instead of broad invalidation
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.content.lists(),
+        predicate: (query) => query.queryKey[2] === contentType
+      });
     } else {
       throw new Error(response.error || 'Sync failed');
     }
@@ -159,7 +164,11 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       : await mangaService.syncMangaImages(limit);
 
     if (response.success) {
-      queryClient.invalidateQueries({ queryKey: ['content', contentType] });
+      // Use specific invalidation for image updates
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.content.lists(),
+        predicate: (query) => query.queryKey[2] === contentType
+      });
     } else {
       throw new Error(response.error || 'Image sync failed');
     }

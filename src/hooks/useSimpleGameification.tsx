@@ -2,12 +2,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { queryKeys } from '@/utils/queryKeys';
 
 export const useSimpleGameification = () => {
   const { user } = useAuth();
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['user-gamification-data', user?.id],
+    queryKey: queryKeys.user.gamification(user?.id || ''),
     queryFn: async () => {
       if (!user?.id) return null;
 

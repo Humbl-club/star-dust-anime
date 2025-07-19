@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/utils/queryKeys';
 
 interface FillerEpisode {
   episode: number;
@@ -44,7 +45,7 @@ export function useFillerData(animeTitle?: string, malId?: number): UseFillerDat
   }, [animeTitle]);
 
   const { data: fillerData, isLoading, error } = useQuery({
-    queryKey: ['fillerData', searchQuery],
+    queryKey: queryKeys.filler.byTitle(searchQuery || ''),
     queryFn: async (): Promise<FillerEpisode[] | null> => {
       if (!searchQuery) return null;
 
