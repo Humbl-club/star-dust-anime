@@ -2,6 +2,63 @@ import { BaseApiService, ServiceResponse } from './baseService';
 import { AnimeContent } from './animeService';
 import { MangaContent } from './mangaService';
 
+// Database response interfaces for search
+interface DatabaseSearchAnimeResponse {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  image_url?: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  favorites?: number;
+  year?: number;
+  color_theme?: string;
+  anime_details?: {
+    episodes?: number;
+    aired_from?: string;
+    aired_to?: string;
+    season?: string;
+    status?: string;
+    type?: string;
+    trailer_url?: string;
+    next_episode_date?: string;
+  };
+  title_genres?: Array<{ genres: { name: string } }>;
+  title_studios?: Array<{ studios: { name: string } }>;
+}
+
+interface DatabaseSearchMangaResponse {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  image_url?: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  favorites?: number;
+  year?: number;
+  color_theme?: string;
+  manga_details?: {
+    chapters?: number;
+    volumes?: number;
+    published_from?: string;
+    published_to?: string;
+    status?: string;
+    type?: string;
+    next_chapter_date?: string;
+  };
+  title_genres?: Array<{ genres: { name: string } }>;
+  title_authors?: Array<{ authors: { name: string } }>;
+}
 export interface SearchResult {
   anime: AnimeContent[];
   manga: MangaContent[];
@@ -82,33 +139,36 @@ class SearchApiService extends BaseApiService {
         if (animeError) {
           console.error('Anime search error:', animeError);
         } else {
-          results.anime = animeData?.map((item: Record<string, unknown>) => ({
-            id: item.id as string,
-            anilist_id: item.anilist_id as number,
-            title: (item.title as string) || 'Unknown Title',
-            title_english: item.title_english,
-            title_japanese: item.title_japanese,
-            synopsis: item.synopsis || '',
-            image_url: item.image_url || '',
-            score: item.score,
-            anilist_score: item.anilist_score,
-            rank: item.rank,
-            popularity: item.popularity,
-            favorites: item.favorites || 0,
-            year: item.year,
-            color_theme: item.color_theme,
-            genres: (item.title_genres as any[])?.map((tg: Record<string, any>) => tg.genres?.name).filter(Boolean) || [],
-            members: item.popularity || 0,
-            episodes: (item.anime_details as any)?.episodes || 0,
-            aired_from: item.anime_details?.aired_from,
-            aired_to: item.anime_details?.aired_to,
-            season: item.anime_details?.season,
-            status: item.anime_details?.status || 'Unknown',
-            type: item.anime_details?.type || 'TV',
-            trailer_url: item.anime_details?.trailer_url,
-            next_episode_date: item.anime_details?.next_episode_date,
-            studios: (item.title_studios as any[])?.map((ts: Record<string, any>) => ts.studios?.name).filter(Boolean) || []
-          })) || [];
+          results.anime = (animeData as DatabaseSearchAnimeResponse[])?.map((item) => {
+            const details = item.anime_details;
+            return {
+              id: item.id,
+              anilist_id: item.anilist_id,
+              title: item.title || 'Unknown Title',
+              title_english: item.title_english || '',
+              title_japanese: item.title_japanese || '',
+              synopsis: item.synopsis || '',
+              image_url: item.image_url || '',
+              score: item.score,
+              anilist_score: item.anilist_score,
+              rank: item.rank,
+              popularity: item.popularity,
+              favorites: item.favorites || 0,
+              year: item.year,
+              color_theme: item.color_theme,
+              genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
+              members: item.popularity || 0,
+              episodes: details?.episodes || 0,
+              aired_from: details?.aired_from,
+              aired_to: details?.aired_to,
+              season: details?.season,
+              status: details?.status || 'Unknown',
+              type: details?.type || 'TV',
+              trailer_url: details?.trailer_url,
+              next_episode_date: details?.next_episode_date,
+              studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
+            };
+          }) || [];
         }
       }
 
@@ -145,32 +205,35 @@ class SearchApiService extends BaseApiService {
         if (mangaError) {
           console.error('Manga search error:', mangaError);
         } else {
-          results.manga = mangaData?.map((item: Record<string, unknown>) => ({
-            id: item.id,
-            anilist_id: item.anilist_id,
-            title: item.title || 'Unknown Title',
-            title_english: item.title_english,
-            title_japanese: item.title_japanese,
-            synopsis: item.synopsis || '',
-            image_url: item.image_url || '',
-            score: item.score,
-            anilist_score: item.anilist_score,
-            rank: item.rank,
-            popularity: item.popularity,
-            favorites: item.favorites || 0,
-            year: item.year,
-            color_theme: item.color_theme,
-            genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
-            members: item.popularity || 0,
-            chapters: item.manga_details?.chapters || 0,
-            volumes: item.manga_details?.volumes || 0,
-            published_from: item.manga_details?.published_from,
-            published_to: item.manga_details?.published_to,
-            status: item.manga_details?.status || 'Unknown',
-            type: item.manga_details?.type || 'Manga',
-            next_chapter_date: item.manga_details?.next_chapter_date,
-            authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
-          })) || [];
+          results.manga = (mangaData as DatabaseSearchMangaResponse[])?.map((item) => {
+            const details = item.manga_details;
+            return {
+              id: item.id,
+              anilist_id: item.anilist_id,
+              title: item.title || 'Unknown Title',
+              title_english: item.title_english || '',
+              title_japanese: item.title_japanese || '',
+              synopsis: item.synopsis || '',
+              image_url: item.image_url || '',
+              score: item.score,
+              anilist_score: item.anilist_score,
+              rank: item.rank,
+              popularity: item.popularity,
+              favorites: item.favorites || 0,
+              year: item.year,
+              color_theme: item.color_theme,
+              genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
+              members: item.popularity || 0,
+              chapters: details?.chapters || 0,
+              volumes: details?.volumes || 0,
+              published_from: details?.published_from,
+              published_to: details?.published_to,
+              status: details?.status || 'Unknown',
+              type: details?.type || 'Manga',
+              next_chapter_date: details?.next_chapter_date,
+              authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
+            };
+          }) || [];
         }
       }
 
@@ -204,7 +267,7 @@ class SearchApiService extends BaseApiService {
       const suggestions = data?.map(item => item.title_english || item.title).filter(Boolean) || [];
       
       return this.handleSuccess(suggestions);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch search suggestions');
     }
   }
