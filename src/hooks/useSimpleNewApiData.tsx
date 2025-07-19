@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -105,7 +104,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
         .from('titles')
         .select(`
           *,
-          anime_details(
+          anime_details!inner(
             episodes,
             aired_from,
             aired_to,
@@ -113,37 +112,40 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
             status,
             type,
             trailer_url,
-            next_episode_date
+            trailer_site,
+            trailer_id,
+            next_episode_date,
+            next_episode_number,
+            last_sync_check
           )
-        `)
-        .not('anime_details', 'is', null);
+        `);
 
       countQuery = supabase
         .from('titles')
         .select('id', { count: 'exact', head: true })
-        .not('anime_details', 'is', null);
+        .eq('anime_details.status', 'not-null');
     } else {
       // Query from titles and join with manga_details
       query = supabase
         .from('titles')
         .select(`
           *,
-          manga_details(
+          manga_details!inner(
             chapters,
             volumes,
             published_from,
             published_to,
             status,
             type,
-            next_chapter_date
+            next_chapter_date,
+            last_sync_check
           )
-        `)
-        .not('manga_details', 'is', null);
+        `);
 
       countQuery = supabase
         .from('titles')
         .select('id', { count: 'exact', head: true })
-        .not('manga_details', 'is', null);
+        .eq('manga_details.status', 'not-null');
     }
 
     // Apply filters to both query and count query
