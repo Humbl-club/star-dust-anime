@@ -222,6 +222,12 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
 
     const { data, error } = await query;
 
+    console.log('Query executed:', { 
+      data: data?.length, 
+      error, 
+      firstItem: data?.[0] 
+    });
+
     if (error) {
       console.error(`[${correlationId.slice(-8)}] Main query error:`, error);
       throw error;
@@ -315,6 +321,11 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       has_next_page: page < totalPages,
       has_prev_page: page > 1
     };
+
+    console.log('Transformed data:', {
+      length: transformedData.length,
+      sample: transformedData[0]
+    });
 
     console.log(`[${correlationId.slice(-8)}] Successfully transformed ${transformedData.length} ${contentType} items`);
     console.log(`[${correlationId.slice(-8)}] Sample item:`, transformedData[0]);
