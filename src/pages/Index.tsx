@@ -504,6 +504,22 @@ const Index = () => {
       
       <Navigation onSearch={handleSearch} />
       
+      {/* Force display sections for testing */}
+      {allAnime.length > 0 && (
+        <div className="container mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold mb-4">Anime Data is Loaded!</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {allAnime.slice(0, 6).map(anime => (
+              <div key={anime.id} className="bg-gray-800 p-4 rounded">
+                <img src={anime.image_url} alt={anime.title} className="w-full h-48 object-cover mb-2" />
+                <h3 className="font-bold">{anime.title}</h3>
+                <p>Score: {anime.score}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {/* Mobile-optimized Hero Section */}
       <HeroSection onSearch={handleSearch} />
 
@@ -682,7 +698,22 @@ const Index = () => {
             length: allAnime?.length 
           })}</p>
           <p>First Item: {allAnime?.[0]?.title || 'None'}</p>
+      </div>
+
+      {/* Display Logic Check Panel */}
+      <div className="fixed top-80 left-4 bg-green-900/90 text-white p-4 rounded-lg max-w-md z-50">
+        <h3 className="font-bold text-yellow-400 mb-2">Display Logic Check</h3>
+        <div className="text-sm space-y-1">
+          <p>allAnime length: {allAnime.length}</p>
+          <p>searchResults length: {searchResults.length}</p>
+          <p>isSearching: {isSearching ? 'Yes' : 'No'}</p>
+          <p>loading: {loading ? 'Yes' : 'No'}</p>
+          <p>Should show sections: {searchResults.length === 0 && !isSearching && allAnime.length > 0 ? 'YES' : 'NO'}</p>
+          <p>trendingAnime length: {trendingAnime?.length || 0}</p>
+          <p>recentlyAdded length: {recentlyAdded?.length || 0}</p>
+          <p>topRated length: {topRated?.length || 0}</p>
         </div>
+      </div>
       </div>
 
       {/* Coordinated Email Verification Popup */}
