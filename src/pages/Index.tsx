@@ -599,12 +599,12 @@ const Index = () => {
         </section>
       )}
 
-      {/* Main Content Sections - TEMPORARILY FORCING TO SHOW */}
-      {true && allAnime.length > 0 && (
+      {/* Main Content Sections - Simplified */}
+      {allAnime.length > 0 && (
         <>
           <AnimeSection
             title="Hot Right Now"
-            subtitle="Currently airing anime with highest popularity (AniList-based)"
+            subtitle="Currently airing anime with highest popularity"
             icon={TrendingUp}
             animeList={trendingAnime}
             className="bg-muted/10"
@@ -619,7 +619,7 @@ const Index = () => {
 
           <AnimeSection
             title="Top Rated"
-            subtitle="Highest average scores (MAL + AniList combined)"
+            subtitle="Highest average scores"
             icon={Star}
             animeList={topRated}
             className="bg-muted/10"
