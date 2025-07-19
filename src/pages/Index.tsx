@@ -14,16 +14,17 @@ import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
+import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
 
 // Debug component to show what's happening
-const DebugPanel = ({ data }: { data: any }) => {
+const DebugPanel = ({ data, position = 'right' }: { data: any; position?: 'right' | 'left' }) => {
   const [showRaw, setShowRaw] = useState(false);
   
   return (
-    <div className="fixed top-20 right-4 z-50 bg-black/90 text-white p-4 rounded-lg max-w-md">
+    <div className={`fixed top-20 ${position === 'right' ? 'right-4' : 'left-4'} z-50 bg-black/90 text-white p-4 rounded-lg max-w-md`}>
       <h3 className="font-bold text-yellow-400 mb-2">Debug Info</h3>
       <div className="space-y-1 text-sm">
         <p>Hook: {data.hookName}</p>
@@ -56,6 +57,7 @@ const Index = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
   const [showTestData, setShowTestData] = useState(false);
+  const [directTest, setDirectTest] = useState<any>({ loading: true });
   
 
   // Get anime data from API
@@ -65,6 +67,31 @@ const Index = () => {
     sort_by: 'score',
     order: 'desc'
   });
+
+  // Direct database test
+  useEffect(() => {
+    // Test 1: Simple count
+    supabase
+      .from('titles')
+      .select('*', { count: 'exact', head: true })
+      .then(({ count, error }) => {
+        console.log('Total titles in database:', count);
+        
+        // Test 2: Get first 5 titles
+        supabase
+          .from('titles')
+          .select('id, title, media_type')
+          .limit(5)
+          .then(({ data, error: err2 }) => {
+            setDirectTest({ 
+              loading: false, 
+              totalCount: count,
+              error: error || err2, 
+              data 
+            });
+          });
+      });
+  }, []);
 
   const handleSearch = (query: string) => {
     // Search will be handled by the Navigation component
@@ -232,6 +259,15 @@ const Index = () => {
         dataCount: allAnime.length,
         firstItem: allAnime[0],
         allAnime
+      }} />
+      
+      <DebugPanel position="left" data={{
+        hookName: 'Direct Database Test',
+        loading: directTest.loading,
+        error: directTest.error?.message,
+        dataCount: directTest.totalCount || 0,
+        firstItem: directTest.data?.[0],
+        rawData: directTest.data
       }} />
       
       <Navigation onSearch={handleSearch} />
