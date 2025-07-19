@@ -671,6 +671,20 @@ const Index = () => {
         )}
       </div>
 
+      {/* Hook Data Flow Panel */}
+      <div className="fixed bottom-40 left-4 bg-blue-900/90 text-white p-4 rounded-lg max-w-md z-50">
+        <h3 className="font-bold text-yellow-400 mb-2">Hook Data Flow</h3>
+        <div className="text-sm space-y-1">
+          <p>Hook Loading: {loading ? 'Yes' : 'No'}</p>
+          <p>Raw Hook Return: {JSON.stringify({ 
+            dataType: typeof allAnime,
+            isArray: Array.isArray(allAnime),
+            length: allAnime?.length 
+          })}</p>
+          <p>First Item: {allAnime?.[0]?.title || 'None'}</p>
+        </div>
+      </div>
+
       {/* Coordinated Email Verification Popup */}
       <EmailVerificationPopup triggerShow={triggerEmailPopup} />
       
