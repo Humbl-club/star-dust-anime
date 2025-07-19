@@ -103,7 +103,19 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       query = supabase
         .from('titles')
         .select(`
-          *,
+          id,
+          anilist_id,
+          title,
+          title_english,
+          title_japanese,
+          synopsis,
+          image_url,
+          score,
+          anilist_score,
+          rank,
+          popularity,
+          year,
+          color_theme,
           anime_details!inner(
             episodes,
             aired_from,
@@ -112,11 +124,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
             status,
             type,
             trailer_url,
-            trailer_site,
-            trailer_id,
-            next_episode_date,
-            next_episode_number,
-            last_sync_check
+            next_episode_date
           )
         `);
 
@@ -129,7 +137,19 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       query = supabase
         .from('titles')
         .select(`
-          *,
+          id,
+          anilist_id,
+          title,
+          title_english,
+          title_japanese,
+          synopsis,
+          image_url,
+          score,
+          anilist_score,
+          rank,
+          popularity,
+          year,
+          color_theme,
           manga_details!inner(
             chapters,
             volumes,
@@ -137,8 +157,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
             published_to,
             status,
             type,
-            next_chapter_date,
-            last_sync_check
+            next_chapter_date
           )
         `);
 
@@ -246,9 +265,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
           year: item.year,
           color_theme: item.color_theme,
           genres: [],
-          members: item.popularity || 0,
-          status: '',
-          type: ''
+          members: item.popularity || 0
         };
 
         if (contentType === 'anime' && item.anime_details) {
@@ -378,7 +395,7 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
     queryKey,
     queryFn: () => fetchTitlesData(options),
     enabled: autoFetch,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
