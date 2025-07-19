@@ -1,0 +1,245 @@
+import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
+
+export interface MangaContent extends BaseContent {
+  chapters: number;
+  volumes: number;
+  published_from?: string;
+  published_to?: string;
+  next_chapter_date?: string;
+  authors: string[];
+}
+
+export interface MangaQueryOptions extends BaseQueryOptions {
+  // Manga-specific options can be added here
+}
+
+class MangaApiService extends BaseApiService {
+  // Fetch manga data using edge function
+  async fetchManga(options: MangaQueryOptions): Promise<ServiceResponse<ApiResponse<MangaContent>>> {
+    try {
+      const params = this.buildUrlParams(options);
+      
+      const { data: response, error } = await this.supabase.functions.invoke('anime-api', {
+        body: {
+          method: 'GET',
+          path: `/manga?${params.toString()}`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!response?.data) {
+        throw new Error('Invalid response format');
+      }
+
+      return this.handleSuccess(response);
+    } catch (err: any) {
+      return this.handleError(err, 'fetch manga data');
+    }
+  }
+
+  // Direct database query with optimized filtering
+  async fetchMangaOptimized(options: MangaQueryOptions): Promise<ServiceResponse<{ data: MangaContent[], pagination: any }>> {
+    try {
+      const {
+        page = 1,
+        limit = 20,
+        search,
+        genre,
+        status,
+        type,
+        year,
+        sort_by = 'score',
+        order = 'desc'
+      } = options;
+
+      console.log('Fetching manga with optimized query:', options);
+
+      // Build optimized query with server-side filtering
+      let query = this.supabase
+        .from('titles')
+        .select(`
+          *,
+          manga_details!inner(*),
+          ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
+          title_authors(authors(*))
+        `, { count: 'exact' });
+
+      // Apply manga-specific filters at database level
+      if (status) {
+        query = query.eq('manga_details.status', status);
+      }
+      if (type) {
+        query = query.eq('manga_details.type', type);
+      }
+
+      // Apply genre filter at database level
+      if (genre) {
+        query = query.eq('title_genres.genres.name', genre);
+      }
+
+      // Apply year filter
+      if (year) {
+        query = query.eq('year', parseInt(year));
+      }
+
+      // Apply text search
+      if (search) {
+        const searchTerm = search.trim();
+        if (searchTerm) {
+          query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+        }
+      }
+
+      // Apply sorting
+      const sortField = sort_by === 'score' ? 'score' : sort_by;
+      query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false });
+
+      // Apply pagination
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      query = query.range(from, to);
+
+      const { data: response, error, count } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform data to match expected format
+      const transformedData = response?.map((item: any) => {
+        const details = item.manga_details;
+        
+        // Map database status to frontend expectations
+        let mappedStatus = details?.status || 'Unknown';
+        switch (mappedStatus) {
+          case 'RELEASING':
+            mappedStatus = 'Currently Publishing';
+            break;
+          case 'FINISHED':
+            mappedStatus = 'Finished';
+            break;
+          case 'NOT_YET_RELEASED':
+            mappedStatus = 'Not Yet Published';
+            break;
+          case 'CANCELLED':
+            mappedStatus = 'Cancelled';
+            break;
+        }
+        
+        return {
+          id: item.id,
+          anilist_id: item.anilist_id,
+          title: item.title || 'Unknown Title',
+          title_english: item.title_english,
+          title_japanese: item.title_japanese,
+          synopsis: item.synopsis || '',
+          image_url: item.image_url || '',
+          score: item.score,
+          anilist_score: item.anilist_score,
+          rank: item.rank,
+          popularity: item.popularity,
+          favorites: item.favorites || 0,
+          year: item.year,
+          color_theme: item.color_theme,
+          genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+          members: item.popularity || 0,
+          chapters: details?.chapters || 0,
+          volumes: details?.volumes || 0,
+          published_from: details?.published_from,
+          published_to: details?.published_to,
+          status: mappedStatus,
+          type: details?.type || 'Manga',
+          next_chapter_date: details?.next_chapter_date,
+          authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+        };
+      }) || [];
+
+      // Build pagination info
+      const totalPages = count ? Math.ceil(count / limit) : 1;
+      const pagination = {
+        current_page: page,
+        per_page: limit,
+        total: count || 0,
+        total_pages: totalPages,
+        has_next_page: page < totalPages,
+        has_prev_page: page > 1
+      };
+
+      return this.handleSuccess({ data: transformedData, pagination });
+    } catch (err: any) {
+      return this.handleError(err, 'fetch manga data');
+    }
+  }
+
+  // Sync manga from external API
+  async syncManga(pages = 1): Promise<ServiceResponse<any>> {
+    return this.syncFromExternalAPI('manga', pages);
+  }
+
+  // Sync manga images
+  async syncMangaImages(limit = 10): Promise<ServiceResponse<any>> {
+    return this.syncImages('manga', limit);
+  }
+
+  // Get single manga by ID
+  async getMangaById(id: string): Promise<ServiceResponse<MangaContent | null>> {
+    try {
+      const { data, error } = await this.supabase
+        .from('titles')
+        .select(`
+          *,
+          manga_details(*),
+          title_genres(genres(*)),
+          title_authors(authors(*))
+        `)
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return this.handleSuccess(null);
+      }
+
+      // Transform single manga data
+      const details = data.manga_details;
+      const transformedManga: MangaContent = {
+        id: data.id,
+        anilist_id: data.anilist_id,
+        title: data.title || 'Unknown Title',
+        title_english: data.title_english,
+        title_japanese: data.title_japanese,
+        synopsis: data.synopsis || '',
+        image_url: data.image_url || '',
+        score: data.score,
+        anilist_score: data.anilist_score,
+        rank: data.rank,
+        popularity: data.popularity,
+        favorites: data.favorites || 0,
+        year: data.year,
+        color_theme: data.color_theme,
+        genres: data.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+        members: data.popularity || 0,
+        chapters: details?.chapters || 0,
+        volumes: details?.volumes || 0,
+        published_from: details?.published_from,
+        published_to: details?.published_to,
+        status: details?.status || 'Unknown',
+        type: details?.type || 'Manga',
+        next_chapter_date: details?.next_chapter_date,
+        authors: data.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+      };
+
+      return this.handleSuccess(transformedManga);
+    } catch (err: any) {
+      return this.handleError(err, 'fetch manga details');
+    }
+  }
+}
+
+export const mangaService = new MangaApiService();

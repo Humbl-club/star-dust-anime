@@ -1,28 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-interface ApiResponse<T> {
-  data: T[];
-  pagination: {
-    current_page: number;
-    per_page: number;
-    total: number;
-    total_pages: number;
-    has_next_page: boolean;
-    has_prev_page: boolean;
-  };
-  filters: {
-    search?: string;
-    genre?: string;
-    status?: string;
-    type?: string;
-    year?: string;
-    season?: string;
-    sort_by: string;
-    order: string;
-  };
-}
+import { animeService, mangaService, ApiResponse } from '@/services/api';
 
 interface UseApiDataOptions {
   contentType: 'anime' | 'manga';
@@ -65,39 +42,31 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
     setError(null);
 
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+      const queryOptions = {
+        page,
+        limit,
+        search,
+        genre,
+        status,
+        type,
+        year,
+        season,
         sort_by,
         order
-      });
+      };
 
-      if (search) params.append('search', search);
-      if (genre) params.append('genre', genre);
-      if (status) params.append('status', status);
-      if (type) params.append('type', type);
-      if (year) params.append('year', year);
-      if (season && contentType === 'anime') params.append('season', season);
+      const response = contentType === 'anime' 
+        ? await animeService.fetchAnime(queryOptions)
+        : await mangaService.fetchManga(queryOptions);
 
-      const { data: response, error } = await supabase.functions.invoke('anime-api', {
-        body: {
-          method: 'GET',
-          path: `/${contentType}?${params.toString()}`
-        }
-      });
-
-      if (error) throw error;
-
-      if (response?.data) {
-        setData(response.data);
-        setPagination(response.pagination);
+      if (response.success && response.data) {
+        setData(response.data.data as T[]);
+        setPagination(response.data.pagination);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error(response.error || 'Failed to fetch data');
       }
     } catch (err: any) {
-      console.error(`Error fetching ${contentType}:`, err);
       setError(err.message || 'Failed to fetch data');
-      toast.error(`Failed to load ${contentType}`);
     } finally {
       setLoading(false);
     }
@@ -106,31 +75,18 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
   const syncFromExternal = async (pages = 1) => {
     setLoading(true);
     try {
-      for (let i = 1; i <= pages; i++) {
-        // Use the consolidated ultra-fast-sync function instead
-        const { data: response, error } = await supabase.functions.invoke('ultra-fast-sync', {
-          body: {
-            contentType: contentType,
-            maxPages: 1,
-            startPage: i
-          }
-        });
+      const response = contentType === 'anime'
+        ? await animeService.syncAnime(pages)
+        : await mangaService.syncManga(pages);
 
-        if (error) throw error;
-
-        toast.success(`Synced page ${i}/${pages} - ${response.processed} new ${contentType} items`);
-        
-        // Rate limiting between pages
-        if (i < pages) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+      if (response.success) {
+        // Refresh local data after sync
+        await fetchData();
+      } else {
+        throw new Error(response.error || 'Sync failed');
       }
-
-      // Refresh local data after sync
-      await fetchData();
     } catch (err: any) {
-      console.error(`Error syncing ${contentType}:`, err);
-      toast.error(`Failed to sync ${contentType} data`);
+      setError(err.message || 'Sync failed');
     } finally {
       setLoading(false);
     }
@@ -139,22 +95,18 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
   const syncImages = async (limit = 10) => {
     setLoading(true);
     try {
-      const { data: response, error } = await supabase.functions.invoke('sync-images', {
-        body: {
-          type: contentType,
-          limit
-        }
-      });
+      const response = contentType === 'anime'
+        ? await animeService.syncAnimeImages(limit)
+        : await mangaService.syncMangaImages(limit);
 
-      if (error) throw error;
-
-      toast.success(`Cached ${response.processed} ${contentType} images`);
-      
-      // Refresh local data after image sync
-      await fetchData();
+      if (response.success) {
+        // Refresh local data after image sync
+        await fetchData();
+      } else {
+        throw new Error(response.error || 'Image sync failed');
+      }
     } catch (err: any) {
-      console.error(`Error syncing ${contentType} images:`, err);
-      toast.error(`Failed to sync ${contentType} images`);
+      setError(err.message || 'Image sync failed');
     } finally {
       setLoading(false);
     }
