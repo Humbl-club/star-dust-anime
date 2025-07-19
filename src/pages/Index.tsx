@@ -18,6 +18,35 @@ import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
 
+// Debug component to show what's happening
+const DebugPanel = ({ data }: { data: any }) => {
+  const [showRaw, setShowRaw] = useState(false);
+  
+  return (
+    <div className="fixed top-20 right-4 z-50 bg-black/90 text-white p-4 rounded-lg max-w-md">
+      <h3 className="font-bold text-yellow-400 mb-2">Debug Info</h3>
+      <div className="space-y-1 text-sm">
+        <p>Hook: {data.hookName}</p>
+        <p>Loading: {data.loading ? '🔄 Yes' : '✅ No'}</p>
+        <p>Error: {data.error || 'None'}</p>
+        <p>Data Count: {data.dataCount}</p>
+        <p>First Item: {data.firstItem?.title || 'No data'}</p>
+        <button 
+          onClick={() => setShowRaw(!showRaw)}
+          className="text-blue-400 underline"
+        >
+          {showRaw ? 'Hide' : 'Show'} Raw Data
+        </button>
+        {showRaw && (
+          <pre className="text-xs overflow-auto max-h-60 mt-2">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -196,6 +225,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative native-app">
+      <DebugPanel data={{
+        hookName: 'useSimpleNewApiData',
+        loading,
+        error: null,
+        dataCount: allAnime.length,
+        firstItem: allAnime[0],
+        allAnime
+      }} />
+      
       <Navigation onSearch={handleSearch} />
       
       {/* Mobile-optimized Hero Section */}
