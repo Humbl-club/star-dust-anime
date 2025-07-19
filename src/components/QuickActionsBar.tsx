@@ -64,12 +64,12 @@ export const QuickActionsBar = ({
 
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 z-50 animate-slide-in-from-bottom",
+      "fixed top-20 left-0 right-0 z-40 animate-slide-in-from-top",
       className
     )}>
       {/* Mobile Layout - Expandable */}
       <div className="md:hidden">
-        <div className="bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
+        <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-lg">
           {/* Collapsed State */}
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
@@ -148,7 +148,7 @@ export const QuickActionsBar = ({
 
       {/* Desktop Layout - Horizontal */}
       <div className="hidden md:block">
-        <div className="bg-background/95 backdrop-blur-md border-t border-border shadow-lg">
+        <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-lg">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
