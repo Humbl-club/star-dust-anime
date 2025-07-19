@@ -30,6 +30,7 @@ interface BaseContent {
   anilist_score?: number;
   rank?: number;
   popularity?: number;
+  favorites: number; // Add favorites field
   year?: number;
   color_theme?: string;
   genres: string[];
@@ -149,7 +150,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
     const baseData = {
       id: item.id,
       anilist_id: item.anilist_id,
-      title: item.title,
+      title: item.title || 'Unknown Title',
       title_english: item.title_english,
       title_japanese: item.title_japanese,
       synopsis: item.synopsis || '', // Ensure synopsis is always provided
@@ -158,6 +159,7 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
       anilist_score: item.anilist_score,
       rank: item.rank,
       popularity: item.popularity,
+      favorites: item.favorites || 0, // Add favorites field
       year: item.year,
       color_theme: item.color_theme,
       genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
@@ -165,28 +167,66 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
     };
 
     if (contentType === 'anime') {
+      const details = item.anime_details;
+      
+      // Map database status to frontend expectations
+      let mappedStatus = details?.status || 'Unknown';
+      switch (mappedStatus) {
+        case 'RELEASING':
+          mappedStatus = 'Currently Airing';
+          break;
+        case 'FINISHED':
+          mappedStatus = 'Finished Airing';
+          break;
+        case 'NOT_YET_RELEASED':
+          mappedStatus = 'Not Yet Aired';
+          break;
+        case 'CANCELLED':
+          mappedStatus = 'Cancelled';
+          break;
+      }
+      
       return {
         ...baseData,
-        episodes: item.anime_details?.episodes || 0,
-        aired_from: item.anime_details?.aired_from,
-        aired_to: item.anime_details?.aired_to,
-        season: item.anime_details?.season,
-        status: item.anime_details?.status || 'Unknown',
-        type: item.anime_details?.type || 'TV',
-        trailer_url: item.anime_details?.trailer_url,
-        next_episode_date: item.anime_details?.next_episode_date,
+        episodes: details?.episodes || 0,
+        aired_from: details?.aired_from,
+        aired_to: details?.aired_to,
+        season: details?.season,
+        status: mappedStatus,
+        type: details?.type || 'TV',
+        trailer_url: details?.trailer_url,
+        next_episode_date: details?.next_episode_date,
         studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || []
       };
     } else {
+      const details = item.manga_details;
+      
+      // Map database status to frontend expectations
+      let mappedStatus = details?.status || 'Unknown';
+      switch (mappedStatus) {
+        case 'RELEASING':
+          mappedStatus = 'Currently Publishing';
+          break;
+        case 'FINISHED':
+          mappedStatus = 'Finished';
+          break;
+        case 'NOT_YET_RELEASED':
+          mappedStatus = 'Not Yet Published';
+          break;
+        case 'CANCELLED':
+          mappedStatus = 'Cancelled';
+          break;
+      }
+      
       return {
         ...baseData,
-        chapters: item.manga_details?.chapters || 0,
-        volumes: item.manga_details?.volumes || 0,
-        published_from: item.manga_details?.published_from,
-        published_to: item.manga_details?.published_to,
-        status: item.manga_details?.status || 'Unknown',
-        type: item.manga_details?.type || 'Manga',
-        next_chapter_date: item.manga_details?.next_chapter_date,
+        chapters: details?.chapters || 0,
+        volumes: details?.volumes || 0,
+        published_from: details?.published_from,
+        published_to: details?.published_to,
+        status: mappedStatus,
+        type: details?.type || 'Manga',
+        next_chapter_date: details?.next_chapter_date,
         authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
       };
     }

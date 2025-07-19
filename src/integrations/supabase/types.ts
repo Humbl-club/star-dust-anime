@@ -423,6 +423,81 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          correlation_id: string | null
+          created_at: string | null
+          email: string
+          email_type: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          next_retry_at: string | null
+          retries: number | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string | null
+          email: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          next_retry_at?: string | null
+          retries?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string | null
+          email?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          next_retry_at?: string | null
+          retries?: number | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_sent: {
+        Row: {
+          correlation_id: string | null
+          email: string
+          email_type: string
+          id: string
+          metadata: Json | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          email: string
+          email_type: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          email?: string
+          email_type?: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_template_cache: {
         Row: {
           cache_key: string
@@ -840,6 +915,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_health_metrics: {
         Row: {
           created_at: string | null
@@ -867,6 +975,33 @@ export type Database = {
           metric_value?: number
           service_name?: string
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      service_metrics: {
+        Row: {
+          created_at: string | null
+          id: number
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          service_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          service_name?: string
         }
         Relationships: []
       }
@@ -1055,6 +1190,7 @@ export type Database = {
           anilist_score: number | null
           color_theme: string | null
           created_at: string | null
+          favorites: number | null
           id: string
           image_url: string | null
           popularity: number | null
@@ -1072,6 +1208,7 @@ export type Database = {
           anilist_score?: number | null
           color_theme?: string | null
           created_at?: string | null
+          favorites?: number | null
           id?: string
           image_url?: string | null
           popularity?: number | null
@@ -1089,6 +1226,7 @@ export type Database = {
           anilist_score?: number | null
           color_theme?: string | null
           created_at?: string | null
+          favorites?: number | null
           id?: string
           image_url?: string | null
           popularity?: number | null
@@ -1300,6 +1438,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_activity: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_title_lists: {
         Row: {
           chapters_read: number | null
@@ -1469,6 +1643,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      check_auth_rate_limit: {
+        Args: { user_ip: string; action_type: string }
+        Returns: Json
+      }
       check_email_system_alerts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1492,6 +1670,10 @@ export type Database = {
         Returns: Json
       }
       check_verification_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1650,12 +1832,21 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
+      log_security_event: {
+        Args: {
+          user_id_param: string
+          event_type_param: string
+          event_data_param?: Json
+          severity_param?: string
+        }
+        Returns: undefined
+      }
       log_service_metric: {
         Args: {
           service_name_param: string
           metric_type_param: string
           metric_value_param: number
-          metadata_param?: Json
+          metadata_param: Json
         }
         Returns: undefined
       }

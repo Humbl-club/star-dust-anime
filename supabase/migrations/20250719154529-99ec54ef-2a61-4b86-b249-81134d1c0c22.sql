@@ -1,0 +1,2 @@
+
+ALTER TABLE public.titles ADD COLUMN favorites INTEGER DEFAULT 0;
