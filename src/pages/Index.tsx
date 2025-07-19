@@ -144,6 +144,7 @@ const Index = () => {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
   const [rlsTest, setRlsTest] = useState<any>({ loading: true });
+  const [queryTest, setQueryTest] = useState<any>({ loading: true });
   
 
   // Get anime data from API
@@ -222,6 +223,46 @@ const Index = () => {
     };
     
     testRLS();
+  }, []);
+
+  // Direct query test to see what's happening with the exact queries
+  useEffect(() => {
+    const testQuery = async () => {
+      // Test the exact anime query from the hook
+      const animeQuery = await supabase
+        .from('titles')
+        .select(`
+          *,
+          anime_details!inner(
+            episodes,
+            aired_from,
+            aired_to,
+            season,
+            status,
+            type,
+            trailer_url,
+            next_episode_date
+          )
+        `)
+        .limit(5);
+      
+      // Also test a simpler query
+      const simpleQuery = await supabase
+        .from('titles')
+        .select('*, anime_details(*)')
+        .not('anime_details', 'is', null)
+        .limit(5);
+      
+      setQueryTest({
+        loading: false,
+        innerJoinResult: animeQuery,
+        simpleResult: simpleQuery,
+        innerCount: animeQuery.data?.length || 0,
+        simpleCount: simpleQuery.data?.length || 0
+      });
+    };
+    
+    testQuery();
   }, []);
 
   // Function to populate titles table
@@ -603,6 +644,28 @@ const Index = () => {
               <p className="text-red-400 font-bold mt-2">
                 ⚠️ RLS is blocking access to titles table!
               </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Query Test Panel */}
+      <div className="fixed top-60 right-4 bg-orange-900/90 text-white p-4 rounded-lg max-w-md z-50">
+        <h3 className="font-bold text-yellow-400 mb-2">Query Test Results</h3>
+        {queryTest.loading ? (
+          <p>Testing queries...</p>
+        ) : (
+          <div className="space-y-2 text-sm">
+            <p>Inner Join Query: {queryTest.innerCount} results</p>
+            <p>Inner Join Error: {queryTest.innerJoinResult.error?.message || 'None'}</p>
+            <p>Simple Query: {queryTest.simpleCount} results</p>
+            <p>Simple Error: {queryTest.simpleResult.error?.message || 'None'}</p>
+            
+            {queryTest.innerJoinResult.error && (
+              <div className="mt-2 p-2 bg-red-800 rounded">
+                <p className="font-semibold">Error Details:</p>
+                <pre className="text-xs">{JSON.stringify(queryTest.innerJoinResult.error, null, 2)}</pre>
+              </div>
             )}
           </div>
         )}
