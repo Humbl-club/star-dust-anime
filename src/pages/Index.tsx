@@ -68,30 +68,41 @@ const Index = () => {
     order: 'desc'
   });
 
-  // Direct database test - check table structure
   useEffect(() => {
-    // Test what columns exist
-    supabase
-      .from('titles')
-      .select('*')
-      .limit(1)
-      .then(({ data, error }) => {
-        const columns = data?.[0] ? Object.keys(data[0]) : [];
-        
-        // Also get total count
-        supabase
-          .from('titles')
-          .select('*', { count: 'exact', head: true })
-          .then(({ count }) => {
-            setDirectTest({ 
-              loading: false,
-              error,
-              totalCount: count || 0,
-              columns,
-              sampleRow: data?.[0]
-            });
-          });
+    const checkTables = async () => {
+      // Check only existing tables
+      const results = await Promise.all([
+        supabase.from('titles').select('*', { count: 'exact', head: true }),
+        supabase.from('anime_details').select('*', { count: 'exact', head: true }),
+        supabase.from('manga_details').select('*', { count: 'exact', head: true }),
+      ]);
+
+      const [titles, animeDetails, mangaDetails] = results;
+
+      // Get sample data from titles table if it has data
+      let sampleData = null;
+      let sampleTable = '';
+      
+      if (titles.count && titles.count > 0) {
+        const { data } = await supabase.from('titles').select('*').limit(3);
+        sampleData = data;
+        sampleTable = 'titles';
+      }
+
+      setDirectTest({
+        loading: false,
+        tableCounts: {
+          titles: titles.count || 0,
+          anime_details: animeDetails.count || 0,
+          manga_details: mangaDetails.count || 0,
+        },
+        sampleData,
+        sampleTable,
+        errors: [titles.error, animeDetails.error, mangaDetails.error].filter(Boolean)
       });
+    };
+
+    checkTables();
   }, []);
 
   const handleSearch = (query: string) => {
@@ -263,17 +274,13 @@ const Index = () => {
       }} />
       
       <DebugPanel position="left" data={{
-        hookName: 'Table Structure Test',
+        hookName: 'Database Tables Check',
         loading: directTest.loading,
-        error: directTest.error?.message,
-        dataCount: directTest.totalCount || 0,
-        firstItem: directTest.sampleRow,
-        columns: directTest.columns,
-        rawData: { 
-          columns: directTest.columns,
-          totalRows: directTest.totalCount,
-          sample: directTest.sampleRow 
-        }
+        error: directTest.errors?.join(', '),
+        tableCounts: directTest.tableCounts,
+        sampleTable: directTest.sampleTable,
+        sampleData: directTest.sampleData,
+        rawData: directTest
       }} />
       
       <Navigation onSearch={handleSearch} />
