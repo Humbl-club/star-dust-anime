@@ -44,16 +44,19 @@ export const useSearch = () => {
     setSearchError(null);
 
     try {
-      await unifiedSearch.search({
+      // Clean filters to avoid undefined values
+      const cleanFilters = {
         query: queryToUse,
         type: filters.contentType,
         limit: 20,
-        genres: filters.genre ? [filters.genre] : undefined,
-        year: filters.year,
-        status: filters.status,
-        sort_by: filters.sort_by,
-        order: filters.order
-      });
+        genre: filters.genre || undefined,
+        year: filters.year || undefined,
+        status: filters.status || undefined,
+        sort_by: filters.sort_by || 'score',
+        order: filters.order || 'desc'
+      };
+
+      await unifiedSearch.search(cleanFilters);
 
       // Update store with results
       if (unifiedSearch.results) {

@@ -1,53 +1,80 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Search, 
   Filter, 
   Star, 
   Calendar, 
   Play,
   Eye,
-  Heart
+  Heart,
+  Search
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContentData } from "@/hooks/useContentData";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
+import { useSearchStore } from "@/store";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
 import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
+import { SearchWithFilters } from "@/components/SearchWithFilters";
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Anime = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") || "all");
-  const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Use search store for state management
+  const { query, filters, setFilters } = useSearchStore();
+  
+  // Initialize filters from URL params
+  useEffect(() => {
+    const urlGenre = searchParams.get("genre");
+    const urlStatus = searchParams.get("status");
+    const urlSort = searchParams.get("sort");
+    
+    if (urlGenre || urlStatus || urlSort) {
+      setFilters({
+        contentType: 'anime',
+        ...(urlGenre && urlGenre !== 'all' && { genre: urlGenre }),
+        ...(urlStatus && urlStatus !== 'all' && { status: urlStatus }),
+        sort_by: urlSort || 'score',
+        order: 'desc'
+      });
+    }
+  }, [searchParams, setFilters]);
 
   // Age verification
   const { isVerified } = useAgeVerification();
 
-  // Get anime data from API
+  // Get anime data from API using store filters
   const { data: animeList, loading, refetch } = useContentData({ 
     contentType: 'anime',
     limit: 100,
-    sort_by: 'score',
-    order: 'desc'
+    search: query,
+    genre: filters.genre,
+    status: filters.status,
+    type: filters.type,
+    year: filters.year,
+    season: filters.season,
+    sort_by: filters.sort_by || 'score',
+    order: filters.order || 'desc'
   });
 
   const handleRefresh = async () => {
     await refetch();
+  };
+
+  const handleSearch = (searchQuery: string) => {
+    // This will be handled by the SearchWithFilters component
   };
 
   const handleAnimeView = (anime: Anime) => {
@@ -66,66 +93,17 @@ const Anime = () => {
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery) params.set("search", searchQuery);
-    if (selectedGenre !== "all") params.set("genre", selectedGenre);
-    if (selectedStatus !== "all") params.set("status", selectedStatus);
-    if (sortBy !== "popularity") params.set("sort", sortBy);
+    if (query) params.set("search", query);
+    if (filters.genre) params.set("genre", filters.genre);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.sort_by && filters.sort_by !== "score") params.set("sort", filters.sort_by);
     setSearchParams(params);
-  }, [searchQuery, selectedGenre, selectedStatus, sortBy, setSearchParams]);
+  }, [query, filters, setSearchParams]);
 
-  // Filter and sort anime
+  // Set filtered anime directly from API data
   useEffect(() => {
-    let filtered = [...animeList];
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(anime =>
-        anime.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        anime.title_english?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        anime.synopsis.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Genre filter (Apple compliant - excludes adult genres for restricted users)
-    if (selectedGenre !== "all") {
-      filtered = filtered.filter(anime =>
-        anime.genres.some(genre => genre.toLowerCase() === selectedGenre.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(anime =>
-        anime.status.toLowerCase() === selectedStatus.toLowerCase()
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "score":
-          return (b.score || 0) - (a.score || 0);
-        case "year":
-          return (b.year || 0) - (a.year || 0);
-        case "title":
-          return a.title.localeCompare(b.title);
-        case "episodes":
-          return (b.episodes || 0) - (a.episodes || 0);
-        case "popularity":
-        default:
-          return (a.popularity || 999999) - (b.popularity || 999999);
-      }
-    });
-
-    setFilteredAnime(filtered);
-  }, [animeList, searchQuery, selectedGenre, selectedStatus, sortBy]);
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedGenre("all");
-    setSelectedStatus("all");
-    setSortBy("popularity");
-  };
+    setFilteredAnime(animeList);
+  }, [animeList]);
 
   return (
     <div className="min-h-screen">
@@ -152,74 +130,12 @@ const Anime = () => {
         {/* Search and Filters */}
         <Card className="anime-card mb-8 glow-card">
           <CardHeader>
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search Bar */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search by title, studio, or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 glass-input"
-                />
-              </div>
-
-              {/* Filter Toggle */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-            </div>
-
-            {/* Filters */}
-            <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-border/50">
-                <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Browse all genres" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Genres</SelectItem>
-                    {genres.map(genre => (
-                      <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Any status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {animeStatuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by popularity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popularity">Popularity</SelectItem>
-                    <SelectItem value="score">Score</SelectItem>
-                    <SelectItem value="year">Year</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
-                    <SelectItem value="episodes">Episodes</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
-            </div>
+            <SearchWithFilters
+              contentType="anime"
+              availableGenres={genres}
+              onSearch={handleSearch}
+              placeholder="Search anime by title, studio, or description..."
+            />
           </CardHeader>
         </Card>
 
@@ -287,7 +203,7 @@ const Anime = () => {
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or clear the filters.
                   </p>
-                  <Button variant="hero" onClick={clearFilters}>
+                  <Button variant="hero" onClick={() => setFilters({ contentType: 'anime' })}>
                     Clear All Filters
                   </Button>
                 </div>

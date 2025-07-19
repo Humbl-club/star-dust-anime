@@ -34,10 +34,6 @@ const Index = () => {
     order: 'desc'
   });
 
-  const handleSearch = (query: string) => {
-    // Search will be handled by the Navigation component
-    // This is kept for compatibility but not used
-  };
 
   // Helper functions for improved scoring and trending
   const calculateAverageScore = (malScore: number | null, anilistScore: number | null): number => {
@@ -166,10 +162,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative">
-      <Navigation onSearch={handleSearch} />
+      <Navigation />
       
       {/* Hero Section */}
-      <HeroSection onSearch={handleSearch} />
+      <HeroSection />
 
       {/* Search Results */}
       {isSearching && (

@@ -12,54 +12,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Filter, X, Save, RotateCcw, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-export interface FilterOptions {
-  search: string;
-  genres: string[];
-  excludeGenres: string[];
-  scoreRange: [number, number];
-  year: string;
-  status: string;
-  type: string;
-  rating: string;
-  studios: string[];
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-}
+import { useSearchStore, useUIStore } from '@/store';
 
 interface AdvancedFilteringProps {
   contentType: 'anime' | 'manga';
-  filters: FilterOptions;
-  onFiltersChange: (filters: FilterOptions) => void;
   availableGenres: string[];
   availableStudios?: string[];
-  savedPresets?: FilterPreset[];
-  onSavePreset?: (name: string, filters: FilterOptions) => void;
-  onLoadPreset?: (preset: FilterPreset) => void;
-  onDeletePreset?: (id: string) => void;
 }
 
-export interface FilterPreset {
-  id: string;
-  name: string;
-  filters: FilterOptions;
-  contentType: 'anime' | 'manga';
-  createdAt: string;
-}
-
-const defaultFilters: FilterOptions = {
-  search: '',
-  genres: [],
-  excludeGenres: [],
-  scoreRange: [0, 10],
-  year: '',
-  status: '',
-  type: '',
-  rating: '',
-  studios: [],
-  sortBy: 'score',
-  sortOrder: 'desc'
-};
 
 const animeStatuses = [
   'Currently Airing',
@@ -95,70 +55,55 @@ const sortOptions = [
 
 export function AdvancedFiltering({
   contentType,
-  filters,
-  onFiltersChange,
   availableGenres,
-  availableStudios = [],
-  savedPresets = [],
-  onSavePreset,
-  onLoadPreset,
-  onDeletePreset
+  availableStudios = []
 }: AdvancedFilteringProps) {
   const [presetName, setPresetName] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  
+  // Use stores instead of props
+  const { query, filters, setFilters } = useSearchStore();
+  const { modals, setModal } = useUIStore();
+  
+  const isOpen = modals.filterModal;
+  const setIsOpen = (open: boolean) => setModal('filterModal', open);
 
   const statuses = contentType === 'anime' ? animeStatuses : mangaStatuses;
   const types = contentType === 'anime' ? animeTypes : mangaTypes;
 
-  const updateFilter = (key: keyof FilterOptions, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
+  const updateFilter = (key: string, value: any) => {
+    setFilters({ [key]: value });
   };
 
-  const toggleGenre = (genre: string, exclude = false) => {
-    const targetArray = exclude ? filters.excludeGenres : filters.genres;
-    const otherArray = exclude ? filters.genres : filters.excludeGenres;
-    const key = exclude ? 'excludeGenres' : 'genres';
-    const otherKey = exclude ? 'genres' : 'excludeGenres';
-
-    // Remove from other array if present
-    const updatedOtherArray = otherArray.filter(g => g !== genre);
-    
-    // Toggle in target array
-    const updatedTargetArray = targetArray.includes(genre)
-      ? targetArray.filter(g => g !== genre)
-      : [...targetArray, genre];
-
-    onFiltersChange({
-      ...filters,
-      [key]: updatedTargetArray,
-      [otherKey]: updatedOtherArray
+  const toggleGenre = (genre: string) => {
+    // For simplicity, just toggle main genre filter
+    const currentGenre = filters.genre;
+    setFilters({ 
+      genre: currentGenre === genre ? undefined : genre 
     });
   };
 
   const clearFilters = () => {
-    onFiltersChange(defaultFilters);
+    setFilters({
+      contentType: filters.contentType,
+      sort_by: 'score',
+      order: 'desc'
+    });
   };
 
-  const hasActiveFilters = JSON.stringify(filters) !== JSON.stringify(defaultFilters);
-
-  const saveCurrentPreset = () => {
-    if (presetName.trim() && onSavePreset) {
-      onSavePreset(presetName.trim(), filters);
-      setPresetName('');
-    }
-  };
+  const hasActiveFilters = Boolean(
+    filters.genre || filters.status || filters.type || 
+    filters.year || filters.season || filters.score_min || filters.score_max
+  );
 
   const activeFiltersCount = [
-    filters.search && 1,
-    filters.genres.length,
-    filters.excludeGenres.length,
-    filters.year && 1,
+    filters.genre && 1,
     filters.status && 1,
     filters.type && 1,
-    filters.rating && 1,
-    filters.studios.length,
-    (filters.scoreRange[0] > 0 || filters.scoreRange[1] < 10) && 1
-  ].filter(Boolean).reduce((acc, curr) => acc + (typeof curr === 'number' ? curr : 0), 0);
+    filters.year && 1,
+    filters.season && 1,
+    (filters.score_min && filters.score_min > 0) && 1,
+    (filters.score_max && filters.score_max < 10) && 1
+  ].filter(Boolean).length;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -184,32 +129,21 @@ export function AdvancedFiltering({
 
         <ScrollArea className="h-[calc(100vh-100px)] pr-4">
           <div className="space-y-6 mt-6">
-            {/* Search */}
-            <div className="space-y-2">
-              <Label htmlFor="search">Search</Label>
-              <Input
-                id="search"
-                placeholder={`Search ${contentType}...`}
-                value={filters.search}
-                onChange={(e) => updateFilter('search', e.target.value)}
-              />
-            </div>
-
             {/* Score Range */}
             <div className="space-y-3">
-              <Label>Score Range</Label>
+              <Label>Minimum Score</Label>
               <div className="px-2">
                 <Slider
                   min={0}
                   max={10}
                   step={0.1}
-                  value={filters.scoreRange}
-                  onValueChange={(value) => updateFilter('scoreRange', value)}
+                  value={[filters.score_min || 0]}
+                  onValueChange={(value) => updateFilter('score_min', value[0])}
                   className="w-full"
                 />
                 <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                  <span>{filters.scoreRange[0]}</span>
-                  <span>{filters.scoreRange[1]}</span>
+                  <span>0</span>
+                  <span>{filters.score_min || 0}</span>
                 </div>
               </div>
             </div>
@@ -220,15 +154,15 @@ export function AdvancedFiltering({
               <Input
                 id="year"
                 placeholder="e.g., 2023"
-                value={filters.year}
-                onChange={(e) => updateFilter('year', e.target.value)}
+                value={filters.year || ''}
+                onChange={(e) => updateFilter('year', e.target.value || undefined)}
               />
             </div>
 
             {/* Status */}
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
+              <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value || undefined)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
@@ -246,7 +180,7 @@ export function AdvancedFiltering({
             {/* Type */}
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={filters.type} onValueChange={(value) => updateFilter('type', value)}>
+              <Select value={filters.type || ''} onValueChange={(value) => updateFilter('type', value || undefined)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any type" />
                 </SelectTrigger>
@@ -265,7 +199,7 @@ export function AdvancedFiltering({
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
                 <Label>Sort by</Label>
-                <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+                <Select value={filters.sort_by || 'score'} onValueChange={(value) => updateFilter('sort_by', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -280,7 +214,7 @@ export function AdvancedFiltering({
               </div>
               <div className="space-y-2">
                 <Label>Order</Label>
-                <Select value={filters.sortOrder} onValueChange={(value) => updateFilter('sortOrder', value)}>
+                <Select value={filters.order || 'desc'} onValueChange={(value) => updateFilter('order', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -296,14 +230,14 @@ export function AdvancedFiltering({
 
             {/* Genres */}
             <div className="space-y-3">
-              <Label>Include Genres</Label>
+              <Label>Genre</Label>
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 {availableGenres.map(genre => (
                   <Badge
                     key={genre}
-                    variant={filters.genres.includes(genre) ? "default" : "outline"}
+                    variant={filters.genre === genre ? "default" : "outline"}
                     className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => toggleGenre(genre, false)}
+                    onClick={() => toggleGenre(genre)}
                   >
                     {genre}
                   </Badge>
@@ -311,104 +245,22 @@ export function AdvancedFiltering({
               </div>
             </div>
 
-            {/* Exclude Genres */}
-            <div className="space-y-3">
-              <Label>Exclude Genres</Label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                {availableGenres.map(genre => (
-                  <Badge
-                    key={genre}
-                    variant={filters.excludeGenres.includes(genre) ? "destructive" : "outline"}
-                    className="cursor-pointer hover:bg-destructive/80"
-                    onClick={() => toggleGenre(genre, true)}
-                  >
-                    {genre}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Studios (for anime) */}
-            {contentType === 'anime' && availableStudios.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <Label>Studios</Label>
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                    {availableStudios.map(studio => (
-                      <Badge
-                        key={studio}
-                        variant={filters.studios.includes(studio) ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-primary/80"
-                        onClick={() => {
-                          const updatedStudios = filters.studios.includes(studio)
-                            ? filters.studios.filter(s => s !== studio)
-                            : [...filters.studios, studio];
-                          updateFilter('studios', updatedStudios);
-                        }}
-                      >
-                        {studio}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            <Separator />
-
-            {/* Saved Presets */}
-            {savedPresets.length > 0 && (
-              <div className="space-y-3">
-                <Label>Saved Presets</Label>
-                <div className="space-y-2">
-                  {savedPresets
-                    .filter(preset => preset.contentType === contentType)
-                    .map(preset => (
-                      <div
-                        key={preset.id}
-                        className="flex items-center justify-between p-2 border rounded-md"
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1 justify-start"
-                          onClick={() => onLoadPreset?.(preset)}
-                        >
-                          <Star className="w-4 h-4 mr-2" />
-                          {preset.name}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDeletePreset?.(preset.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Save Preset */}
-            {onSavePreset && (
-              <div className="space-y-3">
-                <Label>Save Current Filters</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Preset name"
-                    value={presetName}
-                    onChange={(e) => setPresetName(e.target.value)}
-                  />
-                  <Button
-                    size="sm"
-                    onClick={saveCurrentPreset}
-                    disabled={!presetName.trim()}
-                  >
-                    <Save className="w-4 h-4" />
-                  </Button>
-                </div>
+            {/* Season (for anime) */}
+            {contentType === 'anime' && (
+              <div className="space-y-2">
+                <Label>Season</Label>
+                <Select value={filters.season || ''} onValueChange={(value) => updateFilter('season', value || undefined)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any season" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any season</SelectItem>
+                    <SelectItem value="Spring">Spring</SelectItem>
+                    <SelectItem value="Summer">Summer</SelectItem>
+                    <SelectItem value="Fall">Fall</SelectItem>
+                    <SelectItem value="Winter">Winter</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 

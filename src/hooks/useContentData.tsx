@@ -78,15 +78,16 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
 
   // Query function that uses either optimized DB calls or edge function
   const queryFn = async () => {
+    // Clean options to remove undefined values
     const queryOptions = {
       page,
       limit,
-      search,
-      genre,
-      status,
-      type,
-      year,
-      season,
+      ...(search && { search }),
+      ...(genre && { genre }),
+      ...(status && { status }),
+      ...(type && { type }),
+      ...(year && { year }),
+      ...(season && { season }),
       sort_by,
       order
     };
