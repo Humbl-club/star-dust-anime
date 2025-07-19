@@ -162,6 +162,20 @@ const AnimeDetail = () => {
             contentType="anime"
           />
 
+          {/* Quick Actions Bar - Place this right after the hero section */}
+          <div className="sticky top-16 z-30 -mt-4 mb-4">
+            <QuickActionsBar
+              item={animeForList}
+              contentType="anime"
+              shareData={{
+                title: `${getDisplayName(anime)} - AniVault`,
+                text: `Check out ${getDisplayName(anime)} on AniVault!`,
+                url: window.location.href,
+                image: anime.image_url
+              }}
+            />
+          </div>
+
           {/* Synopsis */}
           <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <RichSynopsis 
@@ -238,18 +252,6 @@ const AnimeDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* Quick Actions Bar */}
-      <QuickActionsBar
-        item={animeForList}
-        contentType="anime"
-        shareData={{
-          title: `${getDisplayName(anime)} - AniVault`,
-          text: `Check out ${getDisplayName(anime)} on AniVault!`,
-          url: window.location.href,
-          image: enhancedAnime?.image_url || anime.image_url
-        }}
-      />
     </DetailPageLayout>
   );
 };

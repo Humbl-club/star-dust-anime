@@ -64,8 +64,8 @@ export const QuickActionsBar = ({
 
   return (
     <div className={cn(
-      "sticky top-16 z-30 transition-all duration-300",
-      isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0",
+      "transition-all duration-300",
+      isVisible ? "opacity-100" : "opacity-0 pointer-events-none",
       className
     )}>
       {/* Mobile Layout - Expandable */}
