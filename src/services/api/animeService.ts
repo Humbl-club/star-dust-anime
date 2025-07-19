@@ -1,4 +1,5 @@
 import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
+import { PaginationInfo } from '@/types/api.types';
 
 export interface AnimeContent extends BaseContent {
   episodes: number;
@@ -12,6 +13,35 @@ export interface AnimeContent extends BaseContent {
 
 export interface AnimeQueryOptions extends BaseQueryOptions {
   season?: string;
+}
+
+interface DatabaseAnimeResponse {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  image_url?: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  favorites?: number;
+  year?: number;
+  color_theme?: string;
+  anime_details?: {
+    episodes?: number;
+    aired_from?: string;
+    aired_to?: string;
+    season?: string;
+    status?: string;
+    type?: string;
+    trailer_url?: string;
+    next_episode_date?: string;
+  };
+  title_genres?: Array<{ genres: { name: string } }>;
+  title_studios?: Array<{ studios: { name: string } }>;
 }
 
 class AnimeApiService extends BaseApiService {
@@ -36,13 +66,13 @@ class AnimeApiService extends BaseApiService {
       }
 
       return this.handleSuccess(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch anime data');
     }
   }
 
   // Direct database query with optimized filtering
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<{ data: AnimeContent[], pagination: any }>> {
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<{ data: AnimeContent[], pagination: PaginationInfo }>> {
     try {
       const {
         page = 1,
@@ -114,7 +144,7 @@ class AnimeApiService extends BaseApiService {
       }
 
       // Transform data to match expected format
-      const transformedData = response?.map((item: any) => {
+      const transformedData = (response as DatabaseAnimeResponse[])?.map((item) => {
         const details = item.anime_details;
         
         // Map database status to frontend expectations
@@ -149,7 +179,7 @@ class AnimeApiService extends BaseApiService {
           favorites: item.favorites || 0,
           year: item.year,
           color_theme: item.color_theme,
-          genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+          genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
           members: item.popularity || 0,
           episodes: details?.episodes || 0,
           aired_from: details?.aired_from,
@@ -159,7 +189,7 @@ class AnimeApiService extends BaseApiService {
           type: details?.type || 'TV',
           trailer_url: details?.trailer_url,
           next_episode_date: details?.next_episode_date,
-          studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || []
+          studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
         };
       }) || [];
 
@@ -175,18 +205,18 @@ class AnimeApiService extends BaseApiService {
       };
 
       return this.handleSuccess({ data: transformedData, pagination });
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch anime data');
     }
   }
 
   // Sync anime from external API
-  async syncAnime(pages = 1): Promise<ServiceResponse<any>> {
+  async syncAnime(pages = 1): Promise<ServiceResponse<unknown>> {
     return this.syncFromExternalAPI('anime', pages);
   }
 
   // Sync anime images
-  async syncAnimeImages(limit = 10): Promise<ServiceResponse<any>> {
+  async syncAnimeImages(limit = 10): Promise<ServiceResponse<unknown>> {
     return this.syncImages('anime', limit);
   }
 
@@ -213,24 +243,25 @@ class AnimeApiService extends BaseApiService {
       }
 
       // Transform single anime data
-      const details = data.anime_details;
+      const animeData = data as DatabaseAnimeResponse;
+      const details = animeData.anime_details;
       const transformedAnime: AnimeContent = {
-        id: data.id,
-        anilist_id: data.anilist_id,
-        title: data.title || 'Unknown Title',
-        title_english: data.title_english,
-        title_japanese: data.title_japanese,
-        synopsis: data.synopsis || '',
-        image_url: data.image_url || '',
-        score: data.score,
-        anilist_score: data.anilist_score,
-        rank: data.rank,
-        popularity: data.popularity,
-        favorites: data.favorites || 0,
-        year: data.year,
-        color_theme: data.color_theme,
-        genres: data.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
-        members: data.popularity || 0,
+        id: animeData.id,
+        anilist_id: animeData.anilist_id,
+        title: animeData.title || 'Unknown Title',
+        title_english: animeData.title_english,
+        title_japanese: animeData.title_japanese,
+        synopsis: animeData.synopsis || '',
+        image_url: animeData.image_url || '',
+        score: animeData.score,
+        anilist_score: animeData.anilist_score,
+        rank: animeData.rank,
+        popularity: animeData.popularity,
+        favorites: animeData.favorites || 0,
+        year: animeData.year,
+        color_theme: animeData.color_theme,
+        genres: animeData.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
+        members: animeData.popularity || 0,
         episodes: details?.episodes || 0,
         aired_from: details?.aired_from,
         aired_to: details?.aired_to,
@@ -239,11 +270,11 @@ class AnimeApiService extends BaseApiService {
         type: details?.type || 'TV',
         trailer_url: details?.trailer_url,
         next_episode_date: details?.next_episode_date,
-        studios: data.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || []
+        studios: animeData.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
       };
 
       return this.handleSuccess(transformedAnime);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch anime details');
     }
   }

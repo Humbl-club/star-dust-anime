@@ -1,4 +1,5 @@
 import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
+import { PaginationInfo } from '@/types/api.types';
 
 export interface MangaContent extends BaseContent {
   chapters: number;
@@ -7,6 +8,34 @@ export interface MangaContent extends BaseContent {
   published_to?: string;
   next_chapter_date?: string;
   authors: string[];
+}
+
+interface DatabaseMangaResponse {
+  id: string;
+  anilist_id: number;
+  title: string;
+  title_english?: string;
+  title_japanese?: string;
+  synopsis?: string;
+  image_url?: string;
+  score?: number;
+  anilist_score?: number;
+  rank?: number;
+  popularity?: number;
+  favorites?: number;
+  year?: number;
+  color_theme?: string;
+  manga_details?: {
+    chapters?: number;
+    volumes?: number;
+    published_from?: string;
+    published_to?: string;
+    status?: string;
+    type?: string;
+    next_chapter_date?: string;
+  };
+  title_genres?: Array<{ genres: { name: string } }>;
+  title_authors?: Array<{ authors: { name: string } }>;
 }
 
 export interface MangaQueryOptions extends BaseQueryOptions {
@@ -35,13 +64,13 @@ class MangaApiService extends BaseApiService {
       }
 
       return this.handleSuccess(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch manga data');
     }
   }
 
   // Direct database query with optimized filtering
-  async fetchMangaOptimized(options: MangaQueryOptions): Promise<ServiceResponse<{ data: MangaContent[], pagination: any }>> {
+  async fetchMangaOptimized(options: MangaQueryOptions): Promise<ServiceResponse<{ data: MangaContent[], pagination: PaginationInfo }>> {
     try {
       const {
         page = 1,
@@ -109,7 +138,7 @@ class MangaApiService extends BaseApiService {
       }
 
       // Transform data to match expected format
-      const transformedData = response?.map((item: any) => {
+      const transformedData = (response as DatabaseMangaResponse[])?.map((item) => {
         const details = item.manga_details;
         
         // Map database status to frontend expectations
@@ -144,7 +173,7 @@ class MangaApiService extends BaseApiService {
           favorites: item.favorites || 0,
           year: item.year,
           color_theme: item.color_theme,
-          genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+          genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
           members: item.popularity || 0,
           chapters: details?.chapters || 0,
           volumes: details?.volumes || 0,
@@ -153,7 +182,7 @@ class MangaApiService extends BaseApiService {
           status: mappedStatus,
           type: details?.type || 'Manga',
           next_chapter_date: details?.next_chapter_date,
-          authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+          authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
         };
       }) || [];
 
@@ -169,18 +198,18 @@ class MangaApiService extends BaseApiService {
       };
 
       return this.handleSuccess({ data: transformedData, pagination });
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch manga data');
     }
   }
 
   // Sync manga from external API
-  async syncManga(pages = 1): Promise<ServiceResponse<any>> {
+  async syncManga(pages = 1): Promise<ServiceResponse<unknown>> {
     return this.syncFromExternalAPI('manga', pages);
   }
 
   // Sync manga images
-  async syncMangaImages(limit = 10): Promise<ServiceResponse<any>> {
+  async syncMangaImages(limit = 10): Promise<ServiceResponse<unknown>> {
     return this.syncImages('manga', limit);
   }
 
@@ -207,7 +236,8 @@ class MangaApiService extends BaseApiService {
       }
 
       // Transform single manga data
-      const details = data.manga_details;
+      const mangaData = data as DatabaseMangaResponse;
+      const details = mangaData.manga_details;
       const transformedManga: MangaContent = {
         id: data.id,
         anilist_id: data.anilist_id,
@@ -223,7 +253,7 @@ class MangaApiService extends BaseApiService {
         favorites: data.favorites || 0,
         year: data.year,
         color_theme: data.color_theme,
-        genres: data.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+        genres: mangaData.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
         members: data.popularity || 0,
         chapters: details?.chapters || 0,
         volumes: details?.volumes || 0,
@@ -232,11 +262,11 @@ class MangaApiService extends BaseApiService {
         status: details?.status || 'Unknown',
         type: details?.type || 'Manga',
         next_chapter_date: details?.next_chapter_date,
-        authors: data.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
+        authors: mangaData.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
       };
 
       return this.handleSuccess(transformedManga);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, 'fetch manga details');
     }
   }

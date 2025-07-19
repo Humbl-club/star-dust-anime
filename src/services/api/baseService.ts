@@ -68,12 +68,17 @@ export interface BaseContent {
 export abstract class BaseApiService {
   protected supabase = supabase;
 
-  protected handleError(error: any, operation: string): ServiceResponse<null> {
+  protected handleError(error: Error | unknown, operation: string): ServiceResponse<null> {
     console.error(`Error in ${operation}:`, error);
     toast.error(`Failed to ${operation.toLowerCase()}`);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : `Failed to ${operation.toLowerCase()}`;
+    
     return {
       data: null,
-      error: error.message || `Failed to ${operation.toLowerCase()}`,
+      error: errorMessage,
       success: false
     };
   }
@@ -90,7 +95,7 @@ export abstract class BaseApiService {
   }
 
   // Sync from external API
-  protected async syncFromExternalAPI(contentType: 'anime' | 'manga', pages = 1): Promise<ServiceResponse<any>> {
+  protected async syncFromExternalAPI(contentType: 'anime' | 'manga', pages = 1): Promise<ServiceResponse<unknown>> {
     try {
       console.log(`Starting ${contentType} sync using ultra-fast-sync...`);
       
@@ -111,13 +116,13 @@ export abstract class BaseApiService {
       } else {
         throw new Error(`Sync failed: ${response?.message || 'Unknown error'}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, `sync ${contentType} data`);
     }
   }
 
   // Sync images
-  protected async syncImages(contentType: 'anime' | 'manga', limit = 10): Promise<ServiceResponse<any>> {
+  protected async syncImages(contentType: 'anime' | 'manga', limit = 10): Promise<ServiceResponse<unknown>> {
     try {
       const { data: response, error } = await this.supabase.functions.invoke('sync-images', {
         body: {
@@ -131,7 +136,7 @@ export abstract class BaseApiService {
       }
 
       return this.handleSuccess(response, `Cached ${response.processed} ${contentType} images`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       return this.handleError(err, `sync ${contentType} images`);
     }
   }

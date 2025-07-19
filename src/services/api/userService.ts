@@ -41,7 +41,7 @@ export interface UserPreferences {
   auto_add_sequels: boolean;
   list_visibility: string;
   privacy_level: string;
-  notification_settings: any;
+  notification_settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
