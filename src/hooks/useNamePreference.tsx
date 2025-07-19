@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useUserPreferencesStore } from '@/store';
 
 export const useNamePreference = () => {
-  const [showEnglish, setShowEnglish] = useState(() => {
-    const saved = localStorage.getItem('anime-name-preference');
-    return saved ? JSON.parse(saved) : true;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('anime-name-preference', JSON.stringify(showEnglish));
-  }, [showEnglish]);
+  const { namePreference, setNamePreference } = useUserPreferencesStore();
+  
+  // Convert from old boolean to new enum system
+  const showEnglish = namePreference === 'english';
+  
+  const setShowEnglish = (show: boolean) => {
+    setNamePreference(show ? 'english' : 'romaji');
+  };
 
   const getDisplayName = (anime: { title: string; title_english?: string | null }) => {
     if (showEnglish && anime.title_english) {
@@ -20,6 +20,9 @@ export const useNamePreference = () => {
   return {
     showEnglish,
     setShowEnglish,
-    getDisplayName
+    getDisplayName,
+    // New enhanced functionality
+    namePreference,
+    setNamePreference
   };
 };

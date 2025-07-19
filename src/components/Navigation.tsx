@@ -26,13 +26,14 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
-import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
+import { useSearch } from "@/hooks/useSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
+import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
 import { FeatureWrapper } from "@/components/FeatureWrapper";
 
@@ -46,11 +47,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const { stats } = useSimpleGameification();
   const navigate = useNavigate();
   const { showEnglish, setShowEnglish } = useNamePreference();
+  const { navigation, setMobileMenuOpen } = useUIStore();
+  const { query, setQuery, search, isSearching, results, clearSearch } = useSearch();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { performSearch, isSearching, searchResults, clearSearch } = useConsolidatedSearch();
   const { isNative, keyboardVisible } = useNativeSetup();
   const { triggerHaptic } = useNativeActions();
 
@@ -64,12 +64,12 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   }, []);
 
   const handleSearch = async () => {
-    if (searchQuery.trim()) {
+    if (query.trim()) {
       if (onSearch) {
-        onSearch(searchQuery.trim());
+        onSearch(query.trim());
       } else {
         setShowResults(true);
-        await performSearch(searchQuery.trim(), 'both');
+        await search(query.trim());
       }
     }
   };
@@ -83,11 +83,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   // Handle real-time search as user types
   const handleInputChange = (value: string) => {
     console.log('Input changed:', value);
-    setSearchQuery(value);
+    setQuery(value);
     if (value.trim().length > 2) {
       console.log('Triggering search for:', value.trim());
       setShowResults(true);
-      performSearch(value.trim(), 'both');
+      search(value.trim());
     } else if (value.trim().length === 0) {
       setShowResults(false);
       clearSearch();
@@ -252,23 +252,23 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
               className="lg:hidden touch-friendly"
               onClick={async () => {
                 await triggerHaptic('light');
-                setIsMobileMenuOpen(!isMobileMenuOpen);
+                setMobileMenuOpen(!navigation.isMobileMenuOpen);
               }}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {navigation.isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Menu - Enhanced */}
-        {isMobileMenuOpen && (
+        {navigation.isMobileMenuOpen && (
           <div className="lg:hidden border-t border-border/50 glass-card animate-fade-in">
             <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
                 <WorkingSearchDropdown 
                   placeholder="Search anime..." 
-                  onResultClick={() => setIsMobileMenuOpen(false)}
+                  onResultClick={() => setMobileMenuOpen(false)}
                 />
               </div>
 
@@ -298,7 +298,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   <Button
                     variant={item.active ? "default" : "ghost"}
                     className="w-full justify-start px-6 py-3 touch-friendly text-base"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <item.icon className="w-5 h-5 mr-4" />
                     {item.label}
@@ -312,7 +312,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   <Button
                     variant={window.location.pathname === "/my-lists" ? "default" : "ghost"}
                     className="w-full justify-start px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Heart className="w-4 h-4 mr-3" />
                     My Lists
@@ -324,7 +324,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 <Button
                   variant={window.location.pathname === "/sync-dashboard" ? "default" : "ghost"}
                   className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <Database className="w-4 h-4 mr-3" />
                   Sync Dashboard
@@ -336,7 +336,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   <Button
                     variant={window.location.pathname === "/analytics" ? "default" : "ghost"}
                     className="w-full justify-start px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <BarChart3 className="w-4 h-4 mr-3" />
                     Analytics
@@ -349,7 +349,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   <Button
                     variant={window.location.pathname === "/gamification" ? "default" : "ghost"}
                     className="w-full justify-start px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     <Sparkles className="w-4 h-4 mr-3" />
                     Gamification
@@ -361,7 +361,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 <Button
                   variant={window.location.pathname === "/settings" ? "default" : "ghost"}
                   className="w-full justify-start px-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <Settings className="w-4 h-4 mr-3" />
                   Settings
@@ -378,7 +378,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-xs px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     Privacy Policy
                   </Button>
@@ -388,7 +388,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-xs px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     Terms of Service
                   </Button>
@@ -398,7 +398,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-xs px-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     Data Sources
                   </Button>

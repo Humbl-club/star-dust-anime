@@ -1,26 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useUserPreferencesStore, useUIStore } from '@/store';
 
 export const useAgeVerification = () => {
-  const [isVerified, setIsVerified] = useState<boolean>(() => {
-    // Initialize state from localStorage immediately
-    return localStorage.getItem('age_verified') === 'true';
-  });
+  const { ageVerified, setAgeVerified } = useUserPreferencesStore();
+  const { modals, setModal } = useUIStore();
   const [loading, setLoading] = useState(false);
 
   const setVerified = () => {
     console.log('✅ Age verification: Setting verified');
-    localStorage.setItem('age_verified', 'true');
-    setIsVerified(true);
+    setAgeVerified(true);
+    setModal('ageVerification', false);
   };
 
   // Modal should show when not loading and not verified
-  const showModal = !loading && !isVerified;
-  console.log('🔍 Age verification: showModal =', showModal, 'loading =', loading, 'isVerified =', isVerified);
+  const showModal = !loading && !ageVerified;
+  console.log('🔍 Age verification: showModal =', showModal, 'loading =', loading, 'isVerified =', ageVerified);
 
   return {
-    isVerified,
+    isVerified: ageVerified,
     loading,
-    showModal,
-    setVerified
+    showModal: showModal || modals.ageVerification,
+    setVerified,
+    // Enhanced functionality from store
+    openModal: () => setModal('ageVerification', true),
+    closeModal: () => setModal('ageVerification', false)
   };
 };
