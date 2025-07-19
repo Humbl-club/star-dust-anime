@@ -68,26 +68,27 @@ const Index = () => {
     order: 'desc'
   });
 
-  // Direct database test
+  // Direct database test - check table structure
   useEffect(() => {
-    // Test 1: Simple count
+    // Test what columns exist
     supabase
       .from('titles')
-      .select('*', { count: 'exact', head: true })
-      .then(({ count, error }) => {
-        console.log('Total titles in database:', count);
+      .select('*')
+      .limit(1)
+      .then(({ data, error }) => {
+        const columns = data?.[0] ? Object.keys(data[0]) : [];
         
-        // Test 2: Get first 5 titles
+        // Also get total count
         supabase
           .from('titles')
-          .select('id, title, media_type')
-          .limit(5)
-          .then(({ data, error: err2 }) => {
+          .select('*', { count: 'exact', head: true })
+          .then(({ count }) => {
             setDirectTest({ 
-              loading: false, 
-              totalCount: count,
-              error: error || err2, 
-              data 
+              loading: false,
+              error,
+              totalCount: count || 0,
+              columns,
+              sampleRow: data?.[0]
             });
           });
       });
@@ -262,12 +263,17 @@ const Index = () => {
       }} />
       
       <DebugPanel position="left" data={{
-        hookName: 'Direct Database Test',
+        hookName: 'Table Structure Test',
         loading: directTest.loading,
         error: directTest.error?.message,
         dataCount: directTest.totalCount || 0,
-        firstItem: directTest.data?.[0],
-        rawData: directTest.data
+        firstItem: directTest.sampleRow,
+        columns: directTest.columns,
+        rawData: { 
+          columns: directTest.columns,
+          totalRows: directTest.totalCount,
+          sample: directTest.sampleRow 
+        }
       }} />
       
       <Navigation onSearch={handleSearch} />
