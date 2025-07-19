@@ -599,8 +599,8 @@ const Index = () => {
         </section>
       )}
 
-      {/* Main Content Sections */}
-      {searchResults.length === 0 && !isSearching && allAnime.length > 0 && (
+      {/* Main Content Sections - TEMPORARILY FORCING TO SHOW */}
+      {true && allAnime.length > 0 && (
         <>
           <AnimeSection
             title="Hot Right Now"
