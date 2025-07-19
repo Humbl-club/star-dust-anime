@@ -28,9 +28,9 @@ export const QuickActionsBar = ({
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show the bar after scrolling past the hero section (roughly 400px)
+      // Show the bar after scrolling past the hero section (roughly 100px)
       const scrollY = window.scrollY;
-      setIsVisible(scrollY > 400);
+      setIsVisible(scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -64,12 +64,13 @@ export const QuickActionsBar = ({
 
   return (
     <div className={cn(
-      "fixed top-20 left-0 right-0 z-40 animate-slide-in-from-top",
+      "sticky top-16 z-30 transition-all duration-300",
+      isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0",
       className
     )}>
       {/* Mobile Layout - Expandable */}
       <div className="md:hidden">
-        <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-lg">
+        <div className="bg-background/95 backdrop-blur-md border-y border-border shadow-lg">
           {/* Collapsed State */}
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
@@ -148,7 +149,7 @@ export const QuickActionsBar = ({
 
       {/* Desktop Layout - Horizontal */}
       <div className="hidden md:block">
-        <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-lg">
+        <div className="bg-background/95 backdrop-blur-md border-y border-border shadow-lg">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
