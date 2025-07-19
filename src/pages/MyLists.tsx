@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
-import { useApiData } from "@/hooks/useApiData";
+import { useContentData } from "@/hooks/useContentData";
 import { useFillerData } from "@/hooks/useFillerData";
 import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -98,12 +98,12 @@ const MyLists = () => {
   );
 
   // Fetch anime and manga data from database
-  const { data: animeData, loading: animeLoading } = useApiData<Anime>({ 
+  const { data: animeData, loading: animeLoading } = useContentData({ 
     contentType: 'anime',
     limit: 1000 
   });
   
-  const { data: mangaData, loading: mangaLoading } = useApiData<Manga>({ 
+  const { data: mangaData, loading: mangaLoading } = useContentData({ 
     contentType: 'manga',
     limit: 1000 
   });

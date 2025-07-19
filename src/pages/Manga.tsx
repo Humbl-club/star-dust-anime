@@ -13,7 +13,7 @@ import {
   Calendar
 } from "lucide-react";
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
-import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
+import { useContentData } from "@/hooks/useContentData";
 import { Navigation } from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -91,7 +91,7 @@ const Manga = () => {
   const { toast } = useToast();
 
   // Fetch manga data from database
-  const { data: mangaData, loading, syncFromExternal } = useSimpleNewApiData({ 
+  const { data: mangaData, loading, syncFromExternal } = useContentData({ 
     contentType: 'manga',
     limit: 1000,
     search: searchQuery || undefined,

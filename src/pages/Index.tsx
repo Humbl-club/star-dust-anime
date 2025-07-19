@@ -7,7 +7,7 @@ import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
+import { useContentData } from "@/hooks/useContentData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,7 +27,7 @@ const Index = () => {
   
 
   // Get anime data from API
-  const { data: allAnime, loading } = useSimpleNewApiData({ 
+  const { data: allAnime, loading } = useContentData({ 
     contentType: 'anime',
     limit: 50,
     sort_by: 'score',

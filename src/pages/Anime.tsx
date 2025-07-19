@@ -15,7 +15,7 @@ import {
   Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
+import { useContentData } from "@/hooks/useContentData";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/AnimeCard";
@@ -39,7 +39,7 @@ const Anime = () => {
   const { isVerified } = useAgeVerification();
 
   // Get anime data from API
-  const { data: animeList, loading, refetch } = useSimpleNewApiData({ 
+  const { data: animeList, loading, refetch } = useContentData({ 
     contentType: 'anime',
     limit: 100,
     sort_by: 'score',
