@@ -89,6 +89,31 @@ const DebugPanelLeft = ({ data }: { data: any }) => {
           <p>Sample from: {data.sampleTable}</p>
         )}
         
+        {/* Show title structure if available */}
+        {data.titleColumns && data.titleColumns.length > 0 && (
+          <div className="mt-2 p-2 bg-blue/10 rounded">
+            <p className="font-semibold">Title Columns ({data.titleColumns.length}):</p>
+            <div className="text-xs grid grid-cols-2 gap-1">
+              {data.titleColumns.map((col: string) => (
+                <p key={col}>• {col}</p>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Show sample title data */}
+        {data.sampleTitle && (
+          <div className="mt-2 p-2 bg-green/10 rounded">
+            <p className="font-semibold">Sample Title Data:</p>
+            <div className="text-xs space-y-1">
+              <p>ID: {data.sampleTitle.id?.slice(0, 8)}...</p>
+              <p>Title: {data.sampleTitle.title}</p>
+              <p>AniList ID: {data.sampleTitle.anilist_id}</p>
+              <p>Year: {data.sampleTitle.year}</p>
+            </div>
+          </div>
+        )}
+        
         <button 
           onClick={() => setShowRaw(!showRaw)}
           className="text-blue-400 underline mt-2"
@@ -131,25 +156,22 @@ const Index = () => {
 
   useEffect(() => {
     const checkTables = async () => {
-      // Check only existing tables
+      // Get a sample title to see its structure
+      const { data: sampleTitle } = await supabase
+        .from('titles')
+        .select('*')
+        .limit(1)
+        .single();
+      
+      // Get counts
       const results = await Promise.all([
         supabase.from('titles').select('*', { count: 'exact', head: true }),
         supabase.from('anime_details').select('*', { count: 'exact', head: true }),
         supabase.from('manga_details').select('*', { count: 'exact', head: true }),
       ]);
-
-      const [titles, animeDetails, mangaDetails] = results;
-
-      // Get sample data from titles table if it has data
-      let sampleData = null;
-      let sampleTable = '';
       
-      if (titles.count && titles.count > 0) {
-        const { data } = await supabase.from('titles').select('*').limit(3);
-        sampleData = data;
-        sampleTable = 'titles';
-      }
-
+      const [titles, animeDetails, mangaDetails] = results;
+      
       setDirectTest({
         loading: false,
         tableCounts: {
@@ -157,8 +179,9 @@ const Index = () => {
           anime_details: animeDetails.count || 0,
           manga_details: mangaDetails.count || 0,
         },
-        sampleData,
-        sampleTable,
+        sampleTitle,
+        titleColumns: sampleTitle ? Object.keys(sampleTitle) : [],
+        sampleTable: 'titles',
         errors: [titles.error, animeDetails.error, mangaDetails.error].filter(Boolean)
       });
     };
@@ -402,7 +425,8 @@ const Index = () => {
         error: directTest.errors?.join(', '),
         tableCounts: directTest.tableCounts,
         sampleTable: directTest.sampleTable,
-        sampleData: directTest.sampleData,
+        sampleTitle: directTest.sampleTitle,
+        titleColumns: directTest.titleColumns,
         rawData: directTest
       }} />
 
