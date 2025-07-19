@@ -15,6 +15,7 @@ import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -117,6 +118,7 @@ const Index = () => {
   const [directTest, setDirectTest] = useState<any>({ loading: true });
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
+  const [rlsTest, setRlsTest] = useState<any>({ loading: true });
   
 
   // Get anime data from API
@@ -162,6 +164,41 @@ const Index = () => {
     };
 
     checkTables();
+  }, []);
+
+  // RLS test to check if Row Level Security is blocking queries
+  useEffect(() => {
+    const testRLS = async () => {
+      // Test 1: Check with service role key (bypasses RLS)
+      const serviceSupabase = createClient(
+        'https://axtpbgsjbmhbuqomarcr.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHBiZ3NqYm1oYnVxb21hcmNyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzUwOTQ3OSwiZXhwIjoyMDYzMDg1NDc5fQ.gYAudbNfVN-u7uPt_-ZTPdKZoFsxMOFsR3WdGAkyLfQ'
+      );
+      
+      // Test 2: Count with service role (bypasses RLS)
+      const { count: serviceCount } = await serviceSupabase
+        .from('titles')
+        .select('*', { count: 'exact', head: true });
+      
+      // Test 3: Count with regular client (uses RLS)
+      const { count: rlsCount } = await supabase
+        .from('titles')
+        .select('*', { count: 'exact', head: true });
+      
+      // Test 4: Check current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      setRlsTest({
+        loading: false,
+        serviceRoleCount: serviceCount || 0,
+        rlsCount: rlsCount || 0,
+        rlsEnabled: serviceCount !== rlsCount,
+        currentUser: user,
+        isAuthenticated: !!user
+      });
+    };
+    
+    testRLS();
   }, []);
 
   // Function to populate titles table
@@ -526,6 +563,26 @@ const Index = () => {
       </section>
 
       <LegalFooter />
+
+      {/* RLS Security Check Panel */}
+      <div className="fixed bottom-20 right-4 bg-purple-900/90 text-white p-4 rounded-lg max-w-md z-50">
+        <h3 className="font-bold text-yellow-400 mb-2">RLS Security Check</h3>
+        {rlsTest.loading ? (
+          <p>Testing RLS...</p>
+        ) : (
+          <div className="space-y-1 text-sm">
+            <p>With Service Role: {rlsTest.serviceRoleCount} rows</p>
+            <p>With RLS: {rlsTest.rlsCount} rows</p>
+            <p>RLS Enabled: {rlsTest.rlsEnabled ? '✅ Yes' : '❌ No'}</p>
+            <p>Authenticated: {rlsTest.isAuthenticated ? '✅ Yes' : '❌ No'}</p>
+            {rlsTest.rlsEnabled && rlsTest.rlsCount === 0 && (
+              <p className="text-red-400 font-bold mt-2">
+                ⚠️ RLS is blocking access to titles table!
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Coordinated Email Verification Popup */}
       <EmailVerificationPopup triggerShow={triggerEmailPopup} />
