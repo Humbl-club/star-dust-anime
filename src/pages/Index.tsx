@@ -115,6 +115,8 @@ const Index = () => {
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
   const [showTestData, setShowTestData] = useState(false);
   const [directTest, setDirectTest] = useState<any>({ loading: true });
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<any>(null);
   
 
   // Get anime data from API
@@ -161,6 +163,33 @@ const Index = () => {
 
     checkTables();
   }, []);
+
+  // Function to populate titles table
+  const populateTitlesTable = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch('https://axtpbgsjbmhbuqomarcr.supabase.co/functions/v1/bulk-sync-anime', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(supabase as any).supabaseKey}`
+        },
+        body: JSON.stringify({ contentType: 'both' })
+      });
+      
+      const result = await response.json();
+      setSyncResult(result);
+      
+      // Refresh the page after sync
+      if (result.success) {
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    } catch (error) {
+      setSyncResult({ error: (error as Error).message });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
     // Search will be handled by the Navigation component
@@ -339,6 +368,37 @@ const Index = () => {
         sampleData: directTest.sampleData,
         rawData: directTest
       }} />
+
+      {/* Database Sync UI - Only show when titles is empty but details tables have data */}
+      {directTest.tableCounts && directTest.tableCounts.titles === 0 && 
+       (directTest.tableCounts.anime_details > 0 || directTest.tableCounts.manga_details > 0) && (
+        <div className="fixed top-40 left-4 bg-red-900/90 text-white p-4 rounded-lg max-w-md z-50">
+          <h3 className="font-bold text-yellow-400 mb-2">⚠️ Database Issue Found!</h3>
+          <p className="text-sm mb-3">
+            The titles table is empty but detail tables have data:
+            <br />• anime_details: {directTest.tableCounts.anime_details.toLocaleString()} rows
+            <br />• manga_details: {directTest.tableCounts.manga_details.toLocaleString()} rows
+          </p>
+          
+          <button
+            onClick={populateTitlesTable}
+            disabled={syncing}
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold disabled:opacity-50"
+          >
+            {syncing ? 'Syncing...' : 'Populate Titles Table'}
+          </button>
+          
+          {syncResult && (
+            <div className="mt-3 text-sm">
+              {syncResult.success ? (
+                <p className="text-green-400">✅ Sync successful! Reloading...</p>
+              ) : (
+                <p className="text-red-400">❌ Error: {syncResult.error}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       
       <Navigation onSearch={handleSearch} />
       
