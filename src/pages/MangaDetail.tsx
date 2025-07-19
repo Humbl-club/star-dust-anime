@@ -14,7 +14,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
-import { QuickActionsBar } from "@/components/QuickActionsBar";
+
 
 
 const MangaDetail = () => {
@@ -148,19 +148,6 @@ const MangaDetail = () => {
           contentType="manga"
         />
 
-          {/* Quick Actions Bar - Place this right after the hero section */}
-          <div className="sticky top-16 z-30 -mt-4 mb-4">
-            <QuickActionsBar
-              item={mangaForList}
-              contentType="manga"
-              shareData={{
-                title: `${getDisplayName(manga)} - AniVault`,
-                text: `Check out ${getDisplayName(manga)} on AniVault!`,
-                url: window.location.href,
-                image: manga.image_url
-              }}
-            />
-          </div>
 
           {/* Synopsis */}
           <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
