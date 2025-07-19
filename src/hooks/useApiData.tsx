@@ -79,7 +79,7 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
       if (year) params.append('year', year);
       if (season && contentType === 'anime') params.append('season', season);
 
-      const { data: response, error } = await supabase.functions.invoke('anime-api-new', {
+      const { data: response, error } = await supabase.functions.invoke('anime-api', {
         body: {
           method: 'GET',
           path: `/${contentType}?${params.toString()}`
