@@ -20,26 +20,83 @@ import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
 
 // Debug component to show what's happening
-const DebugPanel = ({ data, position = 'right' }: { data: any; position?: 'right' | 'left' }) => {
+const DebugPanel = ({ data }: { data: any }) => {
   const [showRaw, setShowRaw] = useState(false);
   
   return (
-    <div className={`fixed top-20 ${position === 'right' ? 'right-4' : 'left-4'} z-50 bg-black/90 text-white p-4 rounded-lg max-w-md`}>
+    <div className="fixed top-20 right-4 z-50 bg-black/90 text-white p-4 rounded-lg max-w-md">
       <h3 className="font-bold text-yellow-400 mb-2">Debug Info</h3>
       <div className="space-y-1 text-sm">
         <p>Hook: {data.hookName}</p>
         <p>Loading: {data.loading ? '🔄 Yes' : '✅ No'}</p>
         <p>Error: {data.error || 'None'}</p>
-        <p>Data Count: {data.dataCount}</p>
-        <p>First Item: {data.firstItem?.title || 'No data'}</p>
+        
+        {/* Show table counts if available */}
+        {data.tableCounts && (
+          <div className="mt-2 p-2 bg-white/10 rounded">
+            <p className="font-semibold">Table Row Counts:</p>
+            {Object.entries(data.tableCounts).map(([table, count]) => (
+              <p key={table}>• {table}: {count as number}</p>
+            ))}
+          </div>
+        )}
+        
+        {data.sampleTable && (
+          <p>Sample from: {data.sampleTable}</p>
+        )}
+        
         <button 
           onClick={() => setShowRaw(!showRaw)}
-          className="text-blue-400 underline"
+          className="text-blue-400 underline mt-2"
         >
           {showRaw ? 'Hide' : 'Show'} Raw Data
         </button>
+        
         {showRaw && (
-          <pre className="text-xs overflow-auto max-h-60 mt-2">
+          <pre className="text-xs overflow-auto max-h-60 mt-2 bg-black/50 p-2 rounded">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Left-positioned debug panel for database checks
+const DebugPanelLeft = ({ data }: { data: any }) => {
+  const [showRaw, setShowRaw] = useState(false);
+  
+  return (
+    <div className="fixed top-20 left-4 z-50 bg-black/90 text-white p-4 rounded-lg max-w-md">
+      <h3 className="font-bold text-yellow-400 mb-2">Debug Info</h3>
+      <div className="space-y-1 text-sm">
+        <p>Hook: {data.hookName}</p>
+        <p>Loading: {data.loading ? '🔄 Yes' : '✅ No'}</p>
+        <p>Error: {data.error || 'None'}</p>
+        
+        {/* Show table counts if available */}
+        {data.tableCounts && (
+          <div className="mt-2 p-2 bg-white/10 rounded">
+            <p className="font-semibold">Table Row Counts:</p>
+            {Object.entries(data.tableCounts).map(([table, count]) => (
+              <p key={table}>• {table}: {count as number}</p>
+            ))}
+          </div>
+        )}
+        
+        {data.sampleTable && (
+          <p>Sample from: {data.sampleTable}</p>
+        )}
+        
+        <button 
+          onClick={() => setShowRaw(!showRaw)}
+          className="text-blue-400 underline mt-2"
+        >
+          {showRaw ? 'Hide' : 'Show'} Raw Data
+        </button>
+        
+        {showRaw && (
+          <pre className="text-xs overflow-auto max-h-60 mt-2 bg-black/50 p-2 rounded">
             {JSON.stringify(data, null, 2)}
           </pre>
         )}
@@ -273,7 +330,7 @@ const Index = () => {
         allAnime
       }} />
       
-      <DebugPanel position="left" data={{
+      <DebugPanelLeft data={{
         hookName: 'Database Tables Check',
         loading: directTest.loading,
         error: directTest.errors?.join(', '),
