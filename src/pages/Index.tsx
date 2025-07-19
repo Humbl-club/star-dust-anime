@@ -68,7 +68,8 @@ const DebugPanelLeft = ({ data }: { data: any }) => {
   const [showRaw, setShowRaw] = useState(false);
   
   return (
-    <div className="fixed top-20 left-4 z-50 bg-black/90 text-white p-4 rounded-lg max-w-md">
+    <div className="fixed top-20 left-4 z-[9999] bg-black border-2 border-yellow-400 text-white p-4 rounded-lg max-w-md shadow-2xl"
+         style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)' }}>
       <h3 className="font-bold text-yellow-400 mb-2">Debug Info</h3>
       <div className="space-y-1 text-sm">
         <p>Hook: {data.hookName}</p>
@@ -503,6 +504,26 @@ const Index = () => {
       )}
       
       <Navigation onSearch={handleSearch} />
+      
+      {/* HIGHLY VISIBLE DEBUG PANEL */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        backgroundColor: 'red',
+        color: 'white',
+        padding: '20px',
+        zIndex: 99999,
+        border: '3px solid yellow',
+        fontSize: '16px',
+        fontWeight: 'bold'
+      }}>
+        <h2>🚨 DEBUG PANEL 🚨</h2>
+        <p>Data Length: {allAnime.length}</p>
+        <p>Loading: {loading ? 'YES' : 'NO'}</p>
+        <p>Search Results: {searchResults.length}</p>
+        <p>Is Searching: {isSearching ? 'YES' : 'NO'}</p>
+      </div>
       
       {/* Force display sections for testing */}
       {allAnime.length > 0 && (
