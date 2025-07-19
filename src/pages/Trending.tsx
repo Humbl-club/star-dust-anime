@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Navigation } from "@/components/Navigation";
-import { useNavigate } from "react-router-dom";
-import { TrendingAnimeCard } from "@/components/TrendingAnimeCard";
-import { TrendingMangaCard } from "@/components/TrendingMangaCard";
 
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
@@ -29,10 +26,107 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { type Anime, type Manga } from "@/data/animeData";
 
-// Card components moved to dedicated files for performance optimization
+const TrendingAnimeCard = ({ anime, rank, getDisplayName }: { anime: Anime; rank: number; getDisplayName: (anime: Anime) => string }) => (
+  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
+    <div className="p-4">
+      <div className="flex gap-4">
+        <div className="relative flex-shrink-0">
+          <img 
+            src={anime.image_url} 
+            alt={getDisplayName(anime)}
+            className="w-16 h-20 object-cover rounded-lg"
+          />
+          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
+            {rank}
+          </div>
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
+            {getDisplayName(anime)}
+          </h3>
+          
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            <Badge variant="secondary" className="text-xs glass-card border-0">
+              <Play className="w-3 h-3 mr-1" />
+              {anime.type}
+            </Badge>
+            {anime.score && (
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 text-yellow-400" />
+                <span>{anime.score}</span>
+              </div>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+            {anime.synopsis}
+          </p>
+          
+          <div className="flex flex-wrap gap-1">
+            {anime.genres.slice(0, 2).map(genre => (
+              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
+                {genre}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const TrendingMangaCard = ({ manga, rank, getDisplayName }: { manga: Manga; rank: number; getDisplayName: (manga: Manga) => string }) => (
+  <div className="glass-card border border-glass-border hover:border-primary/30 transition-all duration-300 group cursor-pointer spring-bounce">
+    <div className="p-4">
+      <div className="flex gap-4">
+        <div className="relative flex-shrink-0">
+          <img 
+            src={manga.image_url} 
+            alt={getDisplayName(manga)}
+            className="w-16 h-20 object-cover rounded-lg"
+          />
+          <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground glow-primary">
+            {rank}
+          </div>
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
+            {getDisplayName(manga)}
+          </h3>
+          
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            <Badge variant="secondary" className="text-xs glass-card border-0">
+              <BookOpen className="w-3 h-3 mr-1" />
+              {manga.type}
+            </Badge>
+            {manga.score && (
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 text-yellow-400" />
+                <span>{manga.score}</span>
+              </div>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+            {manga.synopsis}
+          </p>
+          
+          <div className="flex flex-wrap gap-1">
+            {manga.genres.slice(0, 2).map(genre => (
+              <Badge key={genre} variant="outline" className="text-xs glass-input border-glass-border">
+                {genre}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const Trending = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("anime");
   const { toast } = useToast();
   const { stats, formatCount } = useStats();
@@ -112,11 +206,11 @@ const Trending = () => {
           description: `${data.remaining} anime still need AniList data. Run sync again to continue.`,
         });
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('AniList sync error:', error);
       toast({
         title: "AniList sync failed",
-        description: error instanceof Error ? error.message : "Failed to sync AniList data. Please try again.",
+        description: error.message || "Failed to sync AniList data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -131,24 +225,20 @@ const Trending = () => {
     return scores.reduce((sum, score) => sum + score!, 0) / scores.length;
   };
 
-  const calculateAniListTrendingScore = (item: Anime | Manga): number => {
+  const calculateAniListTrendingScore = (item: any): number => {
     let score = 0;
     
     // Prioritize AniList data for trending calculation
-    const anilistScore = 'anilist_score' in item ? item.anilist_score : null;
-    if (anilistScore) score += anilistScore * 0.3;
+    if (item.anilist_score) score += item.anilist_score * 0.3;
     if (item.popularity) score += Math.log(item.popularity) * 0.4; // AniList popularity is key
-    const favorites = 'favorites' in item ? item.favorites : null;
-    if (favorites) score += Math.log(favorites) * 0.2;
+    if (item.favorites) score += Math.log(item.favorites) * 0.2;
     
     // Timeline constraints for "hot right now"
     const isCurrentlyAiring = item.status === 'Currently Airing' || item.status === 'Ongoing';
     if (isCurrentlyAiring) score *= 1.8; // Strong boost for currently airing
     
     // Recent activity boost (within last 6 months)
-    const airedFrom = 'aired_from' in item ? item.aired_from : null;
-    const publishedFrom = 'published_from' in item ? item.published_from : null;
-    const releaseDate = new Date(airedFrom || publishedFrom || 0);
+    const releaseDate = new Date(item.aired_from || item.published_from || 0);
     const monthsAgo = (Date.now() - releaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
     if (monthsAgo < 6) score *= (1 + (6 - monthsAgo) / 12);
     
@@ -159,7 +249,7 @@ const Trending = () => {
   const trendingAnime = [...animeData]
     .map(anime => ({
       ...anime,
-      averageScore: calculateAverageScore(anime.score, 'anilist_score' in anime ? anime.anilist_score : null),
+      averageScore: calculateAverageScore(anime.score, anime.anilist_score),
       trendingScore: calculateAniListTrendingScore(anime)
     }))
     .sort((a, b) => b.trendingScore - a.trendingScore)
@@ -257,7 +347,6 @@ const Trending = () => {
                 <img 
                   src={topAnime.image_url} 
                   alt={getDisplayName(topAnime)}
-                  loading="lazy"
                   className="w-24 h-32 object-cover rounded-lg"
                 />
                 <div className="flex-1">
@@ -298,7 +387,6 @@ const Trending = () => {
                   <img 
                     src={topManga.image_url} 
                     alt={getDisplayName(topManga)}
-                    loading="lazy"
                     className="w-24 h-32 object-cover rounded-lg"
                   />
                   <div className="flex-1">
@@ -356,15 +444,14 @@ const Trending = () => {
               </div>
               <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
-              {trendingAnime.map((anime, index) => (
-                <TrendingAnimeCard 
-                  key={anime.id} 
-                  anime={anime} 
-                  rank={index + 1}
-                  getDisplayName={getDisplayName}
-                  onClick={() => navigate(`/anime/${anime.id}`)}
-                />
-              ))}
+                  {trendingAnime.map((anime, index) => (
+                    <TrendingAnimeCard 
+                      key={anime.id} 
+                      anime={anime} 
+                      rank={index + 1} 
+                      getDisplayName={getDisplayName}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -380,15 +467,14 @@ const Trending = () => {
               </div>
               <div className="p-6 bg-gradient-subtle">
                 <div className="space-y-4">
-              {trendingManga.map((manga, index) => (
-                <TrendingMangaCard 
-                  key={manga.id} 
-                  manga={manga} 
-                  rank={index + 1}
-                  getDisplayName={getDisplayName}
-                  onClick={() => navigate(`/manga/${manga.id}`)}
-                />
-              ))}
+                  {trendingManga.map((manga, index) => (
+                    <TrendingMangaCard 
+                      key={manga.id} 
+                      manga={manga} 
+                      rank={index + 1} 
+                      getDisplayName={getDisplayName}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

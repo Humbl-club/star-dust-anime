@@ -84,7 +84,7 @@ export const SEOMetaTags = ({
 };
 
 // Specific meta tag components for different page types
-export const AnimeMetaTags = ({ anime }: { anime: { id: string; title: string; synopsis?: string; image_url?: string } }) => {
+export const AnimeMetaTags = ({ anime }: { anime: any }) => {
   const metadata = deepLinkingService.generateShareableMetadata(anime, 'anime');
   
   return (
@@ -98,7 +98,7 @@ export const AnimeMetaTags = ({ anime }: { anime: { id: string; title: string; s
   );
 };
 
-export const MangaMetaTags = ({ manga }: { manga: { id: string; title: string; synopsis?: string; image_url?: string } }) => {
+export const MangaMetaTags = ({ manga }: { manga: any }) => {
   const metadata = deepLinkingService.generateShareableMetadata(manga, 'manga');
   
   return (

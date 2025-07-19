@@ -1,141 +1,3 @@
-// Enhanced type definitions for AniList data
-export interface CharacterData {
-  id: number;
-  name: {
-    first: string;
-    middle?: string;
-    last?: string;
-    full: string;
-    native?: string;
-  };
-  image?: {
-    large?: string;
-    medium?: string;
-  };
-  description?: string;
-  role: 'MAIN' | 'SUPPORTING' | 'BACKGROUND';
-  voiceActors?: VoiceActor[];
-}
-
-export interface VoiceActor {
-  id: number;
-  name: {
-    first: string;
-    middle?: string;
-    last?: string;
-    full: string;
-    native?: string;
-  };
-  image?: {
-    large?: string;
-    medium?: string;
-  };
-  languageV2: string;
-}
-
-export interface StaffData {
-  id: number;
-  name: {
-    first: string;
-    middle?: string;
-    last?: string;
-    full: string;
-    native?: string;
-  };
-  image?: {
-    large?: string;
-    medium?: string;
-  };
-  primaryOccupations?: string[];
-  role: string;
-}
-
-export interface ExternalLink {
-  id: number;
-  url: string;
-  site: string;
-  type: 'INFO' | 'STREAMING' | 'SOCIAL';
-  language?: string;
-  color?: string;
-  icon?: string;
-}
-
-export interface StreamingEpisode {
-  title?: string;
-  thumbnail?: string;
-  url?: string;
-  site?: string;
-}
-
-export interface DetailedTag {
-  id: number;
-  name: string;
-  description?: string;
-  category?: string;
-  rank?: number;
-  isGeneralSpoiler?: boolean;
-  isMediaSpoiler?: boolean;
-  isAdult?: boolean;
-}
-
-export interface RelationData {
-  id: number;
-  relationType: 'ADAPTATION' | 'PREQUEL' | 'SEQUEL' | 'PARENT' | 'SIDE_STORY' | 'CHARACTER' | 'SUMMARY' | 'ALTERNATIVE' | 'SPIN_OFF' | 'OTHER' | 'SOURCE' | 'COMPILATION' | 'CONTAINS';
-  node: {
-    id: number;
-    title: {
-      romaji: string;
-      english?: string;
-      native?: string;
-      userPreferred: string;
-    };
-    format: string;
-    type: 'ANIME' | 'MANGA';
-    status: string;
-    bannerImage?: string;
-    coverImage?: {
-      extraLarge?: string;
-      large?: string;
-      medium?: string;
-      color?: string;
-    };
-  };
-}
-
-export interface RecommendationData {
-  id: number;
-  rating?: number;
-  userRating?: 'NO_RATING' | 'RATE_UP' | 'RATE_DOWN';
-  mediaRecommendation: {
-    id: number;
-    title: {
-      romaji: string;
-      english?: string;
-      native?: string;
-      userPreferred: string;
-    };
-    format: string;
-    type: 'ANIME' | 'MANGA';
-    status: string;
-    bannerImage?: string;
-    coverImage?: {
-      extraLarge?: string;
-      large?: string;
-      medium?: string;
-      color?: string;
-    };
-    meanScore?: number;
-  };
-}
-
-export interface StudioData {
-  id: number;
-  name: string;
-  isMain: boolean;
-  isAnimationStudio: boolean;
-  siteUrl?: string;
-}
-
 // Mock anime data for development
 export interface Anime {
   id: string;
@@ -172,14 +34,14 @@ export interface Anime {
   anilist_score?: number;
   trailer_id?: string;
   trailer_site?: string;
-  characters_data?: CharacterData[];
-  staff_data?: StaffData[];
-  external_links?: ExternalLink[];
-  streaming_episodes?: StreamingEpisode[];
-  detailed_tags?: DetailedTag[];
-  relations_data?: RelationData[];
-  recommendations_data?: RecommendationData[];
-  studios_data?: StudioData[];
+  characters_data?: any[];
+  staff_data?: any[];
+  external_links?: any[];
+  streaming_episodes?: any[];
+  detailed_tags?: any[];
+  relations_data?: any[];
+  recommendations_data?: any[];
+  studios_data?: any[];
 }
 
 export interface Manga {

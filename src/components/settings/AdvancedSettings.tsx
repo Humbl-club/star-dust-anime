@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useToast } from "@/hooks/use-toast";
-import { initializePerformanceOptimizations, clearPerformanceObservers } from "@/utils/performanceOptimizations";
 import { 
   Code, 
   Database, 
@@ -18,8 +17,7 @@ import {
   AlertTriangle,
   Cpu,
   HardDrive,
-  Clock,
-  Activity
+  Clock
 } from "lucide-react";
 
 export const AdvancedSettings = () => {
@@ -27,31 +25,6 @@ export const AdvancedSettings = () => {
   const { settings, updateAdvanced, resetCategory, exportSettings } = useSettingsStore();
   const { advanced } = settings;
   const [showDebugInfo, setShowDebugInfo] = useState(false);
-  const [performanceMonitoring, setPerformanceMonitoring] = useState(
-    localStorage.getItem('enable-performance-monitoring') === 'true'
-  );
-
-  useEffect(() => {
-    localStorage.setItem('enable-performance-monitoring', performanceMonitoring.toString());
-  }, [performanceMonitoring]);
-
-  const handlePerformanceToggle = (enabled: boolean) => {
-    setPerformanceMonitoring(enabled);
-    
-    if (enabled) {
-      initializePerformanceOptimizations();
-      toast({
-        title: "Performance monitoring enabled",
-        description: "Web vitals and performance metrics are now being tracked.",
-      });
-    } else {
-      clearPerformanceObservers();
-      toast({
-        title: "Performance monitoring disabled", 
-        description: "Performance tracking has been stopped.",
-      });
-    }
-  };
 
   const handleClearCache = () => {
     // Clear various caches
@@ -121,20 +94,6 @@ export const AdvancedSettings = () => {
               id="virtualScrolling"
               checked={advanced.virtualScrolling}
               onCheckedChange={(checked) => updateAdvanced({ virtualScrolling: checked })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="performanceMonitoring">Performance Monitoring</Label>
-              <p className="text-sm text-muted-foreground">
-                Enable Web Vitals tracking and performance metrics
-              </p>
-            </div>
-            <Switch
-              id="performanceMonitoring"
-              checked={performanceMonitoring}
-              onCheckedChange={handlePerformanceToggle}
             />
           </div>
 

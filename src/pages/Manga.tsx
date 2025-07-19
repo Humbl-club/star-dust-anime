@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,10 +16,68 @@ import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
 import { Navigation } from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
-import { VirtualizedList } from "@/components/VirtualizedList";
-import { MangaCard } from "@/components/MangaCard";
 
-// Moved to dedicated component file for better performance
+const MangaCard = ({ manga }: { manga: Manga }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/manga/${manga.id}`);
+  };
+
+  return (
+    <Card 
+      className="anime-card group hover-scale cursor-pointer touch-friendly"
+      onClick={handleClick}
+    >
+      <CardContent className="p-0">
+      <div className="relative overflow-hidden rounded-t-lg">
+        <img 
+          src={manga.image_url} 
+          alt={manga.title}
+          className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Score Badge */}
+        {manga.score && (
+          <Badge className="absolute top-2 right-2 glass-card border border-primary/20 glow-primary">
+            <Star className="w-3 h-3 mr-1" />
+            {manga.score}
+          </Badge>
+        )}
+      </div>
+      
+      <div className="p-4">
+        <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-gradient-primary transition-colors">
+          {manga.title}
+        </h3>
+        
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{manga.type}</span>
+          {manga.status && (
+            <>
+              <span>•</span>
+              <span className={
+                manga.status === 'Publishing' ? 'text-green-400' :
+                manga.status === 'Finished' ? 'text-blue-400' :
+                'text-yellow-400'
+              }>
+                {manga.status}
+              </span>
+            </>
+          )}
+          {manga.chapters && (
+            <>
+              <span>•</span>
+              <span>{manga.chapters} ch</span>
+            </>
+          )}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+  );
+};
 
 const Manga = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,11 +88,6 @@ const Manga = () => {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-
-  // Debounced search handler
-  const debouncedSetSearchQuery = useDebouncedCallback((value: string) => {
-    setSearchQuery(value);
-  }, 300);
   const { toast } = useToast();
 
   // Fetch manga data from database
@@ -80,11 +132,11 @@ const Manga = () => {
         title: "Manga Sync Complete!",
         description: "Successfully synced manga data from external sources.",
       });
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Manga sync failed:', error);
       toast({
         title: "Sync Failed",
-        description: error instanceof Error ? error.message : "Failed to sync manga data. Please try again.",
+        description: error.message || "Failed to sync manga data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -145,7 +197,7 @@ const Manga = () => {
                 <Input
                   placeholder="Search by title, author, or description..."
                   value={searchQuery}
-                  onChange={(e) => debouncedSetSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 glass-input"
                 />
               </div>
@@ -208,27 +260,13 @@ const Manga = () => {
           </CardHeader>
         </Card>
 
-        {/* Manga Grid with virtualization for large lists */}
+        {/* Manga Grid - Mobile Optimized */}
         {filteredManga.length > 0 ? (
-          filteredManga.length > 50 ? (
-            <VirtualizedList
-              items={filteredManga}
-              itemHeight={280}
-              containerHeight={800}
-              renderItem={(manga) => (
-                <div className="p-2">
-                  <MangaCard manga={manga} />
-                </div>
-              )}
-              className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-            />
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-              {filteredManga.map((manga) => (
-                <MangaCard key={manga.id} manga={manga} />
-              ))}
-            </div>
-          )
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {filteredManga.map((manga) => (
+              <MangaCard key={manga.id} manga={manga} />
+            ))}
+          </div>
         ) : (
           <Card className="anime-card text-center py-12 glow-card">
             <CardContent>

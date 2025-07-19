@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useEnhancedQuery } from '@/hooks/useEnhancedQuery';
-import { generateCorrelationId, classifyError, logError } from '@/utils/errorUtils';
 
 interface ApiResponse<T> {
   data: T[];
@@ -63,7 +61,6 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
   } = options;
 
   const fetchData = async () => {
-    const correlationId = generateCorrelationId();
     setLoading(true);
     setError(null);
 
@@ -97,20 +94,16 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
       } else {
         throw new Error('Invalid response format');
       }
-    } catch (err: unknown) {
-      const classifiedError = classifyError(err, correlationId, `fetch_${contentType}`);
-      await logError(classifiedError, err);
-      
+    } catch (err: any) {
       console.error(`Error fetching ${contentType}:`, err);
-      setError(classifiedError.userMessage);
-      toast.error(`Failed to load ${contentType}\n\nError ID: ${correlationId.slice(-8).toUpperCase()}`);
+      setError(err.message || 'Failed to fetch data');
+      toast.error(`Failed to load ${contentType}`);
     } finally {
       setLoading(false);
     }
   };
 
   const syncFromExternal = async (pages = 1) => {
-    const correlationId = generateCorrelationId();
     setLoading(true);
     try {
       for (let i = 1; i <= pages; i++) {
@@ -135,19 +128,15 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
 
       // Refresh local data after sync
       await fetchData();
-    } catch (err: unknown) {
-      const classifiedError = classifyError(err, correlationId, `sync_${contentType}`);
-      await logError(classifiedError, err);
-      
+    } catch (err: any) {
       console.error(`Error syncing ${contentType}:`, err);
-      toast.error(`Failed to sync ${contentType} data\n\nError ID: ${correlationId.slice(-8).toUpperCase()}`);
+      toast.error(`Failed to sync ${contentType} data`);
     } finally {
       setLoading(false);
     }
   };
 
   const syncImages = async (limit = 10) => {
-    const correlationId = generateCorrelationId();
     setLoading(true);
     try {
       const { data: response, error } = await supabase.functions.invoke('sync-images', {
@@ -163,12 +152,9 @@ export const useApiData = <T,>(options: UseApiDataOptions) => {
       
       // Refresh local data after image sync
       await fetchData();
-    } catch (err: unknown) {
-      const classifiedError = classifyError(err, correlationId, `sync_images_${contentType}`);
-      await logError(classifiedError, err);
-      
+    } catch (err: any) {
       console.error(`Error syncing ${contentType} images:`, err);
-      toast.error(`Failed to sync ${contentType} images\n\nError ID: ${correlationId.slice(-8).toUpperCase()}`);
+      toast.error(`Failed to sync ${contentType} images`);
     } finally {
       setLoading(false);
     }

@@ -57,7 +57,6 @@ export const DetailImageCard = ({
               src={imageUrl} 
               alt={title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              loading="lazy"
             />
             
             {/* Floating Score Badge */}

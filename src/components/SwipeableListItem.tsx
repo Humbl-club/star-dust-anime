@@ -181,8 +181,8 @@ export const SwipeableListItem = ({
               <img
                 src={imageUrl}
                 alt={title}
-                loading="lazy"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           )}

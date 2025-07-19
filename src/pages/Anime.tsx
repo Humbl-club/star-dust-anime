@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,6 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
 import { LegalFooter } from "@/components/LegalFooter";
-import { VirtualizedList } from "@/components/VirtualizedList";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -36,11 +34,6 @@ const Anime = () => {
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
-
-  // Debounced search handler
-  const debouncedSetSearchQuery = useDebouncedCallback((value: string) => {
-    setSearchQuery(value);
-  }, 300);
 
   // Age verification
   const { isVerified } = useAgeVerification();
@@ -117,7 +110,7 @@ const Anime = () => {
         case "title":
           return a.title.localeCompare(b.title);
         case "episodes":
-          return ((b as any).episodes || 0) - ((a as any).episodes || 0);
+          return (b.episodes || 0) - (a.episodes || 0);
         case "popularity":
         default:
           return (a.popularity || 999999) - (b.popularity || 999999);
@@ -166,7 +159,7 @@ const Anime = () => {
                 <Input
                   placeholder="Search by title, studio, or description..."
                   value={searchQuery}
-                  onChange={(e) => debouncedSetSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 glass-input"
                 />
               </div>
@@ -254,35 +247,16 @@ const Anime = () => {
           </div>
         ) : filteredAnime.length > 0 ? (
           <>
-            {/* Desktop Grid with virtualization for large lists */}
-            {filteredAnime.length > 50 ? (
-              <div className="hidden lg:block">
-                <VirtualizedList
-                  items={filteredAnime}
-                  itemHeight={350}
-                  containerHeight={800}
-                  renderItem={(anime) => (
-                    <div className="p-3">
-                      <AnimeCard 
-                        anime={anime} 
-                        onClick={() => handleAnimeClick(anime)}
-                      />
-                    </div>
-                  )}
-                  className="grid-cols-4 xl:grid-cols-5"
+            {/* Desktop Grid */}
+            <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {filteredAnime.map((anime) => (
+                <AnimeCard 
+                  key={anime.id} 
+                  anime={anime} 
+                  onClick={() => handleAnimeClick(anime)}
                 />
-              </div>
-            ) : (
-              <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {filteredAnime.map((anime) => (
-                  <AnimeCard 
-                    key={anime.id} 
-                    anime={anime} 
-                    onClick={() => handleAnimeClick(anime)}
-                  />
-                ))}
-              </div>
-            )}
+              ))}
+            </div>
 
             {/* Mobile Grid */}
             <div className="grid lg:hidden grid-cols-2 gap-3">

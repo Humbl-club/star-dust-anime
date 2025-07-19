@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { useDebouncedCallback } from "use-debounce";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists } from "@/hooks/useUserLists";
 import { useApiData } from "@/hooks/useApiData";
@@ -84,11 +83,6 @@ const MyLists = () => {
   const [hideFillerContent, setHideFillerContent] = useState(false);
   const [useVirtualization, setUseVirtualization] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-
-  // Debounced search handler
-  const debouncedSetSearchQuery = useDebouncedCallback((value: string) => {
-    setSearchQuery(value);
-  }, 300);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -378,7 +372,7 @@ const MyLists = () => {
                   ref={searchInputRef}
                   placeholder="Find something in your collection... (Ctrl+K)"
                   value={searchQuery}
-                  onChange={(e) => debouncedSetSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 transition-all duration-300"
                 />
               </div>
@@ -530,7 +524,6 @@ const MyLists = () => {
                           <img 
                             src={manga.image_url}
                             alt={manga.title}
-                            loading="lazy"
                             className="w-20 h-28 object-cover rounded-lg flex-shrink-0"
                           />
                           

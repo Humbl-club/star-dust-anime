@@ -2,23 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-  /* Anime-inspired design system with vibrant gradients and modern aesthetics */
-  
-  /* Performance Optimizations */
-  * {
-    /* Enable hardware acceleration for animations */
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-  }
-  
-  /* Critical font loading */
-  @font-face {
-    font-family: 'Inter';
-    font-display: swap;
-    src: local('Inter'), url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ.woff2') format('woff2');
-    font-weight: 400;
-  }
+/* Anime-inspired design system with vibrant gradients and modern aesthetics */
 
 @layer base {
   :root {
@@ -281,67 +265,18 @@
     transition: var(--transition-bounce);
   }
 
-  /* Enhanced Mobile-friendly utilities */
+  /* Mobile-friendly utilities */
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105 active:scale-95;
-    will-change: transform;
   }
 
   .touch-friendly {
     @apply min-h-[44px] min-w-[44px] touch-manipulation;
-    will-change: transform;
   }
 
   .mobile-safe-padding {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
-  }
-
-  /* Mobile scroll optimization */
-  .mobile-scroll-container {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .mobile-scroll-container::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Mobile card optimizations */
-  .mobile-card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 0.75rem;
-  }
-
-  @media (max-width: 640px) {
-    .mobile-card-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-    }
-  }
-
-  /* Enhanced touch interactions */
-  .touch-bounce {
-    @apply transition-transform duration-150;
-  }
-
-  .touch-bounce:active {
-    transform: scale(0.95);
-  }
-
-  /* Mobile-specific glass effects */
-  @media (max-width: 768px) {
-    .anime-card {
-      border-radius: 1rem;
-      backdrop-filter: blur(8px);
-    }
-    
-    .glass-card {
-      backdrop-filter: blur(8px);
-      border-radius: 0.875rem;
-    }
   }
 
   /* Text Gradients */
@@ -481,7 +416,6 @@
   /* Micro-interactions */
   .spring-bounce {
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    will-change: transform;
   }
 
   .spring-bounce:hover {

@@ -2,13 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  generateCorrelationId, 
-  classifyError, 
-  logError, 
-  formatErrorForUser,
-  createAsyncErrorHandler 
-} from '@/utils/errorUtils';
 
 interface AnimeDetail {
   // Title fields
@@ -67,18 +60,17 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
     setLoading(true);
     setError(null);
 
-    const correlationId = generateCorrelationId();
-    
     try {
-      console.log(`[${correlationId.slice(-8)}] Fetching anime detail for ID:`, animeId);
+      console.log('Fetching anime detail for ID:', animeId);
       
       const { data: response, error: edgeError } = await supabase.functions.invoke('anime-detail-single', {
-        body: { id: animeId, correlationId }
+        body: { id: animeId }
       });
 
-      console.log(`[${correlationId.slice(-8)}] Edge function response:`, { response, edgeError });
+      console.log('Edge function response:', { response, edgeError });
 
       if (edgeError) {
+        console.error('Edge function error:', edgeError);
         throw new Error(edgeError.message || 'Failed to fetch anime details');
       }
 
@@ -99,21 +91,15 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
         studios: Array.isArray(animeData.studios) ? animeData.studios : [],
       };
 
-      console.log(`[${correlationId.slice(-8)}] Successfully fetched anime:`, transformedAnime.title);
+      console.log('Successfully fetched anime:', transformedAnime.title);
+      console.log('Number of users voted:', transformedAnime.num_users_voted);
       setAnime(transformedAnime);
 
-    } catch (err: unknown) {
-      // Enhanced error handling with classification
-      const classifiedError = classifyError(err, correlationId, 'fetch_anime_detail');
-      
-      // Log error with context
-      await logError(classifiedError, err);
-      
-      // Set error state with user-friendly message
-      setError(classifiedError.userMessage);
-      
-      // Show toast with formatted error
-      toast.error(formatErrorForUser(classifiedError));
+    } catch (err: any) {
+      console.error('Error fetching anime detail:', err);
+      const errorMessage = err.message || 'Failed to fetch anime details';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -70,12 +70,12 @@ export const MobileOptimizedCard = ({
             <img
               src={imageUrl}
               alt={title}
-              loading="lazy"
               className={cn(
                 "w-full h-full object-cover transition-opacity duration-300",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
               onLoad={() => setImageLoaded(true)}
+              loading="lazy"
             />
           </>
         )}

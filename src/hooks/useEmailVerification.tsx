@@ -187,34 +187,39 @@ export const useEmailVerification = (): EmailVerificationStatus => {
     try {
       setIsResending(true);
       
-      // Queue verification email
-      const correlationId = crypto.randomUUID();
-      const { error } = await supabase
-        .from('email_queue')
-        .insert({
-          email: user.email!,
+      // Call the enhanced send-auth-emails function directly
+      const { data: response, error } = await supabase.functions.invoke('send-auth-emails', {
+        body: {
+          email: user.email,
           user_id: user.id,
-          email_type: 'resend_confirmation',
-          metadata: {
-            redirect_to: `${window.location.origin}/`,
-          },
-          correlation_id: correlationId
-        });
+          token: crypto.randomUUID(),
+          email_action_type: 'resend_confirmation',
+          redirect_to: `${window.location.origin}/`,
+        }
+      });
 
       if (error) {
-        console.error('Error queueing verification:', error);
+        console.error('Error resending verification:', error);
         
-        // Enhanced error handling
+        // Enhanced error handling with specific messages
         if (error.message?.includes('rate limit')) {
           toast.error('Too many requests. Please wait before requesting another verification email.');
+        } else if (error.message?.includes('circuit breaker')) {
+          toast.error('Email service temporarily unavailable. Please try again later.');
         } else {
-          toast.error('Failed to queue verification email. Please try again.');
+          toast.error('Failed to resend verification email. Please try again.');
         }
         return;
       }
 
-      toast.success('Verification email queued! Please check your inbox in a few moments.', {
-        description: `Request ID: ${correlationId}`
+      if (response?.error) {
+        console.error('Function returned error:', response.error);
+        toast.error(response.error.message || 'Failed to resend verification email');
+        return;
+      }
+
+      toast.success('Verification email sent! Please check your inbox.', {
+        description: response?.correlation_id ? `Request ID: ${response.correlation_id}` : undefined
       });
       
       checkVerificationStatus();

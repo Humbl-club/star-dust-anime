@@ -55,7 +55,6 @@ export const SearchResults = ({
                     <img 
                       src={anime.image_url} 
                       alt={anime.title}
-                      loading="lazy"
                       className="w-12 h-16 object-cover rounded flex-shrink-0 group-hover:scale-105 transition-transform"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';

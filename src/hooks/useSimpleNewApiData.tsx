@@ -1,12 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  generateCorrelationId, 
-  classifyError, 
-  logError, 
-  formatErrorForUser 
-} from '@/utils/errorUtils';
 
 interface UseSimpleNewApiDataOptions {
   contentType: 'anime' | 'manga';
@@ -30,8 +24,8 @@ interface BaseContent {
   title: string;
   title_english?: string;
   title_japanese?: string;
-  synopsis: string;
-  image_url: string;
+  synopsis: string; // Required field
+  image_url: string; // Required field
   score?: number;
   anilist_score?: number;
   rank?: number;
@@ -65,18 +59,8 @@ interface MangaContent extends BaseContent {
   authors: string[];
 }
 
-// Enhanced pagination interface
-interface PaginationInfo {
-  current_page: number;
-  per_page: number;
-  total: number;
-  total_pages: number;
-  has_next_page: boolean;
-  has_prev_page: boolean;
-}
-
-// Improved database query function that starts from detail tables
-const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ data: (AnimeContent | MangaContent)[], pagination: PaginationInfo }> => {
+// Optimized database query function with server-side filtering
+const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ data: any[], pagination: any }> => {
   const {
     contentType,
     page = 1,
@@ -91,291 +75,159 @@ const fetchTitlesData = async (options: UseSimpleNewApiDataOptions): Promise<{ d
     order = 'desc'
   } = options;
 
-  const correlationId = generateCorrelationId();
-  console.log(`[${correlationId.slice(-8)}] Starting improved ${contentType} query:`, options);
+  console.log('Fetching data with optimized query:', options);
 
-  try {
-    let query;
-    let countQuery;
+  // Build optimized query with server-side filtering
+  let query = supabase
+    .from('titles')
+    .select(`
+      *,
+      ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+      ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
+      ${contentType === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))'}
+    `, { count: 'exact' });
+
+  // Apply content-specific filters at database level
+  if (contentType === 'anime') {
+    if (status) {
+      query = query.eq('anime_details.status', status);
+    }
+    if (type) {
+      query = query.eq('anime_details.type', type);
+    }
+    if (season) {
+      query = query.eq('anime_details.season', season);
+    }
+  } else {
+    if (status) {
+      query = query.eq('manga_details.status', status);
+    }
+    if (type) {
+      query = query.eq('manga_details.type', type);
+    }
+  }
+
+  // Apply genre filter at database level
+  if (genre) {
+    query = query.eq('title_genres.genres.name', genre);
+  }
+
+  // Apply year filter
+  if (year) {
+    query = query.eq('year', parseInt(year));
+  }
+
+  // Apply text search with better performance
+  if (search) {
+    const searchTerm = search.trim();
+    if (searchTerm) {
+      // Use full-text search for better performance with the new index
+      query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+    }
+  }
+
+  // Apply optimized sorting using indexes
+  const sortField = sort_by === 'score' ? 'score' : sort_by;
+  query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false });
+
+  // Apply pagination
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query.range(from, to);
+
+  const { data: response, error, count } = await query;
+
+  if (error) {
+    console.error('Database error:', error);
+    throw error;
+  }
+
+  console.log('Database response:', { count, dataLength: response?.length });
+
+  // Transform data to match expected format
+  const transformedData = response?.map((item: any) => {
+    const baseData = {
+      id: item.id,
+      anilist_id: item.anilist_id,
+      title: item.title,
+      title_english: item.title_english,
+      title_japanese: item.title_japanese,
+      synopsis: item.synopsis || '', // Ensure synopsis is always provided
+      image_url: item.image_url || '', // Ensure image_url is always provided
+      score: item.score,
+      anilist_score: item.anilist_score,
+      rank: item.rank,
+      popularity: item.popularity,
+      year: item.year,
+      color_theme: item.color_theme,
+      genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+      members: item.popularity || 0
+    };
 
     if (contentType === 'anime') {
-      // Query from titles and join with anime_details
-      query = supabase
-        .from('titles')
-        .select(`
-          id,
-          anilist_id,
-          title,
-          title_english,
-          title_japanese,
-          synopsis,
-          image_url,
-          score,
-          anilist_score,
-          rank,
-          popularity,
-          year,
-          color_theme,
-          anime_details!inner(
-            episodes,
-            aired_from,
-            aired_to,
-            season,
-            status,
-            type,
-            trailer_url,
-            next_episode_date
-          )
-        `);
-
-      countQuery = supabase
-        .from('titles')
-        .select('*, anime_details!inner(title_id)', { count: 'exact', head: true });
-    } else {
-      // Query from titles and join with manga_details
-      query = supabase
-        .from('titles')
-        .select(`
-          id,
-          anilist_id,
-          title,
-          title_english,
-          title_japanese,
-          synopsis,
-          image_url,
-          score,
-          anilist_score,
-          rank,
-          popularity,
-          year,
-          color_theme,
-          manga_details!inner(
-            chapters,
-            volumes,
-            published_from,
-            published_to,
-            status,
-            type,
-            next_chapter_date
-          )
-        `);
-
-      countQuery = supabase
-        .from('titles')
-        .select('*, manga_details!inner(title_id)', { count: 'exact', head: true });
-    }
-
-    // Apply filters to both query and count query
-    const applyFilters = (q: any) => {
-      if (search) {
-        const searchTerm = search.trim();
-        if (searchTerm) {
-          q = q.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
-        }
-      }
-
-      if (year) {
-        q = q.eq('year', parseInt(year));
-      }
-
-      if (status && contentType === 'anime') {
-        q = q.eq('anime_details.status', status);
-      } else if (status && contentType === 'manga') {
-        q = q.eq('manga_details.status', status);
-      }
-
-      if (type && contentType === 'anime') {
-        q = q.eq('anime_details.type', type);
-      } else if (type && contentType === 'manga') {
-        q = q.eq('manga_details.type', type);
-      }
-
-      if (season && contentType === 'anime') {
-        q = q.eq('anime_details.season', season);
-      }
-
-      return q;
-    };
-
-    // Apply filters
-    query = applyFilters(query);
-    countQuery = applyFilters(countQuery);
-
-    // Get total count first
-    const { count, error: countError } = await countQuery;
-    
-    if (countError) {
-      console.error(`[${correlationId.slice(-8)}] Count query error:`, countError);
-      throw countError;
-    }
-
-    console.log(`[${correlationId.slice(-8)}] Total ${contentType} count:`, count || 0);
-
-    // Apply sorting and pagination to main query  
-    const sortField = sort_by === 'score' ? 'score' : sort_by;
-    query = query.order(sortField, { ascending: order === 'asc' });
-
-    // Apply pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
-
-    const { data, error } = await query;
-
-    console.log('Raw query result:', { 
-      dataLength: data?.length, 
-      error,
-      firstItem: data?.[0] 
-    });
-
-    console.log('Query executed:', { 
-      data: data?.length, 
-      error, 
-      firstItem: data?.[0] 
-    });
-
-    if (error) {
-      console.error(`[${correlationId.slice(-8)}] Main query error:`, error);
-      throw error;
-    }
-
-    console.log(`[${correlationId.slice(-8)}] Raw query result:`, data?.length || 0, 'items');
-
-    if (!data || data.length === 0) {
-      console.log(`[${correlationId.slice(-8)}] No ${contentType} found`);
       return {
-        data: [],
-        pagination: {
-          current_page: page,
-          per_page: limit,
-          total: count || 0,
-          total_pages: Math.ceil((count || 0) / limit),
-          has_next_page: false,
-          has_prev_page: false
-        }
+        ...baseData,
+        episodes: item.anime_details?.episodes || 0,
+        aired_from: item.anime_details?.aired_from,
+        aired_to: item.anime_details?.aired_to,
+        season: item.anime_details?.season,
+        status: item.anime_details?.status || 'Unknown',
+        type: item.anime_details?.type || 'TV',
+        trailer_url: item.anime_details?.trailer_url,
+        next_episode_date: item.anime_details?.next_episode_date,
+        studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || []
+      };
+    } else {
+      return {
+        ...baseData,
+        chapters: item.manga_details?.chapters || 0,
+        volumes: item.manga_details?.volumes || 0,
+        published_from: item.manga_details?.published_from,
+        published_to: item.manga_details?.published_to,
+        status: item.manga_details?.status || 'Unknown',
+        type: item.manga_details?.type || 'Manga',
+        next_chapter_date: item.manga_details?.next_chapter_date,
+        authors: item.title_authors?.map((ta: any) => ta.authors?.name).filter(Boolean) || []
       };
     }
+  }) || [];
 
-    // Transform the data
-    const transformedData = data
-      .filter(item => item && (item.anime_details || item.manga_details)) // Ensure we have detail data
-      .map((item: any): AnimeContent | MangaContent => {
-        const baseData = {
-          id: item.id,
-          anilist_id: item.anilist_id,
-          title: item.title || 'Unknown Title',
-          title_english: item.title_english,
-          title_japanese: item.title_japanese,
-          synopsis: item.synopsis || '',
-          image_url: item.image_url || '',
-          score: item.score,
-          anilist_score: item.anilist_score,
-          rank: item.rank,
-          popularity: item.popularity,
-          year: item.year,
-          color_theme: item.color_theme,
-          genres: [],
-          members: item.popularity || 0
-        };
+  // Build pagination info
+  const totalPages = count ? Math.ceil(count / limit) : 1;
+  const pagination = {
+    current_page: page,
+    per_page: limit,
+    total: count || 0,
+    total_pages: totalPages,
+    has_next_page: page < totalPages,
+    has_prev_page: page > 1
+  };
 
-        if (contentType === 'anime' && item.anime_details) {
-          const details = item.anime_details;
-          return {
-            ...baseData,
-            status: details.status || 'Unknown',
-            type: details.type || 'TV',
-            episodes: details.episodes || 0,
-            aired_from: details.aired_from,
-            aired_to: details.aired_to,
-            season: details.season,
-            trailer_url: details.trailer_url,
-            next_episode_date: details.next_episode_date,
-            studios: []
-          } as AnimeContent;
-        } else if (contentType === 'manga' && item.manga_details) {
-          const details = item.manga_details;
-          return {
-            ...baseData,
-            status: details.status || 'Unknown',
-            type: details.type || 'Manga',
-            chapters: details.chapters || 0,
-            volumes: details.volumes || 0,
-            published_from: details.published_from,
-            published_to: details.published_to,
-            next_chapter_date: details.next_chapter_date,
-            authors: []
-          } as MangaContent;
-        }
-
-        // Fallback
-        return {
-          ...baseData,
-          status: 'Unknown',
-          type: contentType === 'anime' ? 'TV' : 'Manga',
-          episodes: 0,
-          studios: []
-        } as AnimeContent;
-      });
-
-    // Build pagination info
-    const totalPages = Math.ceil((count || 0) / limit);
-    const pagination = {
-      current_page: page,
-      per_page: limit,
-      total: count || 0,
-      total_pages: totalPages,
-      has_next_page: page < totalPages,
-      has_prev_page: page > 1
-    };
-
-    console.log('After transform:', {
-      transformedLength: transformedData.length,
-      firstTransformed: transformedData[0]
-    });
-
-    console.log('Transformed data:', {
-      length: transformedData.length,
-      sample: transformedData[0]
-    });
-
-    console.log(`[${correlationId.slice(-8)}] Successfully transformed ${transformedData.length} ${contentType} items`);
-    console.log(`[${correlationId.slice(-8)}] Sample item:`, transformedData[0]);
-
-    console.log('Returning from fetchTitlesData:', {
-      dataLength: transformedData.length,
-      paginationTotal: pagination.total
-    });
-    return { data: transformedData, pagination };
-
-  } catch (error) {
-    console.error(`[${correlationId.slice(-8)}] Fetch error:`, error);
-    // Don't throw here, return empty data to prevent crashes
-    return {
-      data: [],
-      pagination: {
-        current_page: page,
-        per_page: limit,
-        total: 0,
-        total_pages: 0,
-        has_next_page: false,
-        has_prev_page: false
-      }
-    };
-  }
+  return { data: transformedData, pagination };
 };
 
-// Hook return type interface
-interface UseSimpleApiDataReturn<T> {
-  data: T[];
-  pagination: PaginationInfo | null;
+// Overload declarations for proper TypeScript typing
+export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions & { contentType: 'anime' }): {
+  data: AnimeContent[];
+  pagination: any;
   loading: boolean;
   error: string | null;
   fetchData: () => Promise<void>;
   syncFromExternal: (pages?: number) => Promise<void>;
-  refetch: () => Promise<unknown>;
-}
+  refetch: () => Promise<any>;
+};
 
-// Implementation function
+export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions & { contentType: 'manga' }): {
+  data: MangaContent[];
+  pagination: any;
+  loading: boolean;
+  error: string | null;
+  fetchData: () => Promise<void>;
+  syncFromExternal: (pages?: number) => Promise<void>;
+  refetch: () => Promise<any>;
+};
+
+// Implementation
 export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
   const queryClient = useQueryClient();
   const {
@@ -419,7 +271,7 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
     queryKey,
     queryFn: () => fetchTitlesData(options),
     enabled: autoFetch,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
@@ -427,41 +279,35 @@ export function useSimpleNewApiData(options: UseSimpleNewApiDataOptions) {
 
   // Sync from external API function
   const syncFromExternal = async (pages = 1) => {
-    const correlationId = generateCorrelationId();
-    
     try {
-      console.log(`[${correlationId.slice(-8)}] Starting ${contentType} sync using ultra-fast-sync...`);
+      console.log(`Starting ${contentType} sync using ultra-fast-sync...`);
       
       const { data: response, error } = await supabase.functions.invoke('ultra-fast-sync', {
         body: {
           contentType,
-          maxPages: pages,
-          correlationId
+          maxPages: pages
         }
       });
 
       if (error) {
+        console.error(`${contentType} sync error:`, error);
         throw error;
       }
 
       if (response?.success) {
         const processed = response.results?.processed || 0;
         toast.success(`Successfully synced ${processed} new ${contentType} items`);
-        console.log(`[${correlationId.slice(-8)}] ${contentType} sync completed:`, response);
+        console.log(`${contentType} sync completed:`, response);
         
         // Invalidate all title queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['titles'] });
       } else {
         throw new Error(`Sync failed: ${response?.message || 'Unknown error'}`);
       }
-    } catch (err: unknown) {
-      // Enhanced error handling with classification
-      const classifiedError = classifyError(err, correlationId, `sync_${contentType}`);
-      await logError(classifiedError, err);
-      
-      // Show user-friendly error message
-      toast.error(formatErrorForUser(classifiedError));
-      throw classifiedError;
+    } catch (err: any) {
+      console.error(`Error syncing ${contentType}:`, err);
+      toast.error(`Failed to sync ${contentType} data`);
+      throw err;
     }
   };
 

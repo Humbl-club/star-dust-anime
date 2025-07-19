@@ -50,7 +50,7 @@ export const ProfileMenu = () => {
 
       if (error) throw error;
       setProfile(data);
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export const ProfileMenu = () => {
       // Force page refresh to clear any cached state
       window.location.href = '/';
       
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Unexpected error during sign out:', error);
       toast.error("Error signing out");
     }

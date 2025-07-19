@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +30,7 @@ import { useConsolidatedSearch } from "@/hooks/useConsolidatedSearch";
 import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
-import { MobileSearchBar } from "@/components/MobileSearchBar";
+
 import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { Switch } from "@/components/ui/switch";
@@ -51,7 +50,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const { performSearch, isSearching, searchResults, clearSearch } = useConsolidatedSearch();
   const { isNative, keyboardVisible } = useNativeSetup();
   const { triggerHaptic } = useNativeActions();
@@ -82,23 +80,18 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     }
   };
 
-  // Debounced search handler to prevent API spam
-  const debouncedSearch = useDebouncedCallback((value: string) => {
+  // Handle real-time search as user types
+  const handleInputChange = (value: string) => {
+    console.log('Input changed:', value);
+    setSearchQuery(value);
     if (value.trim().length > 2) {
-      console.log('Triggering debounced search for:', value.trim());
+      console.log('Triggering search for:', value.trim());
       setShowResults(true);
       performSearch(value.trim(), 'both');
     } else if (value.trim().length === 0) {
       setShowResults(false);
       clearSearch();
     }
-  }, 300);
-
-  // Handle real-time search as user types
-  const handleInputChange = (value: string) => {
-    console.log('Input changed:', value);
-    setSearchQuery(value);
-    debouncedSearch(value);
   };
 
   const handleAnimeClick = (anime: any) => {
@@ -115,13 +108,9 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
     if (showResults) {
       document.addEventListener('click', handleClickOutside);
-      return () => {
-        document.removeEventListener('click', handleClickOutside);
-        // Cleanup debounced search
-        debouncedSearch.cancel();
-      };
+      return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [showResults, debouncedSearch]);
+  }, [showResults]);
 
   const navItems = [
     { icon: Home, label: "Home", href: "/", active: window.location.pathname === "/" },
@@ -216,23 +205,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             </div>
           </div>
 
-          {/* Right Side Actions - Mobile Optimized */}
+          {/* Right Side Actions - Condensed */}
           <div className="flex items-center space-x-1">
-            {/* Mobile Search Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="xl:hidden touch-friendly"
-              onClick={async () => {
-                await triggerHaptic('light');
-                setShowMobileSearch(true);
-              }}
-            >
-              <Search className="w-5 h-5" />
-            </Button>
-
             {!loading && user && (
               <>
+
                 {/* Username Display */}
                 <div className="hidden md:flex items-center gap-3">
                   {stats?.currentUsername && (
@@ -250,23 +227,18 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   )}
                   <ProfileMenu />
                 </div>
-
-                {/* Mobile Profile for authenticated users */}
-                <div className="md:hidden">
-                  <ProfileMenu />
-                </div>
               </>
             )}
 
             {!loading && !user && (
               <div className="hidden sm:flex items-center space-x-2">
                 <Link to="/auth">
-                  <Button variant="outline" size="sm" className="touch-friendly">
+                  <Button variant="outline" size="sm">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/auth?tab=signup">
-                  <Button variant="hero" size="sm" className="touch-friendly">
+                  <Button variant="hero" size="sm">
                     Get Started
                   </Button>
                 </Link>
@@ -459,11 +431,6 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           </div>
         )}
       </div>
-
-      {/* Mobile Search Overlay */}
-      {showMobileSearch && (
-        <MobileSearchBar onClose={() => setShowMobileSearch(false)} />
-      )}
     </nav>
   );
 };

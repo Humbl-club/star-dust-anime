@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useDebouncedCallback } from "use-debounce";
 import { Search, Youtube, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,11 +23,6 @@ export const TrailerDiscovery = ({
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(animeTitle);
   const [hasSearched, setHasSearched] = useState(false);
-
-  // Debounced search handler
-  const debouncedSearchTrailers = useDebouncedCallback((query: string) => {
-    searchTrailers(query);
-  }, 300);
 
   const searchTrailers = async (query: string = searchQuery) => {
     if (!query.trim()) return;
@@ -80,10 +74,7 @@ export const TrailerDiscovery = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  debouncedSearchTrailers(e.target.value);
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for trailers..."
                 className="pl-10"
                 onKeyDown={(e) => e.key === 'Enter' && searchTrailers()}

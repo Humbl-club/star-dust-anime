@@ -1,36 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
 import { AuthResponse } from '@/types/auth';
-import { generateCorrelationId, classifyError, logError, formatErrorForUser } from '@/utils/errorUtils';
-import { authRateLimiter, logSecurityEvent } from '@/utils/securityUtils';
-import { CSRFProtection, SessionManager, clearAllSensitiveData } from '@/utils/encryptionUtils';
 
 export const authService = {
   async signUp(email: string, password: string): Promise<AuthResponse> {
-    const correlationId = generateCorrelationId();
-    
     try {
-      // Rate limiting check
-      const clientId = navigator.userAgent + (await this.getClientFingerprint());
-      if (!authRateLimiter.isAllowed(clientId)) {
-        logSecurityEvent({
-          type: 'auth_rate_limit_exceeded',
-          severity: 'warning',
-          message: 'Sign up rate limit exceeded',
-          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
-        });
-        
-        const resetTime = authRateLimiter.getResetTime(clientId);
-        const remainingMs = resetTime ? resetTime - Date.now() : 0;
-        const remainingMin = Math.ceil(remainingMs / (1000 * 60));
-        
-        return { 
-          error: { 
-            message: `Too many signup attempts. Please try again in ${remainingMin} minutes.` 
-          } 
-        };
-      }
-      
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
       const sanitizedPassword = sanitizeInput(password);
@@ -69,31 +43,29 @@ export const authService = {
           data: {
             signup_source: 'web',
             user_agent: navigator.userAgent,
-            password_strength_score: passwordValidation.score,
-            csrf_token: CSRFProtection.generateToken()
+            password_strength_score: passwordValidation.score
           }
         }
       });
 
       console.log('AuthService: Signup response:', { data, error });
 
-      // Enhanced error handling with classification
+      // Enhanced error handling
       if (error) {
-        const classifiedError = classifyError(error, correlationId, 'auth_signup');
-        await logError(classifiedError, error);
+        console.error('Signup error:', error);
         
         // Provide more user-friendly error messages
         if (error.message.includes('User already registered')) {
-          return { error: { message: `An account with this email already exists. Please sign in instead.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'An account with this email already exists. Please sign in instead.' } };
         }
         if (error.message.includes('Password should be at least')) {
-          return { error: { message: `Password must be at least 6 characters long.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'Password must be at least 6 characters long.' } };
         }
         if (error.message.includes('Unable to validate email address')) {
-          return { error: { message: `Please enter a valid email address.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'Please enter a valid email address.' } };
         }
         
-        return { error: { message: formatErrorForUser(classifiedError) } };
+        return { error: { message: error.message || 'Failed to create account' } };
       }
 
       // Always set justSignedUp flag for new users
@@ -105,22 +77,38 @@ export const authService = {
         
         // Send verification email immediately after successful signup
         console.log('AuthService: Sending verification email...');
-try {
-          // Queue verification email instead of sending directly
-          const { error: queueError } = await supabase
-            .from('email_queue')
-            .insert({
+        try {
+          const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-auth-emails', {
+            body: {
               email: sanitizedEmail,
               user_id: data.user.id,
-              email_type: 'signup',
-              metadata: {
-                redirect_to: redirectUrl
-              },
-              correlation_id: crypto.randomUUID()
-            });
+              email_action_type: 'signup',
+              token: crypto.randomUUID(),
+              redirect_to: redirectUrl
+            }
+          });
           
-          if (queueError) {
-            console.error('AuthService: Failed to queue email:', queueError);
+          console.log('AuthService: Email sending response:', { emailResponse, emailError });
+          
+          if (emailError) {
+            console.error('AuthService: Email sending failed:', emailError);
+            // Retry once if it fails
+            try {
+              const { error: retryError } = await supabase.functions.invoke('send-auth-emails', {
+                body: {
+                  email: sanitizedEmail,
+                  user_id: data.user.id,
+                  email_action_type: 'signup',
+                  token: crypto.randomUUID(),
+                  redirect_to: redirectUrl
+                }
+              });
+              if (retryError) {
+                console.error('AuthService: Email retry also failed:', retryError);
+              }
+            } catch (retryException) {
+              console.error('AuthService: Exception during email retry:', retryException);
+            }
           }
         } catch (emailTriggerError) {
           console.error('AuthService: Exception during email sending:', emailTriggerError);
@@ -136,38 +124,13 @@ try {
       // User created and confirmed (confirmations disabled)
       return { error: null, data };
     } catch (err) {
-      const classifiedError = classifyError(err, correlationId, 'auth_signup_exception');
-      await logError(classifiedError, err);
-      
-      return { error: { message: formatErrorForUser(classifiedError) } };
+      console.error('Signup exception:', err);
+      return { error: { message: 'An unexpected error occurred during signup' } };
     }
   },
 
   async signIn(email: string, password: string): Promise<{ error: any }> {
-    const correlationId = generateCorrelationId();
-    
     try {
-      // Rate limiting check
-      const clientId = navigator.userAgent + (await this.getClientFingerprint());
-      if (!authRateLimiter.isAllowed(clientId)) {
-        logSecurityEvent({
-          type: 'auth_rate_limit_exceeded',
-          severity: 'warning',
-          message: 'Sign in rate limit exceeded',
-          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
-        });
-        
-        const resetTime = authRateLimiter.getResetTime(clientId);
-        const remainingMs = resetTime ? resetTime - Date.now() : 0;
-        const remainingMin = Math.ceil(remainingMs / (1000 * 60));
-        
-        return { 
-          error: { 
-            message: `Too many signin attempts. Please try again in ${remainingMin} minutes.` 
-          } 
-        };
-      }
-      
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
       const sanitizedPassword = sanitizeInput(password);
@@ -181,47 +144,30 @@ try {
         email: sanitizedEmail,
         password: sanitizedPassword,
       });
-      
-      // Log successful sign in
-      if (!error) {
-        logSecurityEvent({
-          type: 'auth_signin_success',
-          severity: 'info',
-          message: 'User signed in successfully',
-          data: { email: email.replace(/(.{2}).*(@.*)/, '$1***$2') }
-        });
-      }
 
       if (error) {
-        const classifiedError = classifyError(error, correlationId, 'auth_signin');
-        await logError(classifiedError, error);
-        
         // Provide more user-friendly error messages
         if (error.message.includes('Invalid login credentials')) {
-          return { error: { message: `Invalid email or password. Please try again.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'Invalid email or password. Please try again.' } };
         }
         if (error.message.includes('Email not confirmed')) {
-          return { error: { message: `Please check your email and confirm your account before signing in.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'Please check your email and confirm your account before signing in.' } };
         }
         if (error.message.includes('Too many requests')) {
-          return { error: { message: `Too many sign-in attempts. Please wait a moment and try again.\n\nError ID: ${correlationId.slice(-8).toUpperCase()}` } };
+          return { error: { message: 'Too many sign-in attempts. Please wait a moment and try again.' } };
         }
 
-        return { error: { message: formatErrorForUser(classifiedError) } };
+        return { error: { message: error.message || 'Failed to sign in' } };
       }
 
       return { error: null };
     } catch (err) {
-      const classifiedError = classifyError(err, correlationId, 'auth_signin_exception');
-      await logError(classifiedError, err);
-      
-      return { error: { message: formatErrorForUser(classifiedError) } };
+      console.error('Signin exception:', err);
+      return { error: { message: 'An unexpected error occurred during sign in' } };
     }
   },
 
   async signInWithGoogle(): Promise<{ error: any }> {
-    const correlationId = generateCorrelationId();
-    
     try {
       // Better mobile redirect handling
       const baseUrl = window.location.origin;
@@ -240,61 +186,43 @@ try {
       });
       
       if (error) {
-        const classifiedError = classifyError(error, correlationId, 'auth_google_signin');
-        await logError(classifiedError, error);
-        
-        return { error: { message: formatErrorForUser(classifiedError) } };
+        console.error('Google signin error:', error);
       }
       
-      return { error: null };
+      return { error };
     } catch (err) {
-      const classifiedError = classifyError(err, correlationId, 'auth_google_signin_exception');
-      await logError(classifiedError, err);
-      
-      return { error: { message: formatErrorForUser(classifiedError) } };
+      console.error('Google signin exception:', err);
+      return { error: { message: 'Failed to sign in with Google' } };
     }
   },
 
   async signOut(): Promise<{ error: any }> {
-    const correlationId = generateCorrelationId();
-    
     try {
       console.log('AuthService: Starting sign out process...');
       
-      // Clear all sensitive data using secure utilities
-      clearAllSensitiveData();
+      // Clear local storage
+      localStorage.removeItem('justSignedUp');
+      localStorage.removeItem('pendingEmail');
+      sessionStorage.removeItem('justSignedUp');
+      sessionStorage.removeItem('pendingEmail');
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
-      // Log security event
-      logSecurityEvent({
-        type: 'auth_signout',
-        severity: 'info',
-        message: 'User signed out',
-        data: { timestamp: new Date().toISOString() }
-      });
-      
       if (error) {
-        const classifiedError = classifyError(error, correlationId, 'auth_signout');
-        await logError(classifiedError, error);
-        
-        return { error: { message: formatErrorForUser(classifiedError) } };
+        console.error('AuthService: Sign out error:', error);
+        return { error };
       }
       
       console.log('AuthService: Sign out successful');
       return { error: null };
     } catch (err) {
-      const classifiedError = classifyError(err, correlationId, 'auth_signout_exception');
-      await logError(classifiedError, err);
-      
-      return { error: { message: formatErrorForUser(classifiedError) } };
+      console.error('AuthService: Sign out exception:', err);
+      return { error: { message: 'An unexpected error occurred during sign out' } };
     }
   },
 
   async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
-    const correlationId = generateCorrelationId();
-    
     try {
       // Sanitize email input
       const sanitizedEmail = sanitizeInput(email.toLowerCase());
@@ -319,25 +247,19 @@ try {
         };
       }
       
-      // Queue resend confirmation email
-      const { error } = await supabase
-        .from('email_queue')
-        .insert({
+      // Call the edge function directly
+      const { data, error } = await supabase.functions.invoke('send-auth-emails', {
+        body: {
           email: sanitizedEmail,
           user_id: user.id,
-          email_type: 'resend_confirmation',
-          metadata: {
-            redirect_to: window.location.origin
-          },
-          correlation_id: crypto.randomUUID()
-        });
+          email_action_type: 'resend_confirmation'
+        }
+      });
 
       if (error) {
-        const classifiedError = classifyError(error, correlationId, 'auth_resend_confirmation');
-        await logError(classifiedError, error);
-        
+        console.error('Resend verification error:', error);
         return { 
-          error: { message: formatErrorForUser(classifiedError) },
+          error: { message: error.message || 'Failed to resend confirmation email' },
           message: 'Failed to resend email'
         };
       }
@@ -346,40 +268,12 @@ try {
         error: null,
         message: 'Confirmation email sent! Please check your inbox.'
       };
-    } catch (error: unknown) {
-      const classifiedError = classifyError(error, correlationId, 'auth_resend_confirmation_exception');
-      await logError(classifiedError, error);
-      
+    } catch (error: any) {
+      console.error('Unexpected error during resend confirmation:', error);
       return { 
-        error: { message: formatErrorForUser(classifiedError) },
+        error: { message: 'An unexpected error occurred. Please try again.' },
         message: 'Unexpected error'
       };
     }
-  },
-
-  // Helper method for client fingerprinting
-  async getClientFingerprint(): Promise<string> {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.textBaseline = 'top';
-      ctx.font = '14px Arial';
-      ctx.fillText('Browser fingerprint', 2, 2);
-    }
-    
-    const fingerprint = [
-      navigator.userAgent,
-      navigator.language,
-      screen.width + 'x' + screen.height,
-      new Date().getTimezoneOffset(),
-      canvas.toDataURL()
-    ].join('|');
-    
-    // Hash the fingerprint
-    const encoder = new TextEncoder();
-    const data = encoder.encode(fingerprint);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 };
