@@ -189,6 +189,16 @@ export default {
 				'background-pan': {
 					'0%': { backgroundPosition: '0% 0%' },
 					'100%': { backgroundPosition: '100% 100%' }
+				},
+				'slide-in-from-bottom': {
+					'0%': { 
+						opacity: '0', 
+						transform: 'translateY(100%)' 
+					},
+					'100%': { 
+						opacity: '1', 
+						transform: 'translateY(0)' 
+					}
 				}
 			},
 			animation: {
@@ -209,7 +219,8 @@ export default {
 				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite',
 				'slide-up-fade': 'slide-up-fade 0.6s ease-out',
 				'rotate-slow': 'rotate-slow 20s linear infinite',
-				'background-pan': 'background-pan 10s ease-in-out infinite'
+				'background-pan': 'background-pan 10s ease-in-out infinite',
+				'slide-in-from-bottom': 'slide-in-from-bottom 0.3s ease-out'
 			}
 		}
 	},

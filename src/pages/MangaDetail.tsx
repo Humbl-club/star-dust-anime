@@ -14,6 +14,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { QuickActionsBar } from "@/components/QuickActionsBar";
 
 
 const MangaDetail = () => {
@@ -154,11 +155,13 @@ const MangaDetail = () => {
 
           {/* Details Grid */}
           {detailItems.length > 0 && (
-            <DetailInfoGrid 
-              items={detailItems}
-              title="Information"
-              animationDelay="0.5s"
-            />
+            <div id="details">
+              <DetailInfoGrid 
+                items={detailItems}
+                title="Information"
+                animationDelay="0.5s"
+              />
+            </div>
           )}
 
           {/* Genres */}
@@ -203,7 +206,7 @@ const MangaDetail = () => {
           )}
 
           {/* Score Validation Component */}
-          <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+          <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
             <ScoreValidationComponent
               titleId={manga.id}
               anilistScore={manga.anilist_score}
@@ -212,11 +215,23 @@ const MangaDetail = () => {
           </div>
 
           {/* Comments Section */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
+          <div id="comments" className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
             <CommentsSection titleId={manga.id} />
           </div>
         </div>
       </div>
+
+      {/* Quick Actions Bar */}
+      <QuickActionsBar
+        item={mangaForList}
+        contentType="manga"
+        shareData={{
+          title: `${getDisplayName(manga)} - AniVault`,
+          text: `Check out ${getDisplayName(manga)} on AniVault!`,
+          url: window.location.href,
+          image: manga.image_url
+        }}
+      />
     </DetailPageLayout>
   );
 };

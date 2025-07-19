@@ -14,6 +14,7 @@ import { DetailPageLayout } from "@/components/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { QuickActionsBar } from "@/components/QuickActionsBar";
 
 
 const AnimeDetail = () => {
@@ -172,11 +173,13 @@ const AnimeDetail = () => {
 
           {/* Details Grid */}
           {detailItems.length > 0 && (
-            <DetailInfoGrid 
-              items={detailItems}
-              title="Details"
-              animationDelay="0.5s"
-            />
+            <div id="details">
+              <DetailInfoGrid 
+                items={detailItems}
+                title="Details"
+                animationDelay="0.5s"
+              />
+            </div>
           )}
 
           {/* Genres */}
@@ -221,7 +224,7 @@ const AnimeDetail = () => {
           )}
 
           {/* Score Validation Component */}
-          <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+          <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
             <ScoreValidationComponent
               titleId={anime.id}
               anilistScore={anime.anilist_score}
@@ -230,11 +233,23 @@ const AnimeDetail = () => {
           </div>
 
           {/* Comments Section */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
+          <div id="comments" className="animate-fade-in" style={{ animationDelay: '0.9s' }}>
             <CommentsSection titleId={anime.id} />
           </div>
         </div>
       </div>
+
+      {/* Quick Actions Bar */}
+      <QuickActionsBar
+        item={animeForList}
+        contentType="anime"
+        shareData={{
+          title: `${getDisplayName(anime)} - AniVault`,
+          text: `Check out ${getDisplayName(anime)} on AniVault!`,
+          url: window.location.href,
+          image: enhancedAnime?.image_url || anime.image_url
+        }}
+      />
     </DetailPageLayout>
   );
 };
