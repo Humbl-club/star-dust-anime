@@ -366,6 +366,33 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_function_test_results: {
+        Row: {
+          error_message: string | null
+          function_name: string
+          id: string
+          response_data: Json | null
+          status: string | null
+          test_time: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          function_name: string
+          id?: string
+          response_data?: Json | null
+          status?: string | null
+          test_time?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          response_data?: Json | null
+          status?: string | null
+          test_time?: string | null
+        }
+        Relationships: []
+      }
       email_delivery_tracking: {
         Row: {
           correlation_id: string
@@ -1547,6 +1574,41 @@ export type Database = {
           },
         ]
       }
+      user_title_progress: {
+        Row: {
+          current_chapter: number | null
+          current_episode: number | null
+          id: string
+          last_updated: string | null
+          title_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          current_chapter?: number | null
+          current_episode?: number | null
+          id?: string
+          last_updated?: string | null
+          title_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          current_chapter?: number | null
+          current_episode?: number | null
+          id?: string
+          last_updated?: string | null
+          title_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_title_progress_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       username_history: {
         Row: {
           acquired_at: string | null
@@ -1620,7 +1682,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      edge_function_dashboard: {
+        Row: {
+          cron_active: boolean | null
+          failed_tests: number | null
+          function_name: string | null
+          health_status: string | null
+          last_tested: string | null
+          schedule: string | null
+          successful_tests: number | null
+          total_tests: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_to_dead_letter_queue: {
@@ -1746,6 +1820,20 @@ export type Database = {
           last_sync_check: string
           genres: Json
           authors: Json
+        }[]
+      }
+      get_related_titles: {
+        Args: {
+          title_id_param: string
+          content_type: string
+          limit_param?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          image_url: string
+          score: number
+          anilist_id: number
         }[]
       }
       get_title_validation_stats: {
