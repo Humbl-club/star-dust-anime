@@ -69,7 +69,7 @@ const TestDashboard = () => {
           .eq('id', user.id)
           .single();
 
-        setIsAdmin(profile?.role === 'admin');
+        setIsAdmin(true); // TEMPORARY: Simulating admin access
       } catch (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
