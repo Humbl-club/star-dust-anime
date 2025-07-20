@@ -93,29 +93,69 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       order
     };
 
-    if (useOptimized) {
-      // Use optimized direct database queries
-      const response = contentType === 'anime'
-        ? await animeService.fetchAnimeOptimized(queryOptions)
-        : await mangaService.fetchMangaOptimized(queryOptions);
+    console.log('useContentData: Fetching data with options:', {
+      contentType,
+      useOptimized,
+      functionName: useOptimized ? 'direct-db-query' : 'anime-api',
+      queryOptions,
+      timestamp: new Date().toISOString()
+    });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch data');
-      }
-      return response.data;
-    } else {
-      // Use edge function API
-      const response = contentType === 'anime'
-        ? await animeService.fetchAnime(queryOptions)
-        : await mangaService.fetchManga(queryOptions);
+    const startTime = performance.now();
 
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch data');
+    try {
+      if (useOptimized) {
+        // Use optimized direct database queries
+        console.log(`useContentData: Calling optimized ${contentType} service...`);
+        const response = contentType === 'anime'
+          ? await animeService.fetchAnimeOptimized(queryOptions)
+          : await mangaService.fetchMangaOptimized(queryOptions);
+
+        const endTime = performance.now();
+        console.log(`useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+          success: response.success,
+          dataLength: response.data?.data?.length || 0,
+          error: response.error,
+          pagination: response.data?.pagination
+        });
+
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch data');
+        }
+        return response.data;
+      } else {
+        // Use edge function API
+        console.log(`useContentData: Calling edge function for ${contentType}...`);
+        const response = contentType === 'anime'
+          ? await animeService.fetchAnime(queryOptions)
+          : await mangaService.fetchManga(queryOptions);
+
+        const endTime = performance.now();
+        console.log(`useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+          success: response.success,
+          dataLength: response.data?.data?.length || 0,
+          error: response.error,
+          pagination: response.data?.pagination
+        });
+
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch data');
+        }
+        return {
+          data: response.data.data,
+          pagination: response.data.pagination
+        };
       }
-      return {
-        data: response.data.data,
-        pagination: response.data.pagination
-      };
+    } catch (error) {
+      const endTime = performance.now();
+      console.error(`useContentData: Error fetching ${contentType} data (${Math.round(endTime - startTime)}ms):`, {
+        error: error.message,
+        stack: error.stack,
+        queryOptions,
+        useOptimized,
+        contentType
+      });
+      throw error;
     }
   };
 
