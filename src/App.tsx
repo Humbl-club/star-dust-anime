@@ -12,6 +12,7 @@ import AnimeDetail from "./pages/AnimeDetail";
 import MangaDetail from "./pages/MangaDetail";
 import Settings from "./pages/Settings";
 import EmailDebug from "./pages/EmailDebug";
+import TestDashboard from "./pages/TestDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/manga/:id" element={<MangaDetail />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/email-debug" element={<EmailDebug />} />
+                <Route path="/test-dashboard" element={<TestDashboard />} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
