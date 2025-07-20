@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserLists, type UserAnimeListEntry, type UserMangaListEntry } from "@/hooks/useUserLists";
-import { FeatureWrapper } from "@/components/FeatureWrapper";
+import { FeatureWrapper } from "@/components/common/FeatureWrapper";
 import { type Anime, type Manga } from "@/data/animeData";
 import { toast } from "sonner";
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { AddToListButton } from "@/components/AddToListButton";
+import { AddToListButton } from "@/components/features/AddToListButton";
 import { Navigation } from "@/components/Navigation";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
 import { 

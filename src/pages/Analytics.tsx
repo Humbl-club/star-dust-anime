@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { AnalyticsCharts } from '@/components/AnalyticsCharts';
+import { AnalyticsCharts } from '@/components/features/AnalyticsCharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { 
   BarChart3, 

@@ -10,7 +10,7 @@ import {
   Bookmark, 
   ExternalLink 
 } from 'lucide-react';
-import { AddToListButton } from '@/components/AddToListButton';
+import { AddToListButton } from '@/components/features/AddToListButton';
 import { ShareButton } from '@/components/ShareButton';
 import { EnhancedTrailerPlayer } from '@/components/EnhancedTrailerPlayer';
 

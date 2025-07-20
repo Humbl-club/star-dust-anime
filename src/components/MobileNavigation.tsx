@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Home, Search, Bookmark, User, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { FeatureWrapper } from '@/components/FeatureWrapper';
+import { FeatureWrapper } from '@/components/common/FeatureWrapper';
 import { cn } from '@/lib/utils';
 
 interface MobileNavigationProps {

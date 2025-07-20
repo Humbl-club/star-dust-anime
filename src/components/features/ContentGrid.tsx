@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { AnimeCard } from '@/components/AnimeCard';
+import { AnimeCard } from '@/components/features/AnimeCard';
 import { VirtualizedList } from '@/components/VirtualizedList';
 import { type AnimeContent, type MangaContent } from '@/types/api.types';
 import { useInView } from 'framer-motion';

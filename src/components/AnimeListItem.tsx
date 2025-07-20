@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RatingComponent } from '@/components/RatingComponent';
-import { AddToListButton } from '@/components/AddToListButton';
+import { AddToListButton } from '@/components/features/AddToListButton';
 import { FillerIndicator } from '@/components/FillerIndicator';
 import { useFillerData } from '@/hooks/useFillerData';
 import { Progress } from '@/components/ui/progress';

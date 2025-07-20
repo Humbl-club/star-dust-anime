@@ -10,10 +10,10 @@ export const LazyTrending = lazy(() => import('@/pages/Trending'));
 
 // Lazy load heavy UI components - just use named exports directly
 export const LazyAdvancedFiltering = lazy(() => 
-  import('@/components/AdvancedFiltering').then(module => ({ default: module.AdvancedFiltering }))
+  import('@/components/features/AdvancedFiltering').then(module => ({ default: module.AdvancedFiltering }))
 );
 export const LazyContentGrid = lazy(() => 
-  import('@/components/ContentGrid').then(module => ({ default: module.ContentGrid }))
+  import('@/components/features/ContentGrid').then(module => ({ default: module.ContentGrid }))
 );
 export const LazySearchWithFilters = lazy(() => 
   import('@/components/SearchWithFilters').then(module => ({ default: module.SearchWithFilters }))

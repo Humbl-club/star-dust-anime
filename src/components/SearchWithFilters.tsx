@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { AdvancedFiltering } from '@/components/AdvancedFiltering';
+import { AdvancedFiltering } from '@/components/features/AdvancedFiltering';
 import { useSearchStore } from '@/store';
 import { Search, X } from 'lucide-react';
 

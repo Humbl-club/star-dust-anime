@@ -35,7 +35,7 @@ import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
-import { FeatureWrapper } from "@/components/FeatureWrapper";
+import { FeatureWrapper } from "@/components/common/FeatureWrapper";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;

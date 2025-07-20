@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RatingComponent } from "@/components/RatingComponent";
-import { AddToListButton } from "@/components/AddToListButton";
+import { AddToListButton } from "@/components/features/AddToListButton";
 import { Navigation } from "@/components/Navigation";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useEmailVerification } from "@/hooks/useEmailVerification";

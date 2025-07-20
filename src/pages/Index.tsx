@@ -4,7 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
 
-import { AnimeCard } from "@/components/AnimeCard";
+import { AnimeCard } from "@/components/features/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useContentData } from "@/hooks/useContentData";

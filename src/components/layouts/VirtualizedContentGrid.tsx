@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
-import { AnimeCard } from '@/components/AnimeCard';
+import { AnimeCard } from '@/components/features/AnimeCard';
 import { type AnimeContent, type MangaContent } from '@/types/api.types';
 
 interface VirtualizedContentGridProps {

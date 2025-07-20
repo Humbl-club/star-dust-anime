@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AddToListButton } from "@/components/AddToListButton";
+import { AddToListButton } from "./AddToListButton";
 import { ContentReportModal } from "@/components/ContentReportModal";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";

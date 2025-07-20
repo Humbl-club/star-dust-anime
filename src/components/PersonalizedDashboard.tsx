@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useSmartRecommendations } from '@/hooks/useSmartRecommendations';
 import { useUserLists } from '@/hooks/useUserLists';
 import { useAuth } from '@/hooks/useAuth';
-import { AnimeCard } from './AnimeCard';
+import { AnimeCard } from './features/AnimeCard';
 import { Sparkles, TrendingUp, Target, BookOpen, Tv, BarChart3, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

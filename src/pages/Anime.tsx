@@ -18,7 +18,7 @@ import { useContentData } from "@/hooks/useContentData";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { useSearchStore } from "@/store";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
-import { AnimeCard } from "@/components/AnimeCard";
+import { AnimeCard } from "@/components/features/AnimeCard";
 import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";

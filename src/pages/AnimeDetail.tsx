@@ -10,7 +10,7 @@ import { CommentsSection } from "@/components/CommentsSection";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
-import { DetailPageLayout } from "@/components/DetailPageLayout";
+import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
