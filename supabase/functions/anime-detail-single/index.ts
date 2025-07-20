@@ -1,6 +1,10 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
@@ -8,6 +12,8 @@ const supabase = createClient(
 )
 
 Deno.serve(async (req) => {
+  console.log('Anime detail function started', req.method, req.url)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -21,8 +27,10 @@ Deno.serve(async (req) => {
       // Check request body first
       try {
         const body = await req.json();
+        console.log('Request body:', body);
         animeId = body.id || body.animeId;
-      } catch {
+      } catch (e) {
+        console.log('Failed to parse request body:', e);
         // If JSON parsing fails, continue to other methods
       }
     }
@@ -46,10 +54,15 @@ Deno.serve(async (req) => {
 
     console.log('Fetching anime details for ID:', animeId)
 
+    // Test RPC function exists first
+    console.log('Testing RPC function...')
+    
     // Execute optimized JOIN query to get all anime data with relationships
     const { data, error } = await supabase.rpc('get_anime_detail', {
       anime_id_param: animeId
     })
+    
+    console.log('RPC response:', { data: data ? 'received' : 'null', error, dataLength: data?.length })
 
     if (error) {
       console.error('Database error:', error)
