@@ -56,7 +56,7 @@ const Anime = () => {
   const { isVerified } = useAgeVerification();
 
   // Get anime data from API using store filters
-  const { data: animeList, loading, refetch } = useContentData({ 
+  const { data: animeList, loading, refetch, error } = useContentData({ 
     contentType: 'anime',
     limit: 100,
     search: query,
@@ -68,6 +68,37 @@ const Anime = () => {
     sort_by: filters.sort_by || 'score',
     order: filters.order || 'desc'
   });
+
+  // Debug logging for anime list fetching
+  console.log('Anime.tsx: Fetching anime list with:', {
+    functionName: 'anime-api (via useContentData)',
+    payload: {
+      contentType: 'anime',
+      page: 1,
+      limit: 100,
+      search: query,
+      genre: filters.genre,
+      status: filters.status,
+      type: filters.type,
+      year: filters.year,
+      season: filters.season,
+      sort_by: filters.sort_by || 'score',
+      order: filters.order || 'desc'
+    },
+    timestamp: new Date().toISOString()
+  });
+
+  // Log any errors
+  if (error) {
+    console.error('Anime.tsx: Error fetching anime list:', {
+      error: error.message,
+      stack: error.stack,
+      status: (error as any).status || 'unknown',
+      code: (error as any).code || 'unknown',
+      fullError: error,
+      timestamp: new Date().toISOString()
+    });
+  }
 
   const handleRefresh = async () => {
     await refetch();

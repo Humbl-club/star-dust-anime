@@ -91,7 +91,7 @@ const Manga = () => {
   const { toast } = useToast();
 
   // Fetch manga data from database
-  const { data: mangaData, loading, syncFromExternal } = useContentData({ 
+  const { data: mangaData, loading, syncFromExternal, error } = useContentData({ 
     contentType: 'manga',
     limit: 1000,
     search: searchQuery || undefined,
@@ -100,6 +100,34 @@ const Manga = () => {
     sort_by: sortBy,
     order: 'desc'
   });
+
+  // Debug logging for manga list fetching
+  console.log('Manga.tsx: Fetching manga list with:', {
+    functionName: 'anime-api (via useContentData)',
+    payload: {
+      contentType: 'manga',
+      page: 1,
+      limit: 1000,
+      search: searchQuery,
+      genre: selectedGenre !== 'all' ? selectedGenre : undefined,
+      status: selectedStatus !== 'all' ? selectedStatus : undefined,
+      sort_by: sortBy,
+      order: 'desc'
+    },
+    timestamp: new Date().toISOString()
+  });
+
+  // Log any errors
+  if (error) {
+    console.error('Manga.tsx: Error fetching manga list:', {
+      error: error.message,
+      stack: error.stack,
+      status: (error as any).status || 'unknown',
+      code: (error as any).code || 'unknown',
+      fullError: error,
+      timestamp: new Date().toISOString()
+    });
+  }
 
   // Update URL params when filters change
   useEffect(() => {
