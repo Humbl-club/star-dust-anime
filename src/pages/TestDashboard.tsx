@@ -56,30 +56,11 @@ const TestDashboard = () => {
   const [searchType, setSearchType] = useState('anime');
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        setCheckingAdmin(false);
-        return;
-      }
-
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-
-        setIsAdmin(true); // TEMPORARY: Simulating admin access
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
+    // TEMPORARY: Skip all auth checks for testing
+    console.log('TestDashboard: Bypassing auth for testing');
+    setIsAdmin(true);
+    setCheckingAdmin(false);
+  }, []);
 
   if (loading || checkingAdmin) {
     return (
@@ -92,9 +73,10 @@ const TestDashboard = () => {
     );
   }
 
-  if (!user || !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
+  // TEMPORARY: Disabled auth redirect for testing
+  // if (!user || !isAdmin) {
+  //   return <Navigate to="/" replace />;
+  // }
 
   const formatResponseTime = (ms: number) => {
     if (ms < 1000) return `${ms}ms`;
