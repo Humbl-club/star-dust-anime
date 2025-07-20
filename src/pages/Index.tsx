@@ -78,26 +78,25 @@ const Index = () => {
     popularityScore: calculatePopularityScore(anime)
   }));
 
-  // Hot right now - Currently airing with high popularity (timeline constraint)
-  const currentDate = new Date();
-  const trendingAnime = processedAnime
-    .filter(anime => anime.isCurrentlyAiring)
-    .sort((a, b) => b.popularityScore - a.popularityScore)
-    .slice(0, 12);
+  // Trending anime - currently airing with high scores
+  const trendingAnime = allAnime
+    .filter(anime => anime.status === 'Currently Airing' || anime.status === 'RELEASING')
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 10);
 
-  // Recently added - Latest entries by aired_from
-  const recentlyAdded = [...processedAnime]
+  // Recently added - sort by aired_from date as fallback
+  const recentlyAdded = [...allAnime]
     .sort((a, b) => {
-      const aDate = new Date(a.aired_from || '1900-01-01');
-      const bDate = new Date(b.aired_from || '1900-01-01');
-      return bDate.getTime() - aDate.getTime();
+      const dateA = new Date(a.aired_from || '1900-01-01').getTime();
+      const dateB = new Date(b.aired_from || '1900-01-01').getTime();
+      return dateB - dateA;
     })
-    .slice(0, 12);
+    .slice(0, 10);
 
-  // Top rated - Best average scores from both sources
-  const topRated = [...processedAnime]
-    .sort((a, b) => b.averageScore - a.averageScore)
-    .slice(0, 12);
+  // Top rated - highest scores
+  const topRated = [...allAnime]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 10);
 
   const AnimeSection = ({ 
     title, 
