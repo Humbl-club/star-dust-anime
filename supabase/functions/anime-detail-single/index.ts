@@ -22,82 +22,44 @@ Deno.serve(async (req) => {
   try {
     let animeId: string | null = null;
     
-    // Parse URL and log details for debugging
-    const url = new URL(req.url);
-    console.log('Full URL:', req.url);
-    console.log('URL pathname:', url.pathname);
-    console.log('URL search params:', url.searchParams.toString());
-    console.log('Path segments:', url.pathname.split('/'));
-
-    // Try to get anime ID from different sources
+    console.log('=== ANIME DETAIL FUNCTION DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    
+    // ONLY get ID from request body for POST requests
     if (req.method === 'POST') {
-      // Check request body first
       try {
         const body = await req.json();
-        console.log('Request body:', body);
-        const bodyId = body.id || body.animeId;
+        console.log('Raw request body:', JSON.stringify(body));
         
-        // Only use body ID if it's not the literal ":id" string
-        if (bodyId && bodyId !== ':id') {
-          animeId = bodyId;
-          console.log('Valid ID found in body:', animeId);
-        } else if (bodyId === ':id') {
-          console.log('Body contains literal ":id", will try other extraction methods');
+        // Extract ID from body
+        const bodyId = body.id || body.animeId;
+        console.log('Extracted bodyId:', bodyId, 'Type:', typeof bodyId);
+        
+        // Reject literal ":id" string and empty values
+        if (bodyId && bodyId !== ':id' && bodyId.toString().trim() !== '') {
+          animeId = bodyId.toString();
+          console.log('✅ Valid ID accepted from body:', animeId);
+        } else {
+          console.log('❌ Invalid ID in body:', bodyId, '- literal ":id" or empty');
         }
       } catch (e) {
-        console.log('Failed to parse request body:', e);
-        // If JSON parsing fails, continue to other methods
+        console.error('❌ Failed to parse request body as JSON:', e);
       }
-    }
-
-    // If no valid ID from body, try URL path extraction
-    if (!animeId) {
-      console.log('Attempting to extract ID from URL path...');
-      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
-      console.log('Path segments filtered:', pathSegments);
-      
-      // Strategy 1: Get last segment that's not ":id" and not the function name
-      const lastSegment = pathSegments[pathSegments.length - 1];
-      if (lastSegment && lastSegment !== ':id' && lastSegment !== 'anime-detail-single') {
-        animeId = lastSegment;
-        console.log('Found ID from last path segment:', animeId);
-      }
-      
-      // Strategy 2: Look for segment that looks like a UUID or number
-      if (!animeId) {
-        for (const segment of pathSegments) {
-          // Check if segment looks like a UUID or numeric ID
-          if (segment !== ':id' && segment !== 'anime-detail-single' && 
-              (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || 
-               segment.match(/^\d+$/))) {
-            animeId = segment;
-            console.log('Found UUID/numeric ID in path:', animeId);
-            break;
-          }
-        }
-      }
-      
-      // Strategy 3: Try query parameters
-      if (!animeId) {
-        animeId = url.searchParams.get('id') || url.searchParams.get('animeId');
-        if (animeId && animeId !== ':id') {
-          console.log('Found ID from query params:', animeId);
-        } else {
-          animeId = null;
-        }
-      }
+    } else {
+      console.log('❌ Non-POST request method, ID required in body');
     }
     
-    if (!animeId || animeId === ':id') {
-      console.error('No valid anime ID provided. Received:', animeId);
+    if (!animeId || animeId === ':id' || animeId.trim() === '') {
+      console.error('❌ FINAL CHECK FAILED - No valid anime ID provided. Received:', animeId);
       return new Response(
         JSON.stringify({ 
-          error: 'Anime ID is required', 
+          error: 'Anime ID is required in request body', 
           received_id: animeId,
           debug_info: {
             url: req.url,
             method: req.method,
-            pathname: url.pathname
+            issue: 'ID must be provided in POST request body as {id: "actual_id"}'
           }
         }),
         { 
@@ -107,17 +69,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Fetching anime details for ID:', animeId)
+    console.log('✅ Fetching anime details for ID:', animeId, 'Type:', typeof animeId)
 
-    // Test RPC function exists first
-    console.log('Testing RPC function...')
-    
-    // Execute optimized JOIN query to get all anime data with relationships
+    // Execute RPC function with flexible ID matching
     const { data, error } = await supabase.rpc('get_anime_detail', {
       anime_id_param: animeId
     })
     
-    console.log('RPC response:', { data: data ? 'received' : 'null', error, dataLength: data?.length })
+    console.log('✅ RPC response:', { 
+      hasData: !!data, 
+      dataLength: data?.length, 
+      error: error?.message || 'none',
+      animeId: animeId
+    })
 
     if (error) {
       console.error('Database error:', error)

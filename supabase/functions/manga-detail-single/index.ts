@@ -22,82 +22,44 @@ Deno.serve(async (req) => {
   try {
     let mangaId: string | null = null;
     
-    // Parse URL and log details for debugging
-    const url = new URL(req.url);
-    console.log('Full URL:', req.url);
-    console.log('URL pathname:', url.pathname);
-    console.log('URL search params:', url.searchParams.toString());
-    console.log('Path segments:', url.pathname.split('/'));
-
-    // Try to get manga ID from different sources
+    console.log('=== MANGA DETAIL FUNCTION DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    
+    // ONLY get ID from request body for POST requests
     if (req.method === 'POST') {
-      // Check request body first
       try {
         const body = await req.json();
-        console.log('Request body:', body);
-        const bodyId = body.id || body.mangaId;
+        console.log('Raw request body:', JSON.stringify(body));
         
-        // Only use body ID if it's not the literal ":id" string
-        if (bodyId && bodyId !== ':id') {
-          mangaId = bodyId;
-          console.log('Valid ID found in body:', mangaId);
-        } else if (bodyId === ':id') {
-          console.log('Body contains literal ":id", will try other extraction methods');
+        // Extract ID from body
+        const bodyId = body.id || body.mangaId;
+        console.log('Extracted bodyId:', bodyId, 'Type:', typeof bodyId);
+        
+        // Reject literal ":id" string and empty values
+        if (bodyId && bodyId !== ':id' && bodyId.toString().trim() !== '') {
+          mangaId = bodyId.toString();
+          console.log('✅ Valid ID accepted from body:', mangaId);
+        } else {
+          console.log('❌ Invalid ID in body:', bodyId, '- literal ":id" or empty');
         }
       } catch (e) {
-        console.log('Failed to parse request body:', e);
-        // If JSON parsing fails, continue to other methods
+        console.error('❌ Failed to parse request body as JSON:', e);
       }
-    }
-
-    // If no valid ID from body, try URL path extraction
-    if (!mangaId) {
-      console.log('Attempting to extract ID from URL path...');
-      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
-      console.log('Path segments filtered:', pathSegments);
-      
-      // Strategy 1: Get last segment that's not ":id" and not the function name
-      const lastSegment = pathSegments[pathSegments.length - 1];
-      if (lastSegment && lastSegment !== ':id' && lastSegment !== 'manga-detail-single') {
-        mangaId = lastSegment;
-        console.log('Found ID from last path segment:', mangaId);
-      }
-      
-      // Strategy 2: Look for segment that looks like a UUID or number
-      if (!mangaId) {
-        for (const segment of pathSegments) {
-          // Check if segment looks like a UUID or numeric ID
-          if (segment !== ':id' && segment !== 'manga-detail-single' && 
-              (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || 
-               segment.match(/^\d+$/))) {
-            mangaId = segment;
-            console.log('Found UUID/numeric ID in path:', mangaId);
-            break;
-          }
-        }
-      }
-      
-      // Strategy 3: Try query parameters
-      if (!mangaId) {
-        mangaId = url.searchParams.get('id') || url.searchParams.get('mangaId');
-        if (mangaId && mangaId !== ':id') {
-          console.log('Found ID from query params:', mangaId);
-        } else {
-          mangaId = null;
-        }
-      }
+    } else {
+      console.log('❌ Non-POST request method, ID required in body');
     }
     
-    if (!mangaId || mangaId === ':id') {
-      console.error('No valid manga ID provided. Received:', mangaId);
+    if (!mangaId || mangaId === ':id' || mangaId.trim() === '') {
+      console.error('❌ FINAL CHECK FAILED - No valid manga ID provided. Received:', mangaId);
       return new Response(
         JSON.stringify({ 
-          error: 'Manga ID is required', 
+          error: 'Manga ID is required in request body', 
           received_id: mangaId,
           debug_info: {
             url: req.url,
             method: req.method,
-            pathname: url.pathname
+            issue: 'ID must be provided in POST request body as {id: "actual_id"}'
           }
         }),
         { 
@@ -107,17 +69,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Fetching manga details for ID:', mangaId)
+    console.log('✅ Fetching manga details for ID:', mangaId, 'Type:', typeof mangaId)
 
-    // Test RPC function exists first
-    console.log('Testing RPC function...')
-    
-    // Execute optimized JOIN query to get all manga data with relationships
+    // Execute RPC function with flexible ID matching
     const { data, error } = await supabase.rpc('get_manga_detail', {
       manga_id_param: mangaId
     })
     
-    console.log('RPC response:', { data: data ? 'received' : 'null', error, dataLength: data?.length })
+    console.log('✅ RPC response:', { 
+      hasData: !!data, 
+      dataLength: data?.length, 
+      error: error?.message || 'none',
+      mangaId: mangaId
+    })
 
     if (error) {
       console.error('Database error:', error)
