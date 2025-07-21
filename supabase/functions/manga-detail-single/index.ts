@@ -21,6 +21,13 @@ Deno.serve(async (req) => {
 
   try {
     let mangaId: string | null = null;
+    
+    // Parse URL and log details for debugging
+    const url = new URL(req.url);
+    console.log('Full URL:', req.url);
+    console.log('URL pathname:', url.pathname);
+    console.log('URL search params:', url.searchParams.toString());
+    console.log('Path segments:', url.pathname.split('/'));
 
     // Try to get manga ID from different sources
     if (req.method === 'POST') {
@@ -29,22 +36,63 @@ Deno.serve(async (req) => {
         const body = await req.json();
         console.log('Request body:', body);
         mangaId = body.id || body.mangaId;
+        
+        // If body contains ":id", ignore it and try other methods
+        if (mangaId === ':id') {
+          console.log('Body contains literal ":id", ignoring and trying other methods');
+          mangaId = null;
+        }
       } catch (e) {
         console.log('Failed to parse request body:', e);
         // If JSON parsing fails, continue to other methods
       }
     }
 
-    // If not found in body, try URL path and query parameters
+    // Try URL path extraction with multiple strategies
     if (!mangaId) {
-      const url = new URL(req.url);
-      mangaId = url.pathname.split('/').pop() || url.searchParams.get('id');
+      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+      console.log('Path segments filtered:', pathSegments);
+      
+      // Strategy 1: Get last segment that's not ":id"
+      const lastSegment = pathSegments[pathSegments.length - 1];
+      if (lastSegment && lastSegment !== ':id' && lastSegment !== 'manga-detail-single') {
+        mangaId = lastSegment;
+        console.log('Found ID from last path segment:', mangaId);
+      }
+      
+      // Strategy 2: Look for segment after 'manga' or 'detail'
+      if (!mangaId) {
+        const mangaIndex = pathSegments.findIndex(segment => segment === 'manga' || segment === 'detail');
+        if (mangaIndex >= 0 && mangaIndex < pathSegments.length - 1) {
+          const candidateId = pathSegments[mangaIndex + 1];
+          if (candidateId !== ':id') {
+            mangaId = candidateId;
+            console.log('Found ID after manga/detail segment:', mangaId);
+          }
+        }
+      }
+      
+      // Strategy 3: Try query parameters
+      if (!mangaId) {
+        mangaId = url.searchParams.get('id') || url.searchParams.get('mangaId');
+        if (mangaId) {
+          console.log('Found ID from query params:', mangaId);
+        }
+      }
     }
     
-    if (!mangaId) {
-      console.error('No manga ID provided');
+    if (!mangaId || mangaId === ':id') {
+      console.error('No valid manga ID provided. Received:', mangaId);
       return new Response(
-        JSON.stringify({ error: 'Manga ID is required' }),
+        JSON.stringify({ 
+          error: 'Manga ID is required', 
+          received_id: mangaId,
+          debug_info: {
+            url: req.url,
+            method: req.method,
+            pathname: url.pathname
+          }
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

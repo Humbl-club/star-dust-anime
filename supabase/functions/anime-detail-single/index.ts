@@ -21,6 +21,13 @@ Deno.serve(async (req) => {
 
   try {
     let animeId: string | null = null;
+    
+    // Parse URL and log details for debugging
+    const url = new URL(req.url);
+    console.log('Full URL:', req.url);
+    console.log('URL pathname:', url.pathname);
+    console.log('URL search params:', url.searchParams.toString());
+    console.log('Path segments:', url.pathname.split('/'));
 
     // Try to get anime ID from different sources
     if (req.method === 'POST') {
@@ -29,22 +36,63 @@ Deno.serve(async (req) => {
         const body = await req.json();
         console.log('Request body:', body);
         animeId = body.id || body.animeId;
+        
+        // If body contains ":id", ignore it and try other methods
+        if (animeId === ':id') {
+          console.log('Body contains literal ":id", ignoring and trying other methods');
+          animeId = null;
+        }
       } catch (e) {
         console.log('Failed to parse request body:', e);
         // If JSON parsing fails, continue to other methods
       }
     }
 
-    // If not found in body, try URL path and query parameters
+    // Try URL path extraction with multiple strategies
     if (!animeId) {
-      const url = new URL(req.url);
-      animeId = url.pathname.split('/').pop() || url.searchParams.get('id');
+      const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
+      console.log('Path segments filtered:', pathSegments);
+      
+      // Strategy 1: Get last segment that's not ":id"
+      const lastSegment = pathSegments[pathSegments.length - 1];
+      if (lastSegment && lastSegment !== ':id' && lastSegment !== 'anime-detail-single') {
+        animeId = lastSegment;
+        console.log('Found ID from last path segment:', animeId);
+      }
+      
+      // Strategy 2: Look for segment after 'anime' or 'detail'
+      if (!animeId) {
+        const animeIndex = pathSegments.findIndex(segment => segment === 'anime' || segment === 'detail');
+        if (animeIndex >= 0 && animeIndex < pathSegments.length - 1) {
+          const candidateId = pathSegments[animeIndex + 1];
+          if (candidateId !== ':id') {
+            animeId = candidateId;
+            console.log('Found ID after anime/detail segment:', animeId);
+          }
+        }
+      }
+      
+      // Strategy 3: Try query parameters
+      if (!animeId) {
+        animeId = url.searchParams.get('id') || url.searchParams.get('animeId');
+        if (animeId) {
+          console.log('Found ID from query params:', animeId);
+        }
+      }
     }
     
-    if (!animeId) {
-      console.error('No anime ID provided');
+    if (!animeId || animeId === ':id') {
+      console.error('No valid anime ID provided. Received:', animeId);
       return new Response(
-        JSON.stringify({ error: 'Anime ID is required' }),
+        JSON.stringify({ 
+          error: 'Anime ID is required', 
+          received_id: animeId,
+          debug_info: {
+            url: req.url,
+            method: req.method,
+            pathname: url.pathname
+          }
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
