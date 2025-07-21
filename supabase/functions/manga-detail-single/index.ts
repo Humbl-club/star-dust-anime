@@ -35,12 +35,14 @@ Deno.serve(async (req) => {
       try {
         const body = await req.json();
         console.log('Request body:', body);
-        mangaId = body.id || body.mangaId;
+        const bodyId = body.id || body.mangaId;
         
-        // If body contains ":id", ignore it and try other methods
-        if (mangaId === ':id') {
-          console.log('Body contains literal ":id", ignoring and trying other methods');
-          mangaId = null;
+        // Only use body ID if it's not the literal ":id" string
+        if (bodyId && bodyId !== ':id') {
+          mangaId = bodyId;
+          console.log('Valid ID found in body:', mangaId);
+        } else if (bodyId === ':id') {
+          console.log('Body contains literal ":id", will try other extraction methods');
         }
       } catch (e) {
         console.log('Failed to parse request body:', e);
@@ -48,26 +50,29 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Try URL path extraction with multiple strategies
+    // If no valid ID from body, try URL path extraction
     if (!mangaId) {
+      console.log('Attempting to extract ID from URL path...');
       const pathSegments = url.pathname.split('/').filter(segment => segment.length > 0);
       console.log('Path segments filtered:', pathSegments);
       
-      // Strategy 1: Get last segment that's not ":id"
+      // Strategy 1: Get last segment that's not ":id" and not the function name
       const lastSegment = pathSegments[pathSegments.length - 1];
       if (lastSegment && lastSegment !== ':id' && lastSegment !== 'manga-detail-single') {
         mangaId = lastSegment;
         console.log('Found ID from last path segment:', mangaId);
       }
       
-      // Strategy 2: Look for segment after 'manga' or 'detail'
+      // Strategy 2: Look for segment that looks like a UUID or number
       if (!mangaId) {
-        const mangaIndex = pathSegments.findIndex(segment => segment === 'manga' || segment === 'detail');
-        if (mangaIndex >= 0 && mangaIndex < pathSegments.length - 1) {
-          const candidateId = pathSegments[mangaIndex + 1];
-          if (candidateId !== ':id') {
-            mangaId = candidateId;
-            console.log('Found ID after manga/detail segment:', mangaId);
+        for (const segment of pathSegments) {
+          // Check if segment looks like a UUID or numeric ID
+          if (segment !== ':id' && segment !== 'manga-detail-single' && 
+              (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) || 
+               segment.match(/^\d+$/))) {
+            mangaId = segment;
+            console.log('Found UUID/numeric ID in path:', mangaId);
+            break;
           }
         }
       }
@@ -75,8 +80,10 @@ Deno.serve(async (req) => {
       // Strategy 3: Try query parameters
       if (!mangaId) {
         mangaId = url.searchParams.get('id') || url.searchParams.get('mangaId');
-        if (mangaId) {
+        if (mangaId && mangaId !== ':id') {
           console.log('Found ID from query params:', mangaId);
+        } else {
+          mangaId = null;
         }
       }
     }
