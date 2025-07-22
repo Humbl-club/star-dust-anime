@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -138,6 +139,16 @@ const Anime = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Discover Anime - Anithing</title>
+        <meta name="description" content="Explore thousands of anime series and movies. Find your next favorite story with advanced search and filtering options." />
+        <meta property="og:title" content="Discover Anime - Anithing" />
+        <meta property="og:description" content="Explore thousands of anime series and movies. Find your next favorite story with advanced search and filtering options." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Discover Anime - Anithing" />
+        <meta name="twitter:description" content="Explore thousands of anime series and movies. Find your next favorite story with advanced search and filtering options." />
+      </Helmet>
       <Navigation />
       {/* Header */}
       <div className="relative py-20 mb-8">

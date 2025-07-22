@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -174,6 +175,16 @@ const Manga = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Discover Manga - Anithing</title>
+        <meta name="description" content="Explore thousands of manga series and novels. Find your next favorite manga with advanced search and filtering options." />
+        <meta property="og:title" content="Discover Manga - Anithing" />
+        <meta property="og:description" content="Explore thousands of manga series and novels. Find your next favorite manga with advanced search and filtering options." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Discover Manga - Anithing" />
+        <meta name="twitter:description" content="Explore thousands of manga series and novels. Find your next favorite manga with advanced search and filtering options." />
+      </Helmet>
       <Navigation />
       {/* Header */}
       <div className="relative py-20 mb-8">

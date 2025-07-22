@@ -13,6 +13,8 @@ import Auth from "./pages/Auth";
 
 // Lazy load heavy components
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Anime = lazy(() => import("./pages/Anime"));
+const Manga = lazy(() => import("./pages/Manga"));
 const AnimeDetail = lazy(() => import("./pages/AnimeDetail"));
 const MangaDetail = lazy(() => import("./pages/MangaDetail"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -68,6 +70,26 @@ function App() {
                         <ErrorBoundary>
                           <Suspense fallback={<PageLoader />}>
                             <Dashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/anime" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Anime />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/manga" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Manga />
                           </Suspense>
                         </ErrorBoundary>
                       } 
