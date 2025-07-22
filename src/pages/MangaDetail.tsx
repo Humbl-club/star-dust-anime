@@ -1,5 +1,7 @@
 
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +24,53 @@ const MangaDetail = () => {
   const navigate = useNavigate();
   const { getDisplayName } = useNamePreference();
   
+  // Add debugging logs
+  console.log('Manga Detail page ID:', id);
+  console.log('ID type:', typeof id);
+  
   const { manga, loading, error } = useMangaDetail(id || '');
+  
+  // Debug the fetch result
+  console.log('Manga Fetch result:', { manga, loading, error });
+  
+  // Add test query to check database directly
+  useEffect(() => {
+    const testQuery = async () => {
+      if (!id) return;
+      
+      console.log('🧪 Testing direct manga database queries...');
+      
+      // Test if we can fetch any manga
+      const { data: testData, error: testError } = await supabase
+        .from('titles')
+        .select('*, manga_details!inner(*)')
+        .limit(1);
+      
+      console.log('Manga test query result:', { testData, testError });
+      
+      // Test with the current ID as UUID
+      const { data: uuidData, error: uuidError } = await supabase
+        .from('titles')
+        .select('*, manga_details!inner(*)')
+        .eq('id', id)
+        .maybeSingle();
+        
+      console.log('Manga UUID query result:', { uuidData, uuidError, id });
+      
+      // Test with the current ID as anilist_id (if it's numeric)
+      if (id && /^\d+$/.test(id)) {
+        const { data: anilistData, error: anilistError } = await supabase
+          .from('titles')
+          .select('*, manga_details!inner(*)')
+          .eq('anilist_id', parseInt(id))
+          .maybeSingle();
+          
+        console.log('Manga AniList ID query result:', { anilistData, anilistError, anilistId: parseInt(id) });
+      }
+    };
+    
+    testQuery();
+  }, [id]);
 
   if (loading) {
     return (

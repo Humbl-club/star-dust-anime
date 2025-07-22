@@ -1,5 +1,7 @@
 
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +24,53 @@ const AnimeDetail = () => {
   const navigate = useNavigate();
   const { getDisplayName } = useNamePreference();
   
+  // Add debugging logs
+  console.log('Detail page ID:', id);
+  console.log('ID type:', typeof id);
+  
   const { anime, loading, error } = useAnimeDetail(id || '');
+  
+  // Debug the fetch result
+  console.log('Fetch result:', { anime, loading, error });
+  
+  // Add test query to check database directly
+  useEffect(() => {
+    const testQuery = async () => {
+      if (!id) return;
+      
+      console.log('🧪 Testing direct database queries...');
+      
+      // Test if we can fetch any anime
+      const { data: testData, error: testError } = await supabase
+        .from('titles')
+        .select('*, anime_details!inner(*)')
+        .limit(1);
+      
+      console.log('Test query result:', { testData, testError });
+      
+      // Test with the current ID as UUID
+      const { data: uuidData, error: uuidError } = await supabase
+        .from('titles')
+        .select('*, anime_details!inner(*)')
+        .eq('id', id)
+        .maybeSingle();
+        
+      console.log('UUID query result:', { uuidData, uuidError, id });
+      
+      // Test with the current ID as anilist_id (if it's numeric)
+      if (id && /^\d+$/.test(id)) {
+        const { data: anilistData, error: anilistError } = await supabase
+          .from('titles')
+          .select('*, anime_details!inner(*)')
+          .eq('anilist_id', parseInt(id))
+          .maybeSingle();
+          
+        console.log('AniList ID query result:', { anilistData, anilistError, anilistId: parseInt(id) });
+      }
+    };
+    
+    testQuery();
+  }, [id]);
 
   const enhancedAnime = anime ? {
     ...anime,
@@ -46,14 +94,35 @@ const AnimeDetail = () => {
     );
   }
 
-  if (error || !anime) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            {error || 'Anime not found'}
-          </h2>
-          <Button onClick={() => navigate('/anime')}>
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Error Loading Anime</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <pre className="mt-4 p-4 bg-gray-100 rounded text-left text-sm max-w-lg">
+            {JSON.stringify({ error, id, idType: typeof id }, null, 2)}
+          </pre>
+          <Button onClick={() => navigate('/anime')} className="mt-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Anime List
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !anime) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Anime Not Found</h2>
+          <p className="text-muted-foreground">ID: {id}</p>
+          <p className="text-sm text-muted-foreground">Type: {typeof id}</p>
+          <Button onClick={() => window.history.back()} className="mt-4 mr-2">
+            Go Back
+          </Button>
+          <Button onClick={() => navigate('/anime')} variant="outline" className="mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Anime List
           </Button>

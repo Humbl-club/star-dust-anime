@@ -53,67 +53,96 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
       return;
     }
 
-    const maxRetries = 3;
-    let attempt = 0;
+    try {
+      setLoading(true);
+      setError(null);
 
-    while (attempt < maxRetries) {
-      try {
-        setLoading(true);
-        setError(null);
+      console.log(`🔍 Fetching manga detail for ID: ${mangaId}`);
+      console.log(`🔍 ID type: ${typeof mangaId}, Is numeric: ${/^\d+$/.test(mangaId)}`);
 
-        console.log(`Fetching manga detail for ID: ${mangaId} (attempt ${attempt + 1})`);
+      let query = supabase
+        .from('titles')
+        .select(`
+          *,
+          manga_details!inner(*),
+          title_genres(genres(*)),
+          title_authors(authors(*))
+        `);
 
-        const { data: response, error: edgeError } = await supabase.functions.invoke('manga-detail-single', {
-          body: { id: mangaId }
-        });
-
-        console.log('Edge function response:', { response, edgeError });
-
-        if (edgeError) {
-          console.error('Edge function error:', edgeError);
-          throw new Error(edgeError.message || 'Failed to fetch manga details');
-        }
-
-        if (!response?.success || !response?.data) {
-          throw new Error(response?.error || 'Invalid response format');
-        }
-
-        const mangaData = response.data;
-        
-        // Transform the data to match the expected format
-        const transformedManga: MangaDetail = {
-          ...mangaData,
-          synopsis: mangaData.synopsis || '', // Ensure synopsis is never undefined
-          image_url: mangaData.image_url || '', // Ensure image_url is never undefined
-          num_users_voted: mangaData.num_users_voted || 0, // Include the new field
-          // Ensure genres and authors are arrays
-          genres: Array.isArray(mangaData.genres) ? mangaData.genres : [],
-          authors: Array.isArray(mangaData.authors) ? mangaData.authors : [],
-        };
-
-        console.log('Successfully fetched manga:', transformedManga.title);
-        setManga(transformedManga);
-        return;
-
-      } catch (err: any) {
-        attempt++;
-        const isLastAttempt = attempt >= maxRetries;
-        
-        console.error(`Error fetching manga detail (attempt ${attempt}):`, err);
-        
-        if (isLastAttempt) {
-          const errorMessage = `Failed to load manga details: ${err.message || 'Unknown error'}`;
-          setError(errorMessage);
-          toast.error(errorMessage);
-        } else {
-          // Wait before retry (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-        }
-      } finally {
-        if (attempt >= maxRetries) {
-          setLoading(false);
-        }
+      // Try UUID first (most common case)
+      if (mangaId.includes('-')) {
+        console.log('🔍 Querying by UUID...');
+        query = query.eq('id', mangaId);
+      } else if (/^\d+$/.test(mangaId)) {
+        console.log('🔍 Querying by AniList ID...');
+        query = query.eq('anilist_id', parseInt(mangaId));
+      } else {
+        // Fallback: try as string ID
+        console.log('🔍 Querying by string ID...');
+        query = query.eq('id', mangaId);
       }
+
+      const { data, error: queryError } = await query.maybeSingle();
+
+      console.log('🔍 Query result:', { data, queryError });
+
+      if (queryError) {
+        console.error('❌ Database query error:', queryError);
+        throw new Error(queryError.message || 'Failed to fetch manga details');
+      }
+
+      if (!data) {
+        console.warn('⚠️ No manga found for ID:', mangaId);
+        setManga(null);
+        return;
+      }
+
+      // Transform the data to match the expected format
+      const transformedManga: MangaDetail = {
+        // Title fields
+        id: data.id,
+        anilist_id: data.anilist_id,
+        title: data.title,
+        title_english: data.title_english,
+        title_japanese: data.title_japanese,
+        synopsis: data.synopsis || '',
+        image_url: data.image_url || '',
+        score: data.score,
+        anilist_score: data.anilist_score,
+        rank: data.rank,
+        popularity: data.popularity,
+        year: data.year,
+        color_theme: data.color_theme,
+        num_users_voted: 0, // Will be calculated separately if needed
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        
+        // Manga detail fields (from manga_details join)
+        chapters: data.manga_details?.chapters,
+        volumes: data.manga_details?.volumes,
+        published_from: data.manga_details?.published_from,
+        published_to: data.manga_details?.published_to,
+        status: data.manga_details?.status || 'Unknown',
+        type: data.manga_details?.type || 'Manga',
+        next_chapter_date: data.manga_details?.next_chapter_date,
+        next_chapter_number: data.manga_details?.next_chapter_number,
+        last_sync_check: data.manga_details?.last_sync_check,
+        
+        // Related data arrays
+        genres: data.title_genres?.map((tg: any) => tg.genres).filter(Boolean) || [],
+        authors: data.title_authors?.map((ta: any) => ta.authors).filter(Boolean) || [],
+      };
+
+      console.log('✅ Successfully transformed manga:', transformedManga.title);
+      setManga(transformedManga);
+
+    } catch (err: any) {
+      console.error('❌ Error fetching manga detail:', err);
+      const errorMessage = `Failed to load manga details: ${err.message || 'Unknown error'}`;
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -57,67 +57,99 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       return;
     }
 
-    const maxRetries = 3;
-    let attempt = 0;
+    try {
+      setLoading(true);
+      setError(null);
 
-    while (attempt < maxRetries) {
-      try {
-        setLoading(true);
-        setError(null);
+      console.log(`🔍 Fetching anime detail for ID: ${animeId}`);
+      console.log(`🔍 ID type: ${typeof animeId}, Is numeric: ${/^\d+$/.test(animeId)}`);
 
-        console.log(`Fetching anime detail for ID: ${animeId} (attempt ${attempt + 1})`);
+      let query = supabase
+        .from('titles')
+        .select(`
+          *,
+          anime_details!inner(*),
+          title_genres(genres(*)),
+          title_studios(studios(*))
+        `);
 
-        const { data: response, error: edgeError } = await supabase.functions.invoke('anime-detail-single', {
-          body: { id: animeId }
-        });
-
-        console.log('Edge function response:', { response, edgeError });
-
-        if (edgeError) {
-          console.error('Edge function error:', edgeError);
-          throw new Error(edgeError.message || 'Failed to fetch anime details');
-        }
-
-        if (!response?.success || !response?.data) {
-          throw new Error(response?.error || 'Invalid response format');
-        }
-
-        const animeData = response.data;
-        
-        // Transform the data to match the expected format
-        const transformedAnime: AnimeDetail = {
-          ...animeData,
-          synopsis: animeData.synopsis || '', // Ensure synopsis is never undefined
-          image_url: animeData.image_url || '', // Ensure image_url is never undefined
-          num_users_voted: animeData.num_users_voted || 0, // Include the new field
-          // Ensure genres and studios are arrays
-          genres: Array.isArray(animeData.genres) ? animeData.genres : [],
-          studios: Array.isArray(animeData.studios) ? animeData.studios : [],
-        };
-
-        console.log('Successfully fetched anime:', transformedAnime.title);
-        setAnime(transformedAnime);
-        return;
-
-      } catch (err: any) {
-        attempt++;
-        const isLastAttempt = attempt >= maxRetries;
-        
-        console.error(`Error fetching anime detail (attempt ${attempt}):`, err);
-        
-        if (isLastAttempt) {
-          const errorMessage = `Failed to load anime details: ${err.message || 'Unknown error'}`;
-          setError(errorMessage);
-          toast.error(errorMessage);
-        } else {
-          // Wait before retry (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-        }
-      } finally {
-        if (attempt >= maxRetries) {
-          setLoading(false);
-        }
+      // Try UUID first (most common case)
+      if (animeId.includes('-')) {
+        console.log('🔍 Querying by UUID...');
+        query = query.eq('id', animeId);
+      } else if (/^\d+$/.test(animeId)) {
+        console.log('🔍 Querying by AniList ID...');
+        query = query.eq('anilist_id', parseInt(animeId));
+      } else {
+        // Fallback: try as string ID
+        console.log('🔍 Querying by string ID...');
+        query = query.eq('id', animeId);
       }
+
+      const { data, error: queryError } = await query.maybeSingle();
+
+      console.log('🔍 Query result:', { data, queryError });
+
+      if (queryError) {
+        console.error('❌ Database query error:', queryError);
+        throw new Error(queryError.message || 'Failed to fetch anime details');
+      }
+
+      if (!data) {
+        console.warn('⚠️ No anime found for ID:', animeId);
+        setAnime(null);
+        return;
+      }
+
+      // Transform the data to match the expected format
+      const transformedAnime: AnimeDetail = {
+        // Title fields
+        id: data.id,
+        anilist_id: data.anilist_id,
+        title: data.title,
+        title_english: data.title_english,
+        title_japanese: data.title_japanese,
+        synopsis: data.synopsis || '',
+        image_url: data.image_url || '',
+        score: data.score,
+        anilist_score: data.anilist_score,
+        rank: data.rank,
+        popularity: data.popularity,
+        year: data.year,
+        color_theme: data.color_theme,
+        num_users_voted: 0, // Will be calculated separately if needed
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        
+        // Anime detail fields (from anime_details join)
+        episodes: data.anime_details?.episodes,
+        aired_from: data.anime_details?.aired_from,
+        aired_to: data.anime_details?.aired_to,
+        season: data.anime_details?.season,
+        status: data.anime_details?.status || 'Unknown',
+        type: data.anime_details?.type || 'TV',
+        trailer_url: data.anime_details?.trailer_url,
+        trailer_site: data.anime_details?.trailer_site,
+        trailer_id: data.anime_details?.trailer_id,
+        next_episode_date: data.anime_details?.next_episode_date,
+        next_episode_number: data.anime_details?.next_episode_number,
+        last_sync_check: data.anime_details?.last_sync_check,
+        
+        // Related data arrays
+        genres: data.title_genres?.map((tg: any) => tg.genres).filter(Boolean) || [],
+        studios: data.title_studios?.map((ts: any) => ts.studios).filter(Boolean) || [],
+      };
+
+      console.log('✅ Successfully transformed anime:', transformedAnime.title);
+      setAnime(transformedAnime);
+
+    } catch (err: any) {
+      console.error('❌ Error fetching anime detail:', err);
+      const errorMessage = `Failed to load anime details: ${err.message || 'Unknown error'}`;
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
