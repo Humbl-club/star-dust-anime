@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PaginationContent } from "@/components/ui/pagination-content";
 import { 
   Filter, 
   Star, 
@@ -32,6 +33,7 @@ const Anime = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Use search store for state management
   const { query, filters, setFilters } = useSearchStore();
@@ -56,10 +58,11 @@ const Anime = () => {
   // Age verification
   const { isVerified } = useAgeVerification();
 
-  // Get anime data from API using store filters
-  const { data: animeList, loading, refetch, error } = useContentData({ 
+  // Get anime data from API using store filters with pagination
+  const { data: animeResult, loading, refetch, error, pagination } = useContentData({ 
     contentType: 'anime',
-    limit: 100,
+    page: currentPage,
+    limit: 24,
     search: query,
     genre: filters.genre,
     status: filters.status,
@@ -67,8 +70,11 @@ const Anime = () => {
     year: filters.year,
     season: filters.season,
     sort_by: filters.sort_by || 'score',
-    order: filters.order || 'desc'
+    order: filters.order || 'desc',
+    useOptimized: true
   });
+
+  const animeList = animeResult || [];
 
   // Debug logging for anime list fetching
   console.log('Anime.tsx: Fetching anime list with:', {
@@ -184,7 +190,8 @@ const Anime = () => {
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {filteredAnime.length} of {animeList.length} anime
+            Showing {filteredAnime.length} of {pagination?.total || 0} anime 
+            {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}
           </p>
           
           <div className="flex items-center gap-2">
@@ -232,6 +239,19 @@ const Anime = () => {
                 />
               ))}
             </div>
+
+            {/* Pagination */}
+            {pagination && pagination.total_pages > 1 && (
+              <PaginationContent
+                currentPage={currentPage}
+                totalPages={pagination.total_pages}
+                onPageChange={(page) => {
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="mb-8"
+              />
+            )}
           </>
         ) : (
           <Card className="anime-card text-center py-12 glow-card">

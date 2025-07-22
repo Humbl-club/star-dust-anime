@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PaginationContent } from "@/components/ui/pagination-content";
 import { 
   Search, 
   Filter, 
@@ -89,18 +90,23 @@ const Manga = () => {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
   const [showFilters, setShowFilters] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
-  // Fetch manga data from database
-  const { data: mangaData, loading, syncFromExternal, error } = useContentData({ 
+  // Fetch manga data from database with pagination
+  const { data: mangaResult, loading, syncFromExternal, error, pagination } = useContentData({ 
     contentType: 'manga',
-    limit: 1000,
+    page: currentPage,
+    limit: 24,
     search: searchQuery || undefined,
     genre: selectedGenre !== 'all' ? selectedGenre : undefined,
     status: selectedStatus !== 'all' ? selectedStatus : undefined,
     sort_by: sortBy,
-    order: 'desc'
+    order: 'desc',
+    useOptimized: true
   });
+
+  const mangaData = mangaResult || [];
 
   // Debug logging for manga list fetching
   console.log('Manga.tsx: Fetching manga list with:', {
@@ -207,7 +213,8 @@ const Manga = () => {
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {filteredManga.length} of {mangaData.length} manga
+            Showing {filteredManga.length} of {pagination?.total || 0} manga
+            {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}
           </p>
           
           <div className="flex items-center gap-2">
@@ -301,11 +308,26 @@ const Manga = () => {
 
         {/* Manga Grid - Mobile Optimized */}
         {filteredManga.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-            {filteredManga.map((manga) => (
-              <MangaCard key={manga.id} manga={manga} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+              {filteredManga.map((manga) => (
+                <MangaCard key={manga.id} manga={manga} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination && pagination.total_pages > 1 && (
+              <PaginationContent
+                currentPage={currentPage}
+                totalPages={pagination.total_pages}
+                onPageChange={(page) => {
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="mb-8"
+              />
+            )}
+          </>
         ) : (
           <Card className="anime-card text-center py-12 glow-card">
             <CardContent>
