@@ -7,7 +7,7 @@ import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
 import { AnimeCard } from "@/components/features/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useHomeData } from "@/hooks/useHomeData";
+import { useContentData } from "@/hooks/useContentData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,24 +33,33 @@ const Index = () => {
   const [populationStatus, setPopulationStatus] = useState<string>('');
   
 
-  // Get home data from Edge Function with caching
-  const { data: homeDataResponse, isLoading: loading, error } = useHomeData([
-    'trending-anime',
-    'recent-anime',
-    'trending-manga',
-    'recent-manga'
-  ], 20);
+  // Get anime data directly from database (same as anime page)
+  const { data: allAnime, loading: animeLoading, error: animeError } = useContentData({
+    contentType: 'anime',
+    page: 1,
+    limit: 50,
+    sort_by: 'popularity',
+    order: 'desc',
+    useOptimized: true
+  });
 
-  console.log('🏠 Home data response:', homeDataResponse);
+  console.log('🏠 Direct anime data:', {
+    allAnime,
+    animeLoading,
+    animeError,
+    dataLength: allAnime?.length
+  });
 
-  // Extract data from Edge Function response
-  const trendingAnime = homeDataResponse?.data?.trendingAnime || [];
-  const recentlyAdded = homeDataResponse?.data?.recentAnime || [];
-  const topRated = homeDataResponse?.data?.trendingAnime?.slice(0, 10) || []; // Use trending as top rated fallback
+  // Create homepage sections from allAnime data
+  const trendingAnime = allAnime?.slice(0, 20) || [];
+  const recentlyAdded = allAnime?.slice(20, 40) || [];
+  const topRated = allAnime?.slice(0, 10) || [];
+  const loading = animeLoading;
+  const error = animeError;
 
   // Debug: Log homepage data
   console.log('🏠 Homepage data check:', {
-    homeDataResponse,
+    allAnime,
     loading,
     error,
     trendingAnime: trendingAnime,
@@ -297,10 +306,12 @@ const Index = () => {
         <h3 className="font-bold">Debug Info:</h3>
         <p>Loading: {loading ? 'Yes' : 'No'}</p>
         <p>Error: {error ? error.message : 'None'}</p>
-        <p>Home Data Response: {homeDataResponse ? 'Yes' : 'No'}</p>
+        <p>All Anime Data: {allAnime ? 'Yes' : 'No'}</p>
+        <p>All Anime Count: {allAnime?.length || 0}</p>
         <p>Trending Anime Count: {trendingAnime?.length || 0}</p>
         <p>Recently Added Count: {recentlyAdded?.length || 0}</p>
         <p>Top Rated Count: {topRated?.length || 0}</p>
+        <p>First anime title: {allAnime?.[0]?.title || 'None'}</p>
         <p>First trending anime: {trendingAnime?.[0]?.title || 'None'}</p>
         <p>Search Results: {searchResults?.length || 0}</p>
         <p>Is Searching: {isSearching ? 'Yes' : 'No'}</p>
