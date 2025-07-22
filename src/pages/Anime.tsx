@@ -13,10 +13,14 @@ import {
   Play,
   Eye,
   Heart,
-  Search
+  Search,
+  Grid3x3,
+  List
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContentData } from "@/hooks/useContentData";
+import { useInfiniteContentData } from "@/hooks/useInfiniteContentData";
+import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { useSearchStore } from "@/store";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
@@ -35,6 +39,7 @@ const Anime = () => {
   const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
   
   // Use search store for state management
   const { query, filters, setFilters } = useSearchStore();
@@ -59,8 +64,8 @@ const Anime = () => {
   // Age verification
   const { isVerified } = useAgeVerification();
 
-  // Get anime data from API using store filters with pagination
-  const { data: animeResult, loading, refetch, error, pagination } = useContentData({ 
+  // Get anime data based on view mode
+  const paginatedQuery = useContentData({ 
     contentType: 'anime',
     page: currentPage,
     limit: 24,
@@ -75,7 +80,25 @@ const Anime = () => {
     useOptimized: true
   });
 
-  const animeList = animeResult || [];
+  const infiniteQuery = useInfiniteContentData({
+    contentType: 'anime',
+    limit: 24,
+    search: query,
+    genre: filters.genre,
+    status: filters.status,
+    type: filters.type,
+    year: filters.year,
+    season: filters.season,
+    sort_by: filters.sort_by || 'score',
+    order: filters.order || 'desc',
+    useOptimized: true
+  });
+
+  // Use the appropriate query based on view mode
+  const animeList = viewMode === 'infinite' ? infiniteQuery.data : (paginatedQuery.data || []);
+  const loading = viewMode === 'infinite' ? infiniteQuery.loading : paginatedQuery.loading;
+  const error = viewMode === 'infinite' ? infiniteQuery.error : paginatedQuery.error;
+  const pagination = viewMode === 'pagination' ? paginatedQuery.pagination : null;
 
   // Debug logging for anime list fetching
   console.log('Anime.tsx: Fetching anime list with:', {
@@ -109,7 +132,11 @@ const Anime = () => {
   }
 
   const handleRefresh = async () => {
-    await refetch();
+    if (viewMode === 'infinite') {
+      await infiniteQuery.refetch();
+    } else {
+      await paginatedQuery.refetch();
+    }
   };
 
   const handleSearch = (searchQuery: string) => {
@@ -188,14 +215,38 @@ const Anime = () => {
           </CardHeader>
         </Card>
 
-        {/* Results Summary */}
+        {/* Results Summary and View Mode Toggle */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {((currentPage - 1) * 24) + 1} - {Math.min(currentPage * 24, pagination?.total || 0)} of {pagination?.total || 0} anime
-            {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}
+            {viewMode === 'infinite' ? (
+              <>Showing {infiniteQuery.currentItems} of {infiniteQuery.totalItems} anime</>
+            ) : (
+              <>Showing {((currentPage - 1) * 24) + 1} - {Math.min(currentPage * 24, pagination?.total || 0)} of {pagination?.total || 0} anime
+              {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}</>
+            )}
           </p>
           
           <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border overflow-hidden">
+              <Button
+                variant={viewMode === 'pagination' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('pagination')}
+                className="rounded-none"
+              >
+                <Grid3x3 className="w-4 h-4 mr-1" />
+                Pages
+              </Button>
+              <Button
+                variant={viewMode === 'infinite' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('infinite')}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4 mr-1" />
+                Infinite
+              </Button>
+            </div>
             <Badge variant="secondary" className="text-xs">
               <Play className="w-3 h-3 mr-1" />
               Anime
@@ -207,48 +258,87 @@ const Anime = () => {
         {loading ? (
           <AnimeGridSkeleton count={24} />
         ) : filteredAnime.length > 0 ? (
-          <>
-            {/* Desktop Grid */}
-            <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {filteredAnime.map((anime) => (
-                <AnimeCard 
-                  key={anime.id} 
-                  anime={anime} 
-                  onClick={() => handleAnimeClick(anime)}
-                />
-              ))}
-            </div>
+          viewMode === 'infinite' ? (
+            <InfiniteScrollContainer
+              hasNextPage={infiniteQuery.hasNextPage}
+              isFetchingNextPage={infiniteQuery.isFetchingNextPage}
+              fetchNextPage={infiniteQuery.fetchNextPage}
+              totalItems={infiniteQuery.totalItems}
+              currentItems={infiniteQuery.currentItems}
+              enableAutoLoad={true}
+            >
+              {/* Desktop Grid */}
+              <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
+                {filteredAnime.map((anime) => (
+                  <AnimeCard 
+                    key={anime.id} 
+                    anime={anime} 
+                    onClick={() => handleAnimeClick(anime)}
+                  />
+                ))}
+              </div>
 
-            {/* Mobile Grid */}
-            <div className="grid lg:hidden grid-cols-2 gap-3">
-              {filteredAnime.map((anime) => (
-                <MobileOptimizedCard
-                  key={anime.id}
-                  title={anime.title}
-                  imageUrl={anime.image_url}
-                  rating={anime.score}
-                  year={anime.year}
-                  genres={anime.genres}
-                  status={anime.status}
-                  onView={() => handleAnimeView(anime)}
-                  onAddToList={() => handleAddToList(anime.id)}
-                />
-              ))}
-            </div>
+              {/* Mobile Grid */}
+              <div className="grid lg:hidden grid-cols-2 gap-3 mb-8">
+                {filteredAnime.map((anime) => (
+                  <MobileOptimizedCard
+                    key={anime.id}
+                    title={anime.title}
+                    imageUrl={anime.image_url}
+                    rating={anime.score}
+                    year={anime.year}
+                    genres={anime.genres}
+                    status={anime.status}
+                    onView={() => handleAnimeView(anime)}
+                    onAddToList={() => handleAddToList(anime.id)}
+                  />
+                ))}
+              </div>
+            </InfiniteScrollContainer>
+          ) : (
+            <>
+              {/* Desktop Grid */}
+              <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {filteredAnime.map((anime) => (
+                  <AnimeCard 
+                    key={anime.id} 
+                    anime={anime} 
+                    onClick={() => handleAnimeClick(anime)}
+                  />
+                ))}
+              </div>
 
-            {/* Pagination */}
-            {pagination && pagination.total_pages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={pagination.total_pages}
-                onPageChange={(page) => {
-                  setCurrentPage(page);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="mb-8"
-              />
-            )}
-          </>
+              {/* Mobile Grid */}
+              <div className="grid lg:hidden grid-cols-2 gap-3">
+                {filteredAnime.map((anime) => (
+                  <MobileOptimizedCard
+                    key={anime.id}
+                    title={anime.title}
+                    imageUrl={anime.image_url}
+                    rating={anime.score}
+                    year={anime.year}
+                    genres={anime.genres}
+                    status={anime.status}
+                    onView={() => handleAnimeView(anime)}
+                    onAddToList={() => handleAddToList(anime.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination && pagination.total_pages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.total_pages}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="mb-8"
+                />
+              )}
+            </>
+          )
         ) : (
           <Card className="anime-card text-center py-12 glow-card">
             <CardContent>

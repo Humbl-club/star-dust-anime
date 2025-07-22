@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useInfiniteContentData } from "@/hooks/useInfiniteContentData";
+import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
+import { Grid3x3, List } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -93,10 +96,11 @@ const Manga = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
   const { toast } = useToast();
 
-  // Fetch manga data from database with pagination
-  const { data: mangaResult, loading, syncFromExternal, error, pagination } = useContentData({ 
+  // Fetch manga data based on view mode
+  const paginatedQuery = useContentData({ 
     contentType: 'manga',
     page: currentPage,
     limit: 24,
@@ -108,7 +112,23 @@ const Manga = () => {
     useOptimized: true
   });
 
-  const mangaData = mangaResult || [];
+  const infiniteQuery = useInfiniteContentData({
+    contentType: 'manga',
+    limit: 24,
+    search: searchQuery || undefined,
+    genre: selectedGenre !== 'all' ? selectedGenre : undefined,
+    status: selectedStatus !== 'all' ? selectedStatus : undefined,
+    sort_by: sortBy,
+    order: 'desc',
+    useOptimized: true
+  });
+
+  // Use the appropriate query based on view mode
+  const mangaData = viewMode === 'infinite' ? infiniteQuery.data : (paginatedQuery.data || []);
+  const loading = viewMode === 'infinite' ? infiniteQuery.loading : paginatedQuery.loading;
+  const error = viewMode === 'infinite' ? infiniteQuery.error : paginatedQuery.error;
+  const pagination = viewMode === 'pagination' ? paginatedQuery.pagination : null;
+  const syncFromExternal = paginatedQuery.syncFromExternal;
 
   // Debug logging for manga list fetching
   console.log('Manga.tsx: Fetching manga list with:', {
@@ -212,14 +232,38 @@ const Manga = () => {
       </div>
 
       <div className="container mx-auto mobile-safe-padding py-6 md:py-8">
-        {/* Results Summary */}
+        {/* Results Summary and View Mode Toggle */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {((currentPage - 1) * 24) + 1} - {Math.min(currentPage * 24, pagination?.total || 0)} of {pagination?.total || 0} manga
-            {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}
+            {viewMode === 'infinite' ? (
+              <>Showing {infiniteQuery.currentItems} of {infiniteQuery.totalItems} manga</>
+            ) : (
+              <>Showing {((currentPage - 1) * 24) + 1} - {Math.min(currentPage * 24, pagination?.total || 0)} of {pagination?.total || 0} manga
+              {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}</>
+            )}
           </p>
           
           <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border overflow-hidden">
+              <Button
+                variant={viewMode === 'pagination' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('pagination')}
+                className="rounded-none"
+              >
+                <Grid3x3 className="w-4 h-4 mr-1" />
+                Pages
+              </Button>
+              <Button
+                variant={viewMode === 'infinite' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('infinite')}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4 mr-1" />
+                Infinite
+              </Button>
+            </div>
             <Badge variant="secondary" className="text-xs">
               <BookOpen className="w-3 h-3 mr-1" />
               Manga
@@ -308,28 +352,45 @@ const Manga = () => {
           </CardHeader>
         </Card>
 
-        {/* Manga Grid - Mobile Optimized */}
+        {/* Manga Grid */}
         {filteredManga.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-              {filteredManga.map((manga) => (
-                <MangaCard key={manga.id} manga={manga} />
-              ))}
-            </div>
+          viewMode === 'infinite' ? (
+            <InfiniteScrollContainer
+              hasNextPage={infiniteQuery.hasNextPage}
+              isFetchingNextPage={infiniteQuery.isFetchingNextPage}
+              fetchNextPage={infiniteQuery.fetchNextPage}
+              totalItems={infiniteQuery.totalItems}
+              currentItems={infiniteQuery.currentItems}
+              enableAutoLoad={true}
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
+                {filteredManga.map((manga) => (
+                  <MangaCard key={manga.id} manga={manga} />
+                ))}
+              </div>
+            </InfiniteScrollContainer>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                {filteredManga.map((manga) => (
+                  <MangaCard key={manga.id} manga={manga} />
+                ))}
+              </div>
 
-            {/* Pagination */}
-            {pagination && pagination.total_pages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={pagination.total_pages}
-                onPageChange={(page) => {
-                  setCurrentPage(page);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="mb-8"
-              />
-            )}
-          </>
+              {/* Pagination */}
+              {pagination && pagination.total_pages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.total_pages}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="mb-8"
+                />
+              )}
+            </>
+          )
         ) : (
           <Card className="anime-card text-center py-12 glow-card">
             <CardContent>
