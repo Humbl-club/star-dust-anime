@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination } from "@/components/ui/pagination";
+import { LazyImage } from "@/components/ui/lazy-image";
 import { 
   Search, 
   Filter, 
@@ -33,10 +34,11 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
     >
       <CardContent className="p-0">
       <div className="relative overflow-hidden rounded-t-lg">
-        <img 
-          src={manga.image_url} 
+        <LazyImage
+          src={manga.image_url}
           alt={manga.title}
-          className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-48 md:h-64"
+          placeholderClassName="bg-gradient-to-br from-primary/20 to-accent/20"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         

@@ -2,6 +2,7 @@ import { useState, useCallback, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LazyImage } from "@/components/ui/lazy-image";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "./AddToListButton";
@@ -52,10 +53,11 @@ export const AnimeCard = memo(({
       
       {/* Image Container */}
       <div className="relative h-full overflow-hidden">
-        <img 
-          src={anime.image_url} 
+        <LazyImage
+          src={anime.image_url}
           alt={displayName}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full"
+          placeholderClassName="bg-gradient-to-br from-primary/20 to-accent/20"
         />
         
         {/* Floating Status Badge */}

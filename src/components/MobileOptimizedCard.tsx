@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { Play, Plus, Check, Star, Share2 } from 'lucide-react';
 import { useNativeActions } from '@/hooks/useNativeActions';
 import { cn } from '@/lib/utils';
@@ -31,7 +32,6 @@ export const MobileOptimizedCard = ({
   onView,
   className,
 }: MobileOptimizedCardProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const { hapticFeedback, nativeShare } = useNativeActions();
 
   const handleShare = async () => {
@@ -63,21 +63,12 @@ export const MobileOptimizedCard = ({
       {/* Image Section */}
       <div className="relative aspect-[3/4] overflow-hidden">
         {imageUrl && (
-          <>
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-muted animate-pulse" />
-            )}
-            <img
-              src={imageUrl}
-              alt={title}
-              className={cn(
-                "w-full h-full object-cover transition-opacity duration-300",
-                imageLoaded ? "opacity-100" : "opacity-0"
-              )}
-              onLoad={() => setImageLoaded(true)}
-              loading="lazy"
-            />
-          </>
+          <LazyImage
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full"
+            placeholderClassName="bg-gradient-to-br from-primary/20 to-accent/20"
+          />
         )}
         
         {/* Overlay Actions */}
