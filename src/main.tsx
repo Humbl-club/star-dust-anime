@@ -1,8 +1,14 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import './native.css'
-import { toast } from '@/hooks/use-toast'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import './native.css';
+import { toast } from '@/hooks/use-toast';
+
+// Ensure React is available globally for development
+if (typeof window !== 'undefined') {
+  (window as any).React = React;
+}
 
 // Register service worker for caching
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -29,4 +35,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

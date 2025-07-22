@@ -1,4 +1,5 @@
 
+import React, { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -8,7 +9,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -33,7 +33,7 @@ const PageLoader = () => (
   </div>
 );
 
-// Enhanced query client with comprehensive caching strategy
+// Enhanced query client with comprehensive caching strategy - moved outside component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -84,7 +84,13 @@ persistQueryClient({
   },
 });
 
-function App() {
+const App = () => {
+  // Safety check for React
+  if (!React || !React.useEffect) {
+    console.error('React is not properly loaded');
+    return <div>Loading...</div>;
+  }
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
