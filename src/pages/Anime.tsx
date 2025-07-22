@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PaginationContent } from "@/components/ui/pagination-content";
+import { Pagination } from "@/components/ui/pagination";
 import { 
   Filter, 
   Star, 
@@ -191,7 +191,7 @@ const Anime = () => {
         {/* Results Summary */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-muted-foreground">
-            Showing {filteredAnime.length} of {pagination?.total || 0} anime 
+            Showing {((currentPage - 1) * 24) + 1} - {Math.min(currentPage * 24, pagination?.total || 0)} of {pagination?.total || 0} anime
             {pagination && ` (Page ${pagination.current_page} of ${pagination.total_pages})`}
           </p>
           
@@ -238,7 +238,7 @@ const Anime = () => {
 
             {/* Pagination */}
             {pagination && pagination.total_pages > 1 && (
-              <PaginationContent
+              <Pagination
                 currentPage={currentPage}
                 totalPages={pagination.total_pages}
                 onPageChange={(page) => {

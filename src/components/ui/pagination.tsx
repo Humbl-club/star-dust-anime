@@ -1,10 +1,102 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
-
+import { Button } from '@/components/ui/button'
 import { cn } from "@/lib/utils"
 import { ButtonProps, buttonVariants } from "@/components/ui/button"
 
-const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
+// Enhanced Pagination component for large datasets
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  className?: string;
+}
+
+export function Pagination({ currentPage, totalPages, onPageChange, className }: PaginationProps) {
+  const getPageNumbers = () => {
+    const pages = [];
+    const showPages = 5; // Number of page buttons to show
+    
+    let start = Math.max(1, currentPage - Math.floor(showPages / 2));
+    let end = Math.min(totalPages, start + showPages - 1);
+    
+    if (end - start + 1 < showPages) {
+      start = Math.max(1, end - showPages + 1);
+    }
+
+    // Always show first page
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push('...');
+    }
+
+    // Page numbers
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Always show last page
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className={cn("flex items-center justify-center gap-2 mt-8", className)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="glass-card border-border/50"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Previous
+      </Button>
+
+      <div className="flex gap-1">
+        {getPageNumbers().map((page, index) => (
+          <div key={index}>
+            {page === '...' ? (
+              <span className="px-2 py-1 text-muted-foreground">...</span>
+            ) : (
+              <Button
+                variant={page === currentPage ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className={page === currentPage 
+                  ? "bg-gradient-primary text-primary-foreground glow-primary min-w-[40px]" 
+                  : "glass-card border-border/50 min-w-[40px]"
+                }
+              >
+                {page}
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="glass-card border-border/50"
+      >
+        Next
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// Original shadcn pagination components (kept for compatibility)
+const PaginationNav = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
     role="navigation"
     aria-label="pagination"
@@ -12,7 +104,7 @@ const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
     {...props}
   />
 )
-Pagination.displayName = "Pagination"
+PaginationNav.displayName = "PaginationNav"
 
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
@@ -107,7 +199,8 @@ const PaginationEllipsis = ({
 PaginationEllipsis.displayName = "PaginationEllipsis"
 
 export {
-  Pagination,
+  Pagination as PaginationEnhanced,
+  PaginationNav,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
