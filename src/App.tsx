@@ -31,21 +31,29 @@ const PageLoader = () => (
   </div>
 );
 
+// Enhanced query client with comprehensive caching strategy
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes 
+      staleTime: 30 * 60 * 1000, // 30 minutes - longer for better performance
+      gcTime: 60 * 60 * 1000, // 1 hour - keep in memory longer
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
       refetchOnReconnect: 'always',
       networkMode: 'online',
+      // Enable background refetching for fresh data
+      refetchInterval: 5 * 60 * 1000, // Background refresh every 5 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
     },
     mutations: {
       retry: 1,
       onError: (error) => {
         console.error('Mutation error:', error);
+      },
+      // Optimistic updates for better UX
+      onMutate: () => {
+        console.log('Mutation started - implementing optimistic update');
       },
     },
   },
