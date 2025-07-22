@@ -294,21 +294,6 @@ const Index = () => {
         </div>
       )}
       
-      {/* Debug: Show raw data */}
-      <div className="container mx-auto p-4 bg-yellow-100 text-black">
-        <h3 className="font-bold">Debug Info:</h3>
-        <p>Loading: {loading ? 'Yes' : 'No'}</p>
-        <p>Error: {error ? error.message : 'None'}</p>
-        <p>All Anime Data: {allAnime ? 'Yes' : 'No'}</p>
-        <p>All Anime Count: {allAnime?.length || 0}</p>
-        <p>Trending Anime Count: {trendingAnime?.length || 0}</p>
-        <p>Recently Added Count: {recentlyAdded?.length || 0}</p>
-        <p>Top Rated Count: {topRated?.length || 0}</p>
-        <p>First anime title: {allAnime?.[0]?.title || 'None'}</p>
-        <p>First trending anime: {trendingAnime?.[0]?.title || 'None'}</p>
-        <p>Search Results: {searchResults?.length || 0}</p>
-        <p>Is Searching: {isSearching ? 'Yes' : 'No'}</p>
-      </div>
 
       {/* Hero Section */}
       <HeroSection />
