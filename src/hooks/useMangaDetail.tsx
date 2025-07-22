@@ -54,50 +54,76 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const maxRetries = 3;
+    let attempt = 0;
 
-    try {
-      console.log('Fetching manga detail for ID:', mangaId);
-      
-      const { data: response, error: edgeError } = await supabase.functions.invoke('manga-detail-single', {
-        body: { id: mangaId }
-      });
+    while (attempt < maxRetries) {
+      try {
+        setLoading(true);
+        setError(null);
 
-      console.log('Edge function response:', { response, edgeError });
+        console.log(`Fetching manga detail for ID: ${mangaId} (attempt ${attempt + 1})`);
 
-      if (edgeError) {
-        console.error('Edge function error:', edgeError);
-        throw new Error(edgeError.message || 'Failed to fetch manga details');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        const { data: response, error: edgeError } = await supabase.functions.invoke('manga-detail-single', {
+          body: { id: mangaId },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        console.log('Edge function response:', { response, edgeError });
+
+        if (edgeError) {
+          console.error('Edge function error:', edgeError);
+          throw new Error(edgeError.message || 'Failed to fetch manga details');
+        }
+
+        if (!response?.success || !response?.data) {
+          throw new Error(response?.error || 'Invalid response format');
+        }
+
+        const mangaData = response.data;
+        
+        // Transform the data to match the expected format
+        const transformedManga: MangaDetail = {
+          ...mangaData,
+          synopsis: mangaData.synopsis || '', // Ensure synopsis is never undefined
+          image_url: mangaData.image_url || '', // Ensure image_url is never undefined
+          num_users_voted: mangaData.num_users_voted || 0, // Include the new field
+          // Ensure genres and authors are arrays
+          genres: Array.isArray(mangaData.genres) ? mangaData.genres : [],
+          authors: Array.isArray(mangaData.authors) ? mangaData.authors : [],
+        };
+
+        console.log('Successfully fetched manga:', transformedManga.title);
+        setManga(transformedManga);
+        return;
+
+      } catch (err: any) {
+        attempt++;
+        const isLastAttempt = attempt >= maxRetries;
+        
+        console.error(`Error fetching manga detail (attempt ${attempt}):`, err);
+        
+        if (isLastAttempt) {
+          const errorMessage = err.name === 'AbortError' 
+            ? 'Request timed out. Please check your connection and try again.'
+            : `Failed to load manga details: ${err.message || 'Unknown error'}`;
+          
+          setError(errorMessage);
+          toast.error(errorMessage);
+        } else {
+          // Wait before retry (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      } finally {
+        if (attempt >= maxRetries) {
+          setLoading(false);
+        }
       }
-
-      if (!response?.success || !response?.data) {
-        throw new Error(response?.error || 'Invalid response format');
-      }
-
-      const mangaData = response.data;
-      
-      // Transform the data to match the expected format
-      const transformedManga: MangaDetail = {
-        ...mangaData,
-        synopsis: mangaData.synopsis || '', // Ensure synopsis is never undefined
-        image_url: mangaData.image_url || '', // Ensure image_url is never undefined
-        num_users_voted: mangaData.num_users_voted || 0, // Include the new field
-        // Ensure genres and authors are arrays
-        genres: Array.isArray(mangaData.genres) ? mangaData.genres : [],
-        authors: Array.isArray(mangaData.authors) ? mangaData.authors : [],
-      };
-
-      console.log('Successfully fetched manga:', transformedManga.title);
-      setManga(transformedManga);
-
-    } catch (err: any) {
-      console.error('Error fetching manga detail:', err);
-      const errorMessage = err.message || 'Failed to fetch manga details';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
