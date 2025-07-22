@@ -64,15 +64,9 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
 
         console.log(`Fetching manga detail for ID: ${mangaId} (attempt ${attempt + 1})`);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
         const { data: response, error: edgeError } = await supabase.functions.invoke('manga-detail-single', {
-          body: { id: mangaId },
-          signal: controller.signal
+          body: { id: mangaId }
         });
-
-        clearTimeout(timeoutId);
 
         console.log('Edge function response:', { response, edgeError });
 
@@ -109,10 +103,7 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
         console.error(`Error fetching manga detail (attempt ${attempt}):`, err);
         
         if (isLastAttempt) {
-          const errorMessage = err.name === 'AbortError' 
-            ? 'Request timed out. Please check your connection and try again.'
-            : `Failed to load manga details: ${err.message || 'Unknown error'}`;
-          
+          const errorMessage = `Failed to load manga details: ${err.message || 'Unknown error'}`;
           setError(errorMessage);
           toast.error(errorMessage);
         } else {
