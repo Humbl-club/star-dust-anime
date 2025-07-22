@@ -62,8 +62,8 @@ export const useAnalytics = () => {
   const fetchContentStats = useCallback(async () => {
     // Get counts from normalized tables
     const [animeCount, mangaCount, popularAnime] = await Promise.all([
-      supabase.from('titles').select('id', { count: 'exact' }).not('anime_details', 'is', null),
-      supabase.from('titles').select('id', { count: 'exact' }).not('manga_details', 'is', null),
+      supabase.from('titles').select('id, anime_details!inner(title_id)', { count: 'exact' }),
+      supabase.from('titles').select('id, manga_details!inner(title_id)', { count: 'exact' }),
       supabase.from('titles')
         .select(`
           title, 

@@ -31,30 +31,64 @@ export const useConsolidatedSearch = () => {
     console.log('🔍 Searching for:', searchQuery, 'Type:', contentType);
 
     try {
-      // Build query based on content type
-      let query = supabase
-        .from('titles')
-        .select(`
-          id, 
-          title, 
-          title_english, 
-          title_japanese, 
-          image_url, 
-          score, 
-          popularity,
-          anilist_id,
-          anime_details(type, status, episodes),
-          manga_details(type, status, chapters)
-        `)
-        .or(`title.ilike.%${searchQuery.trim()}%,title_english.ilike.%${searchQuery.trim()}%,title_japanese.ilike.%${searchQuery.trim()}%`)
-        .order('popularity', { ascending: false })
-        .limit(12);
-
-      // Filter by content type if specified
+      // Build query based on content type with proper inner joins
+      let query;
+      
       if (contentType === 'anime') {
-        query = query.not('anime_details', 'is', null);
+        query = supabase
+          .from('titles')
+          .select(`
+            id, 
+            title, 
+            title_english, 
+            title_japanese, 
+            image_url, 
+            score, 
+            popularity,
+            anilist_id,
+            anime_details!inner(type, status, episodes),
+            manga_details(type, status, chapters)
+          `)
+          .or(`title.ilike.%${searchQuery.trim()}%,title_english.ilike.%${searchQuery.trim()}%,title_japanese.ilike.%${searchQuery.trim()}%`)
+          .order('popularity', { ascending: false })
+          .limit(12);
       } else if (contentType === 'manga') {
-        query = query.not('manga_details', 'is', null);
+        query = supabase
+          .from('titles')
+          .select(`
+            id, 
+            title, 
+            title_english, 
+            title_japanese, 
+            image_url, 
+            score, 
+            popularity,
+            anilist_id,
+            anime_details(type, status, episodes),
+            manga_details!inner(type, status, chapters)
+          `)
+          .or(`title.ilike.%${searchQuery.trim()}%,title_english.ilike.%${searchQuery.trim()}%,title_japanese.ilike.%${searchQuery.trim()}%`)
+          .order('popularity', { ascending: false })
+          .limit(12);
+      } else {
+        // Both anime and manga - no inner join constraints
+        query = supabase
+          .from('titles')
+          .select(`
+            id, 
+            title, 
+            title_english, 
+            title_japanese, 
+            image_url, 
+            score, 
+            popularity,
+            anilist_id,
+            anime_details(type, status, episodes),
+            manga_details(type, status, chapters)
+          `)
+          .or(`title.ilike.%${searchQuery.trim()}%,title_english.ilike.%${searchQuery.trim()}%,title_japanese.ilike.%${searchQuery.trim()}%`)
+          .order('popularity', { ascending: false })
+          .limit(12);
       }
 
       const { data: results, error } = await query;
