@@ -3,7 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AdvancedFiltering } from '@/components/features/AdvancedFiltering';
 import { useSearchStore } from '@/store';
-import { Search, X } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Search, X, Loader2 } from 'lucide-react';
 
 interface SearchWithFiltersProps {
   contentType: 'anime' | 'manga';
@@ -20,10 +21,14 @@ export function SearchWithFilters({
 }: SearchWithFiltersProps) {
   const { query, setQuery, clearSearch } = useSearchStore();
   const [localQuery, setLocalQuery] = useState(query);
+  const debouncedQuery = useDebounce(localQuery, 300);
+
+  // Show loading state when user input differs from debounced value
+  const isSearching = localQuery !== debouncedQuery;
 
   const handleSearch = () => {
-    setQuery(localQuery);
-    onSearch?.(localQuery);
+    setQuery(debouncedQuery);
+    onSearch?.(debouncedQuery);
   };
 
   const handleClear = () => {
@@ -47,18 +52,25 @@ export function SearchWithFilters({
           value={localQuery}
           onChange={(e) => setLocalQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="pr-10"
+          className="pr-20"
         />
-        {localQuery && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-1">
+          {isSearching && (
+            <div className="h-8 w-8 flex items-center justify-center">
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {localQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
       
       <Button onClick={handleSearch} className="shrink-0">
