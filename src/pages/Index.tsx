@@ -164,6 +164,44 @@ const Index = () => {
     <div className="min-h-screen relative">
       <Navigation />
       
+      {/* Database Population Status */}
+      {(isPopulating || populationStatus) && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4">
+          <div className="bg-gradient-to-r from-primary/20 to-accent/20 backdrop-blur-lg border border-primary/30 rounded-lg p-4 shadow-xl">
+            <div className="flex items-center space-x-3">
+              {isPopulating && (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{populationStatus}</p>
+                {isPopulating && (
+                  <p className="text-xs text-muted-foreground mt-1">This may take a few moments...</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Show manual sync button if no data */}
+      {trendingAnime.length === 0 && !isPopulating && !loading && (
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-8 text-center">
+            <h3 className="text-2xl font-bold mb-4">No Data Available</h3>
+            <p className="text-muted-foreground mb-6">
+              The database needs to be populated with anime and manga data.
+            </p>
+            <button
+              onClick={checkAndPopulateDatabase}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
+              disabled={isPopulating}
+            >
+              Populate Database
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <HeroSection />
 
