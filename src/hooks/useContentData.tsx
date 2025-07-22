@@ -35,6 +35,7 @@ export interface UseContentDataReturn<T> {
   refetch: () => Promise<void>;
   syncFromExternal: (pages?: number) => Promise<void>;
   syncImages?: (limit?: number) => Promise<void>;
+  clearCache: () => void;
 }
 
 // Overloaded function signatures for type safety
@@ -180,6 +181,12 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     await queryRefetch();
   };
 
+  // Clear React Query cache function
+  const clearCache = () => {
+    queryClient.clear();
+    console.log('useContentData: React Query cache cleared');
+  };
+
   // Sync from external API
   const syncFromExternal = async (pages = 1) => {
     const response = contentType === 'anime'
@@ -221,6 +228,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     pagination: queryResult?.pagination || null,
     refetch,
     syncFromExternal,
-    syncImages
+    syncImages,
+    clearCache
   };
 }
