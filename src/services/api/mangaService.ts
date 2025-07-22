@@ -84,7 +84,12 @@ class MangaApiService extends BaseApiService {
         order = 'desc'
       } = options;
 
-      console.log('Fetching manga with optimized query:', options);
+      console.log('📚 MangaService: Fetching manga with optimized query:', {
+        ...options,
+        page,
+        limit,
+        offset: (page - 1) * limit
+      });
 
       // Build optimized query with server-side filtering
       let query = this.supabase
@@ -131,9 +136,19 @@ class MangaApiService extends BaseApiService {
       const to = from + limit - 1;
       query = query.range(from, to);
 
+      console.log('🎯 MangaService: Executing query...');
       const { data: response, error, count } = await query;
 
+      console.log('📊 MangaService: Raw query result:', {
+        dataLength: response?.length || 0,
+        error: error?.message,
+        totalCount: count,
+        sampleData: response?.[0],
+        fullError: error
+      });
+
       if (error) {
+        console.error('❌ MangaService: Query error:', error);
         throw error;
       }
 
@@ -185,6 +200,12 @@ class MangaApiService extends BaseApiService {
           authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
         };
       }) || [];
+
+      console.log('🔄 MangaService: Transformed data:', {
+        originalLength: response?.length || 0,
+        transformedLength: transformedData.length,
+        sampleTransformed: transformedData[0]
+      });
 
       // Build pagination info
       const totalPages = count ? Math.ceil(count / limit) : 1;

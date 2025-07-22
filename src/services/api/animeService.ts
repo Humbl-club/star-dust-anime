@@ -87,7 +87,12 @@ class AnimeApiService extends BaseApiService {
         order = 'desc'
       } = options;
 
-      console.log('Fetching anime with optimized query:', options);
+      console.log('🎬 AnimeService: Fetching anime with optimized query:', {
+        ...options,
+        page,
+        limit,
+        offset: (page - 1) * limit
+      });
 
       // Build optimized query with server-side filtering
       let query = this.supabase
@@ -137,9 +142,19 @@ class AnimeApiService extends BaseApiService {
       const to = from + limit - 1;
       query = query.range(from, to);
 
+      console.log('🎯 AnimeService: Executing query...');
       const { data: response, error, count } = await query;
 
+      console.log('📊 AnimeService: Raw query result:', {
+        dataLength: response?.length || 0,
+        error: error?.message,
+        totalCount: count,
+        sampleData: response?.[0],
+        fullError: error
+      });
+
       if (error) {
+        console.error('❌ AnimeService: Query error:', error);
         throw error;
       }
 
@@ -192,6 +207,12 @@ class AnimeApiService extends BaseApiService {
           studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
         };
       }) || [];
+
+      console.log('🔄 AnimeService: Transformed data:', {
+        originalLength: response?.length || 0,
+        transformedLength: transformedData.length,
+        sampleTransformed: transformedData[0]
+      });
 
       // Build pagination info
       const totalPages = count ? Math.ceil(count / limit) : 1;

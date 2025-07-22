@@ -16,6 +16,7 @@ import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
+  const queryClient = useQueryClient();
   
   // Database population state
   const [isPopulating, setIsPopulating] = useState(false);
@@ -86,6 +88,70 @@ const Index = () => {
     }
   };
   
+  // Database testing function
+  const testDatabaseAccess = async () => {
+    console.log('🧪 Starting comprehensive database test...');
+    
+    try {
+      // Test 1: Simple count
+      console.log('🧪 Test 1: Checking titles count...');
+      const { count, error: countError } = await supabase
+        .from('titles')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('📊 Titles count:', count, 'Error:', countError);
+      
+      // Test 2: Get some titles
+      console.log('🧪 Test 2: Getting sample titles...');
+      const { data: titles, error: titlesError } = await supabase
+        .from('titles')
+        .select('*')
+        .limit(5);
+      
+      console.log('📋 Sample titles:', titles, 'Error:', titlesError);
+      
+      // Test 3: Get titles with anime details
+      console.log('🧪 Test 3: Getting anime with details...');
+      const { data: animeData, error: animeError } = await supabase
+        .from('titles')
+        .select('*, anime_details!inner(*)')
+        .limit(5);
+      
+      console.log('🎬 Anime with details:', animeData, 'Error:', animeError);
+      
+      // Test 4: Get titles with manga details
+      console.log('🧪 Test 4: Getting manga with details...');
+      const { data: mangaData, error: mangaError } = await supabase
+        .from('titles')
+        .select('*, manga_details!inner(*)')
+        .limit(5);
+      
+      console.log('📚 Manga with details:', mangaData, 'Error:', mangaError);
+      
+      // Test 5: Clear React Query cache
+      console.log('🧪 Test 5: Clearing React Query cache...');
+      queryClient.clear();
+      console.log('✅ Cache cleared');
+      
+      // Summary
+      console.log('🎯 Database Test Summary:', {
+        totalTitles: count,
+        sampleTitlesCount: titles?.length || 0,
+        animeWithDetailsCount: animeData?.length || 0,
+        mangaWithDetailsCount: mangaData?.length || 0,
+        errors: {
+          count: countError?.message,
+          titles: titlesError?.message,
+          anime: animeError?.message,
+          manga: mangaError?.message
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ Database test failed:', error);
+    }
+  };
+
   // Run check on component mount
   useEffect(() => {
     checkAndPopulateDatabase();
@@ -191,13 +257,21 @@ const Index = () => {
             <p className="text-muted-foreground mb-6">
               The database needs to be populated with anime and manga data.
             </p>
-            <button
-              onClick={checkAndPopulateDatabase}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
-              disabled={isPopulating}
-            >
-              Populate Database
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={checkAndPopulateDatabase}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
+                disabled={isPopulating}
+              >
+                Populate Database
+              </button>
+              <button
+                onClick={testDatabaseAccess}
+                className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                Test Database Access
+              </button>
+            </div>
           </div>
         </div>
       )}

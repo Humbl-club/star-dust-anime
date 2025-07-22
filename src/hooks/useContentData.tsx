@@ -94,7 +94,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       order
     };
 
-    console.log('useContentData: Fetching data with options:', {
+    console.log('🔍 useContentData: Starting query with options:', {
       contentType,
       useOptimized,
       functionName: useOptimized ? 'direct-db-query' : 'anime-api',
@@ -107,17 +107,18 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     try {
       if (useOptimized) {
         // Use optimized direct database queries
-        console.log(`useContentData: Calling optimized ${contentType} service...`);
+        console.log(`🚀 useContentData: Calling optimized ${contentType} service...`);
         const response = contentType === 'anime'
           ? await animeService.fetchAnimeOptimized(queryOptions)
           : await mangaService.fetchMangaOptimized(queryOptions);
 
         const endTime = performance.now();
-        console.log(`useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+        console.log(`✅ useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
           success: response.success,
           dataLength: response.data?.data?.length || 0,
           error: response.error,
-          pagination: response.data?.pagination
+          pagination: response.data?.pagination,
+          rawResponse: response
         });
 
         if (!response.success) {
@@ -126,17 +127,18 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
         return response.data;
       } else {
         // Use edge function API
-        console.log(`useContentData: Calling edge function for ${contentType}...`);
+        console.log(`🌐 useContentData: Calling edge function for ${contentType}...`);
         const response = contentType === 'anime'
           ? await animeService.fetchAnime(queryOptions)
           : await mangaService.fetchManga(queryOptions);
 
         const endTime = performance.now();
-        console.log(`useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+        console.log(`🌐 useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
           success: response.success,
           dataLength: response.data?.data?.length || 0,
           error: response.error,
-          pagination: response.data?.pagination
+          pagination: response.data?.pagination,
+          rawResponse: response
         });
 
         if (!response.success) {
@@ -149,12 +151,13 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       }
     } catch (error) {
       const endTime = performance.now();
-      console.error(`useContentData: Error fetching ${contentType} data (${Math.round(endTime - startTime)}ms):`, {
+      console.error(`❌ useContentData: Error fetching ${contentType} data (${Math.round(endTime - startTime)}ms):`, {
         error: error.message,
         stack: error.stack,
         queryOptions,
         useOptimized,
-        contentType
+        contentType,
+        fullError: error
       });
       throw error;
     }
@@ -220,6 +223,15 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       throw new Error(response.error || 'Image sync failed');
     }
   };
+
+  // Log final return data
+  console.log(`📊 useContentData: Final return data for ${contentType}:`, {
+    dataLength: queryResult?.data?.length || 0,
+    loading,
+    error: error?.message,
+    pagination: queryResult?.pagination,
+    timestamp: new Date().toISOString()
+  });
 
   return {
     data: queryResult?.data || [],
