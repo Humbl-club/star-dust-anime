@@ -131,7 +131,7 @@ const Index = () => {
       // Test 5: Clear React Query cache
       console.log('🧪 Test 5: Clearing React Query cache...');
       queryClient.clear();
-      console.log('✅ Cache cleared');
+      console.log('✅ Cache cleared automatically');
       
       // Summary
       console.log('🎯 Database Test Summary:', {

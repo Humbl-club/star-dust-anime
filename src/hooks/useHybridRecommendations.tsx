@@ -34,7 +34,6 @@ export const useHybridRecommendations = () => {
         )
       `)
       .eq('user_id', user.id)
-      .eq('media_type', contentType)
       .gte('score', 8)
       .order('score', { ascending: false })
       .limit(10);

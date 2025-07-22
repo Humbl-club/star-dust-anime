@@ -135,7 +135,6 @@ class UserApiService extends BaseApiService {
           list_statuses(*)
         `)
         .eq('user_id', userId)
-        .eq('media_type', mediaType)
         .order('updated_at', { ascending: false });
 
       if (error) {

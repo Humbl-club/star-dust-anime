@@ -268,7 +268,6 @@ export const useUserTitleLists = () => {
         .from('user_title_lists')
         .update(updateData)
         .eq('id', id)
-        .eq('media_type', 'anime')
         .select(`
           *,
           status:list_statuses(*),
@@ -312,7 +311,6 @@ export const useUserTitleLists = () => {
         .from('user_title_lists')
         .update(updateData)
         .eq('id', id)
-        .eq('media_type', 'manga')
         .select(`
           *,
           status:list_statuses(*),
@@ -338,8 +336,7 @@ export const useUserTitleLists = () => {
       const { error } = await supabase
         .from('user_title_lists')
         .delete()
-        .eq('id', id)
-        .eq('media_type', 'anime');
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -357,8 +354,7 @@ export const useUserTitleLists = () => {
       const { error } = await supabase
         .from('user_title_lists')
         .delete()
-        .eq('id', id)
-        .eq('media_type', 'manga');
+        .eq('id', id);
 
       if (error) throw error;
 
