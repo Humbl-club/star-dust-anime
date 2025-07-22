@@ -21,6 +21,7 @@ import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { useSearchStore } from "@/store";
 import { genres, animeStatuses, type Anime } from "@/data/animeData";
 import { AnimeCard } from "@/components/features/AnimeCard";
+import { AnimeGridSkeleton } from "@/components/ui/AnimeCardSkeleton";
 import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
@@ -204,12 +205,7 @@ const Anime = () => {
 
         {/* Anime Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p>Loading anime...</p>
-            </div>
-          </div>
+          <AnimeGridSkeleton count={24} />
         ) : filteredAnime.length > 0 ? (
           <>
             {/* Desktop Grid */}

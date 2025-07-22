@@ -33,27 +33,20 @@ const Index = () => {
   const [populationStatus, setPopulationStatus] = useState<string>('');
   
 
-  // Get anime data directly from database (same as anime page)
+  // Get anime data directly from database (optimized for homepage)
   const { data: allAnime, loading: animeLoading, error: animeError } = useContentData({
     contentType: 'anime',
     page: 1,
-    limit: 50,
-    sort_by: 'popularity',
+    limit: 50, // Only fetch 50 items for homepage performance
+    sort_by: 'score',
     order: 'desc',
     useOptimized: true
   });
 
-  console.log('🏠 Direct anime data:', {
-    allAnime,
-    animeLoading,
-    animeError,
-    dataLength: allAnime?.length
-  });
-
-  // Create homepage sections from allAnime data
-  const trendingAnime = allAnime?.slice(0, 20) || [];
-  const recentlyAdded = allAnime?.slice(20, 40) || [];
-  const topRated = allAnime?.slice(0, 10) || [];
+  // Create homepage sections from limited data using useMemo for performance
+  const trendingAnime = useMemo(() => allAnime?.slice(0, 10) || [], [allAnime]);
+  const recentlyAdded = useMemo(() => allAnime?.slice(10, 20) || [], [allAnime]);
+  const topRated = useMemo(() => allAnime?.slice(20, 30) || [], [allAnime]);
   const loading = animeLoading;
   const error = animeError;
 
