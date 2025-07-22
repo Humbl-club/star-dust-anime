@@ -38,7 +38,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30 * 60 * 1000, // 30 minutes - longer for better performance
-      gcTime: 60 * 60 * 1000, // 1 hour - keep in memory longer
+      gcTime: 2 * 60 * 60 * 1000, // 2 hours - keep in memory longer
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
