@@ -12,7 +12,7 @@ const supabase = createClient(
 )
 
 Deno.serve(async (req) => {
-  console.log('Anime detail function started', req.method, req.url)
+  console.log('🚀 Anime detail function started', req.method, req.url)
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,32 +25,62 @@ Deno.serve(async (req) => {
     console.log('=== ANIME DETAIL FUNCTION DEBUG ===');
     console.log('Method:', req.method);
     console.log('URL:', req.url);
+    console.log('Headers:', Object.fromEntries(req.headers.entries()));
     
-    // ONLY get ID from request body for POST requests
+    // ONLY accept POST requests with ID in body
     if (req.method === 'POST') {
       try {
         const body = await req.json();
-        console.log('Raw request body:', JSON.stringify(body));
+        console.log('📦 Raw request body:', JSON.stringify(body));
         
-        // Extract ID from body
-        const bodyId = body.id || body.animeId;
-        console.log('Extracted bodyId:', bodyId, 'Type:', typeof bodyId);
+        // Extract ID from body - try multiple possible keys
+        const bodyId = body.id || body.animeId || body.anime_id;
+        console.log('🔍 Extracted bodyId:', bodyId, 'Type:', typeof bodyId);
         
-        // Reject literal ":id" string and empty values
-        if (bodyId && bodyId !== ':id' && bodyId.toString().trim() !== '') {
-          animeId = bodyId.toString();
+        // Validate ID - must not be null, empty, or literal ":id"
+        if (bodyId && 
+            typeof bodyId === 'string' && 
+            bodyId.trim() !== '' && 
+            bodyId !== ':id' && 
+            bodyId !== 'undefined' && 
+            bodyId !== 'null') {
+          animeId = bodyId.trim();
           console.log('✅ Valid ID accepted from body:', animeId);
+          
+          // Log ID format detection
+          const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(animeId);
+          const isInteger = /^\d+$/.test(animeId);
+          console.log(`🏷️ ID format - UUID: ${isUUID}, Integer: ${isInteger}, Raw: "${animeId}"`);
         } else {
-          console.log('❌ Invalid ID in body:', bodyId, '- literal ":id" or empty');
+          console.log('❌ Invalid ID in body:', bodyId, '- rejected (empty, :id, or invalid type)');
         }
       } catch (e) {
         console.error('❌ Failed to parse request body as JSON:', e);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid JSON in request body', 
+            details: e.message 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
     } else {
-      console.log('❌ Non-POST request method, ID required in body');
+      console.log('❌ Non-POST request method, ID required in POST body');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Method not allowed. Use POST with ID in request body.' 
+        }),
+        { 
+          status: 405, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
     
-    if (!animeId || animeId === ':id' || animeId.trim() === '') {
+    if (!animeId) {
       console.error('❌ FINAL CHECK FAILED - No valid anime ID provided. Received:', animeId);
       return new Response(
         JSON.stringify({ 
@@ -59,7 +89,8 @@ Deno.serve(async (req) => {
           debug_info: {
             url: req.url,
             method: req.method,
-            issue: 'ID must be provided in POST request body as {id: "actual_id"}'
+            issue: 'ID must be provided in POST request body as {id: "actual_id"}',
+            example: { id: "123e4567-e89b-12d3-a456-426614174000" }
           }
         }),
         { 
