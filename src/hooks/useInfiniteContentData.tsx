@@ -130,11 +130,11 @@ export function useInfiniteContentData(options: InfiniteContentOptions): Infinit
   });
 
   // Flatten all pages into a single array
-  const allItems: any[] = data?.pages.flatMap(page => page.data) || [];
+  const allItems = data?.pages.flatMap(page => page.data as any[]) || [];
   const totalItems = data?.pages[0]?.total || 0;
 
   return {
-    data: allItems as any[],
+    data: allItems,
     loading: isFetching && !isFetchingNextPage,
     error: error as Error | null,
     hasNextPage: !!hasNextPage,
