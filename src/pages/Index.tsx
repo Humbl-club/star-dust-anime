@@ -48,6 +48,22 @@ const Index = () => {
   const recentlyAdded = homeDataResponse?.data?.recentAnime || [];
   const topRated = homeDataResponse?.data?.trendingAnime?.slice(0, 10) || []; // Use trending as top rated fallback
 
+  // Debug: Log homepage data
+  console.log('🏠 Homepage data check:', {
+    homeDataResponse,
+    loading,
+    error,
+    trendingAnime: trendingAnime,
+    trendingAnimeLength: trendingAnime.length,
+    recentlyAdded: recentlyAdded,
+    recentlyAddedLength: recentlyAdded.length,
+    topRated: topRated,
+    topRatedLength: topRated.length,
+    searchResults: searchResults,
+    searchResultsLength: searchResults.length,
+    isSearching: isSearching
+  });
+
   // Check if titles table is empty and populate if needed
   const checkAndPopulateDatabase = async () => {
     try {
@@ -276,6 +292,20 @@ const Index = () => {
         </div>
       )}
       
+      {/* Debug: Show raw data */}
+      <div className="container mx-auto p-4 bg-yellow-100 text-black">
+        <h3 className="font-bold">Debug Info:</h3>
+        <p>Loading: {loading ? 'Yes' : 'No'}</p>
+        <p>Error: {error ? error.message : 'None'}</p>
+        <p>Home Data Response: {homeDataResponse ? 'Yes' : 'No'}</p>
+        <p>Trending Anime Count: {trendingAnime?.length || 0}</p>
+        <p>Recently Added Count: {recentlyAdded?.length || 0}</p>
+        <p>Top Rated Count: {topRated?.length || 0}</p>
+        <p>First trending anime: {trendingAnime?.[0]?.title || 'None'}</p>
+        <p>Search Results: {searchResults?.length || 0}</p>
+        <p>Is Searching: {isSearching ? 'Yes' : 'No'}</p>
+      </div>
+
       {/* Hero Section */}
       <HeroSection />
 
