@@ -28,9 +28,10 @@ export const useHybridRecommendations = () => {
       .from('user_title_lists')
       .select(`
         *,
-        titles!inner(*),
-        anime_details:titles!inner(anime_details(*)),
-        manga_details:titles!inner(manga_details(*))
+        titles!inner(
+          *,
+          ${contentType === 'anime' ? 'anime_details(*)' : 'manga_details(*)'}
+        )
       `)
       .eq('user_id', user.id)
       .eq('media_type', contentType)
