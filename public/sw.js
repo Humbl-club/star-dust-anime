@@ -100,8 +100,8 @@ self.addEventListener('fetch', (event) => {
   
   // Handle different types of requests
   if (url.pathname.includes('/rest/v1/') || url.pathname.includes('/functions/v1/')) {
-    // API requests
-    event.respondWith(handleApiRequest(request));
+    // API requests with enhanced caching
+    event.respondWith(handleSupabaseApiRequest(request));
   } else if (isImageRequest(request)) {
     // Image requests
     event.respondWith(handleImageRequest(request));
@@ -113,6 +113,72 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(handleStaticRequest(request));
   }
 });
+
+// Enhanced Supabase API request handler
+async function handleSupabaseApiRequest(request) {
+  const cache = await caches.open(API_CACHE_NAME);
+  const url = new URL(request.url);
+  
+  try {
+    // Try network first for fresh data
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      // Clone and cache successful responses
+      const responseClone = networkResponse.clone();
+      
+      // Add cache headers to the response
+      const cachedResponse = new Response(await responseClone.text(), {
+        status: networkResponse.status,
+        statusText: networkResponse.statusText,
+        headers: {
+          ...Object.fromEntries(networkResponse.headers.entries()),
+          'X-Cache': 'MISS',
+          'X-Cache-Date': new Date().toISOString(),
+        }
+      });
+      
+      cache.put(request, cachedResponse.clone());
+      console.log('🌐 Cached API response:', url.pathname);
+      
+      return cachedResponse;
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('🔌 Network failed, checking cache for:', url.pathname);
+    
+    // Fallback to cache on network failure
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      // Add cache hit indicator
+      const response = cachedResponse.clone();
+      const body = await response.text();
+      
+      return new Response(body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          ...Object.fromEntries(response.headers.entries()),
+          'X-Cache': 'HIT',
+          'X-Cache-Offline': 'true',
+        }
+      });
+    }
+    
+    // No cache available
+    return new Response(
+      JSON.stringify({ 
+        error: 'Offline - No cached data available',
+        message: 'Please check your internet connection'
+      }), 
+      { 
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+}
 
 async function handleApiRequest(request) {
   const url = new URL(request.url);

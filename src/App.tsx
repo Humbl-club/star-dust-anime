@@ -1,5 +1,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,6 +57,29 @@ const queryClient = new QueryClient({
       onMutate: () => {
         console.log('Mutation started - implementing optimistic update');
       },
+    },
+  },
+});
+
+// Create persister for React Query
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+  throttleTime: 1000,
+});
+
+// Enable query persistence
+persistQueryClient({
+  queryClient,
+  persister,
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  hydrateOptions: {},
+  dehydrateOptions: {
+    shouldDehydrateQuery: (query) => {
+      // Don't persist user-specific data
+      const queryKey = query.queryKey;
+      return !queryKey.some(key => 
+        typeof key === 'string' && (key.includes('user') || key.includes('auth'))
+      );
     },
   },
 });

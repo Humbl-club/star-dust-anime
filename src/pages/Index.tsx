@@ -33,14 +33,15 @@ const Index = () => {
   const [populationStatus, setPopulationStatus] = useState<string>('');
   
 
-  // Get anime data directly from database (optimized for homepage)
+  // Get anime data directly from database (optimized for homepage with edge caching)
   const { data: allAnime, loading: animeLoading, error: animeError } = useContentData({
     contentType: 'anime',
     page: 1,
     limit: 50, // Only fetch 50 items for homepage performance
     sort_by: 'score',
     order: 'desc',
-    useOptimized: true
+    useOptimized: true,
+    useEdgeCache: true // Enable edge caching for homepage
   });
 
   // Create homepage sections from limited data using useMemo for performance

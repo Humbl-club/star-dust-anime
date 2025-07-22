@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { animeService, mangaService, AnimeContent, MangaContent } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PaginationInfo {
   current_page: number;
@@ -25,6 +26,7 @@ export interface UseContentDataOptions {
   order?: 'asc' | 'desc';
   autoFetch?: boolean;
   useOptimized?: boolean; // Toggle between edge function vs direct DB
+  useEdgeCache?: boolean; // Use edge function for aggregated home data
 }
 
 export interface UseContentDataReturn<T> {
@@ -58,7 +60,8 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     sort_by = 'score',
     order = 'desc',
     autoFetch = true,
-    useOptimized = true
+    useOptimized = true,
+    useEdgeCache = false
   } = options;
 
   // Create query key for caching
@@ -75,7 +78,8 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     season, 
     sort_by, 
     order,
-    useOptimized ? 'optimized' : 'api'
+    useOptimized ? 'optimized' : 'api',
+    useEdgeCache ? 'edge-cache' : 'normal'
   ];
 
   // Query function that uses either optimized DB calls or edge function
@@ -97,7 +101,8 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     console.log('🔍 useContentData: Starting query with options:', {
       contentType,
       useOptimized,
-      functionName: useOptimized ? 'direct-db-query' : 'anime-api',
+      useEdgeCache,
+      functionName: useEdgeCache ? 'edge-cache' : (useOptimized ? 'direct-db-query' : 'anime-api'),
       queryOptions,
       timestamp: new Date().toISOString()
     });
@@ -105,6 +110,37 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     const startTime = performance.now();
 
     try {
+      // Use edge cache for home page aggregated data
+      if (useEdgeCache && contentType === 'anime' && page === 1 && !search && !genre && !status && !type && !year && !season) {
+        console.log('🏠 useContentData: Using edge cached home data...');
+        
+        const { data, error } = await supabase.functions.invoke('cached-home-data');
+        
+        if (error) {
+          console.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
+        } else if (data?.sections?.trending?.data) {
+          const endTime = performance.now();
+          console.log(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
+            success: true,
+            sections: Object.keys(data.sections).length,
+            total: data.metadata.total_items
+          });
+          
+          // Transform edge cache data to match expected format
+          return {
+            data: data.sections.trending.data,
+            pagination: {
+              current_page: 1,
+              per_page: data.sections.trending.data.length,
+              total: data.sections.trending.data.length,
+              total_pages: 1,
+              has_next_page: false,
+              has_prev_page: false
+            }
+          };
+        }
+      }
+
       if (useOptimized) {
         // Use optimized direct database queries
         console.log(`🚀 useContentData: Calling optimized ${contentType} service...`);
