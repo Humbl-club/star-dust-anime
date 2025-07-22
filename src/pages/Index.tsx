@@ -15,6 +15,7 @@ import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
 import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user } = useAuth();
@@ -24,6 +25,10 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
+  
+  // Database population state
+  const [isPopulating, setIsPopulating] = useState(false);
+  const [populationStatus, setPopulationStatus] = useState<string>('');
   
 
   // Get home data from Edge Function with caching
@@ -40,6 +45,51 @@ const Index = () => {
   const trendingAnime = homeDataResponse?.data?.trendingAnime || [];
   const recentlyAdded = homeDataResponse?.data?.recentAnime || [];
   const topRated = homeDataResponse?.data?.trendingAnime?.slice(0, 10) || []; // Use trending as top rated fallback
+
+  // Check if titles table is empty and populate if needed
+  const checkAndPopulateDatabase = async () => {
+    try {
+      // Check if titles table has data
+      const { count } = await supabase
+        .from('titles')
+        .select('*', { count: 'exact', head: true });
+      
+      if (count === 0) {
+        // Titles table is empty, need to populate
+        setIsPopulating(true);
+        setPopulationStatus('Populating database with anime and manga data...');
+        
+        // Call the sync edge function using Supabase client
+        const { data, error } = await supabase.functions.invoke('ultra-fast-complete-sync', {
+          body: { 
+            contentType: 'both',
+            fullSync: true 
+          }
+        });
+        
+        if (error) {
+          console.error('Population error:', error);
+          setPopulationStatus('Failed to populate database: ' + error.message);
+        } else if (data?.success) {
+          setPopulationStatus(`Successfully populated ${data.totalProcessed || 'many'} titles!`);
+          // Reload after 2 seconds to show the data
+          setTimeout(() => window.location.reload(), 2000);
+        } else {
+          setPopulationStatus('Failed to populate database: ' + (data?.error || 'Unknown error'));
+        }
+      }
+    } catch (error) {
+      console.error('Database check error:', error);
+      setPopulationStatus('Error checking database: ' + (error as Error).message);
+    } finally {
+      setIsPopulating(false);
+    }
+  };
+  
+  // Run check on component mount
+  useEffect(() => {
+    checkAndPopulateDatabase();
+  }, []);
 
   const handleAnimeClick = (anime: Anime) => {
     navigate(`/anime/${anime.id}`);
@@ -99,12 +149,12 @@ const Index = () => {
     </section>
   );
 
-  if (loading) {
+  if (loading || isPopulating) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p>Loading anime...</p>
+          <p>{isPopulating ? populationStatus || 'Setting up database...' : 'Loading anime...'}</p>
         </div>
       </div>
     );
