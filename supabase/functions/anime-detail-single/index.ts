@@ -21,41 +21,15 @@ Deno.serve(async (req) => {
 
   try {
     let animeId: string | null = null;
-    
-    console.log('=== ANIME DETAIL FUNCTION DEBUG ===');
-    console.log('Method:', req.method);
-    console.log('URL:', req.url);
-    console.log('Headers:', Object.fromEntries(req.headers.entries()));
-    
-    // ONLY accept POST requests with ID in body
+
+    // Get ID from request body (this is how the frontend sends it)
     if (req.method === 'POST') {
       try {
         const body = await req.json();
-        console.log('📦 Raw request body:', JSON.stringify(body));
-        
-        // Extract ID from body - try multiple possible keys
-        const bodyId = body.id || body.animeId || body.anime_id;
-        console.log('🔍 Extracted bodyId:', bodyId, 'Type:', typeof bodyId);
-        
-        // Validate ID - must not be null, empty, or literal ":id"
-        if (bodyId && 
-            typeof bodyId === 'string' && 
-            bodyId.trim() !== '' && 
-            bodyId !== ':id' && 
-            bodyId !== 'undefined' && 
-            bodyId !== 'null') {
-          animeId = bodyId.trim();
-          console.log('✅ Valid ID accepted from body:', animeId);
-          
-          // Log ID format detection
-          const isUUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(animeId);
-          const isInteger = /^\d+$/.test(animeId);
-          console.log(`🏷️ ID format - UUID: ${isUUID}, Integer: ${isInteger}, Raw: "${animeId}"`);
-        } else {
-          console.log('❌ Invalid ID in body:', bodyId, '- rejected (empty, :id, or invalid type)');
-        }
+        console.log('Request body received:', body);
+        animeId = body.id || body.animeId;
       } catch (e) {
-        console.error('❌ Failed to parse request body as JSON:', e);
+        console.error('Failed to parse request body:', e);
         return new Response(
           JSON.stringify({ 
             error: 'Invalid JSON in request body', 
@@ -68,7 +42,6 @@ Deno.serve(async (req) => {
         )
       }
     } else {
-      console.log('❌ Non-POST request method, ID required in POST body');
       return new Response(
         JSON.stringify({ 
           error: 'Method not allowed. Use POST with ID in request body.' 
@@ -79,25 +52,18 @@ Deno.serve(async (req) => {
         }
       )
     }
-    
-    if (!animeId) {
-      console.error('❌ FINAL CHECK FAILED - No valid anime ID provided. Received:', animeId);
+
+    // Validate we got a real ID, not ":id" literal
+    if (!animeId || animeId === ':id' || animeId.includes(':')) {
+      console.error('Invalid or missing anime ID:', animeId);
       return new Response(
         JSON.stringify({ 
-          error: 'Anime ID is required in request body', 
-          received_id: animeId,
-          debug_info: {
-            url: req.url,
-            method: req.method,
-            issue: 'ID must be provided in POST request body as {id: "actual_id"}',
-            example: { id: "123e4567-e89b-12d3-a456-426614174000" }
-          }
+          error: 'Valid anime ID is required', 
+          received: animeId,
+          expectedFormat: 'UUID or integer string'
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log('✅ Fetching anime details for ID:', animeId, 'Type:', typeof animeId)
