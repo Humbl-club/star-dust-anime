@@ -1822,6 +1822,71 @@ export type Database = {
           authors: Json
         }[]
       }
+      get_recent_anime: {
+        Args: { limit_param?: number }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          episodes: number
+          aired_from: string
+          aired_to: string
+          season: string
+          status: string
+          type: string
+          trailer_url: string
+          trailer_site: string
+          trailer_id: string
+          next_episode_date: string
+          next_episode_number: number
+          last_sync_check: string
+          genres: Json
+          studios: Json
+        }[]
+      }
+      get_recent_manga: {
+        Args: { limit_param?: number }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          chapters: number
+          volumes: number
+          published_from: string
+          published_to: string
+          status: string
+          type: string
+          next_chapter_date: string
+          next_chapter_number: number
+          last_sync_check: string
+          genres: Json
+          authors: Json
+        }[]
+      }
       get_related_titles: {
         Args: {
           title_id_param: string
@@ -1842,6 +1907,71 @@ export type Database = {
           validation_type: string
           count: number
           percentage: number
+        }[]
+      }
+      get_trending_anime: {
+        Args: { limit_param?: number }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          episodes: number
+          aired_from: string
+          aired_to: string
+          season: string
+          status: string
+          type: string
+          trailer_url: string
+          trailer_site: string
+          trailer_id: string
+          next_episode_date: string
+          next_episode_number: number
+          last_sync_check: string
+          genres: Json
+          studios: Json
+        }[]
+      }
+      get_trending_manga: {
+        Args: { limit_param?: number }
+        Returns: {
+          id: string
+          anilist_id: number
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          anilist_score: number
+          rank: number
+          popularity: number
+          year: number
+          color_theme: string
+          created_at: string
+          updated_at: string
+          chapters: number
+          volumes: number
+          published_from: string
+          published_to: string
+          status: string
+          type: string
+          next_chapter_date: string
+          next_chapter_number: number
+          last_sync_check: string
+          genres: Json
+          authors: Json
         }[]
       }
       get_user_gamification_summary: {

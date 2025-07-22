@@ -7,7 +7,7 @@ import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
 import { AnimeCard } from "@/components/features/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useContentData } from "@/hooks/useContentData";
+import { useHomeData } from "@/hooks/useHomeData";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,77 +26,28 @@ const Index = () => {
   const [triggerEmailPopup, setTriggerEmailPopup] = useState(false);
   
 
-  // Get anime data from API
-  const { data: allAnime, loading } = useContentData({ 
-    contentType: 'anime',
-    limit: 50,
-    sort_by: 'score',
-    order: 'desc'
-  });
+  // Get home data from Edge Function with caching
+  const { data: homeDataResponse, isLoading: loading, error } = useHomeData([
+    'trending-anime',
+    'recent-anime',
+    'trending-manga',
+    'recent-manga'
+  ], 20);
 
+  console.log('🏠 Home data response:', homeDataResponse);
 
-  // Helper functions for improved scoring and trending
-  const calculateAverageScore = (malScore: number | null, anilistScore: number | null): number => {
-    const scores = [malScore, anilistScore].filter(score => score !== null && score > 0);
-    if (scores.length === 0) return 0;
-    return scores.reduce((sum, score) => sum + score!, 0) / scores.length;
-  };
-
-  const calculatePopularityScore = (anime: Anime): number => {
-    // AniList-based popularity scoring with timeline factors
-    let score = 0;
-    
-    // Base AniList popularity (primary factor)
-    if (anime.popularity) score += anime.popularity * 0.4;
-    
-    // Member count factor
-    if (anime.members) score += Math.log(anime.members) * 10;
-    
-    // Favorites factor (strong engagement indicator)
-    if (anime.favorites) score += Math.log(anime.favorites) * 15;
-    
-    // Currently airing bonus (timeline constraint)
-    if (anime.status === 'Currently Airing') score *= 1.5;
-    
-    // Recent release bonus
-    const releaseDate = new Date(anime.aired_from || 0);
-    const monthsAgo = (Date.now() - releaseDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
-    if (monthsAgo < 12) score *= (1 + (12 - monthsAgo) / 24); // Boost for recent releases
-    
-    return score;
-  };
+  // Extract data from Edge Function response
+  const trendingAnime = homeDataResponse?.data?.trendingAnime || [];
+  const recentlyAdded = homeDataResponse?.data?.recentAnime || [];
+  const topRated = homeDataResponse?.data?.trendingAnime?.slice(0, 10) || []; // Use trending as top rated fallback
 
   const handleAnimeClick = (anime: Anime) => {
     navigate(`/anime/${anime.id}`);
   };
 
-  // Calculate averaged scores and apply smart sorting
-  const processedAnime = allAnime.map(anime => ({
-    ...anime,
-    averageScore: calculateAverageScore(anime.score, anime.anilist_score),
-    isCurrentlyAiring: anime.status === 'Currently Airing' || anime.status === 'Ongoing',
-    popularityScore: calculatePopularityScore(anime)
-  }));
-
-  // Trending anime - currently airing with high scores
-  const trendingAnime = allAnime
-    .filter(anime => anime.status === 'Currently Airing' || anime.status === 'RELEASING')
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, 10);
-
-  // Recently added - sort by aired_from date as fallback
-  const recentlyAdded = [...allAnime]
-    .sort((a, b) => {
-      const dateA = new Date(a.aired_from || '1900-01-01').getTime();
-      const dateB = new Date(b.aired_from || '1900-01-01').getTime();
-      return dateB - dateA;
-    })
-    .slice(0, 10);
-
-  // Top rated - highest scores
-  const topRated = [...allAnime]
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
-    .slice(0, 10);
+  if (error) {
+    console.error('❌ Home data error:', error);
+  }
 
   const AnimeSection = ({ 
     title, 
@@ -208,7 +159,7 @@ const Index = () => {
       )}
 
       {/* Main Content Sections */}
-      {searchResults.length === 0 && !isSearching && allAnime.length > 0 && (
+      {searchResults.length === 0 && !isSearching && (trendingAnime.length > 0 || recentlyAdded.length > 0) && (
         <>
           <AnimeSection
             title="Hot Right Now"
