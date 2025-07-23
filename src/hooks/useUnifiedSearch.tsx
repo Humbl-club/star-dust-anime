@@ -1,94 +1,107 @@
 import { useState, useCallback } from 'react';
-import { searchService, AnimeContent, MangaContent } from '@/services/api';
+import { useQuery } from '@tanstack/react-query';
+import { useDebounce } from 'use-debounce';
+import { supabase } from '@/integrations/supabase/client';
+import { useSearchStore } from '@/store/searchStore';
+import { toast } from '@/hooks/use-toast';
 
-export interface SearchResult {
-  anime: AnimeContent[];
-  manga: MangaContent[];
-  totalResults: number;
-}
-
-export interface UseUnifiedSearchOptions {
-  query: string;
-  type?: 'anime' | 'manga' | 'both';
+interface UnifiedSearchOptions {
+  contentType?: 'anime' | 'manga' | 'all';
   limit?: number;
-  genres?: string[];
-  year?: string;
-  status?: string;
-  sort_by?: string;
-  order?: 'asc' | 'desc';
-  autoSearch?: boolean;
-}
-
-export interface UseUnifiedSearchReturn {
-  results: SearchResult | null;
-  suggestions: string[];
-  loading: boolean;
-  error: Error | null;
-  search: (options: UseUnifiedSearchOptions) => Promise<void>;
-  getSuggestions: (query: string) => Promise<void>;
-  clearResults: () => void;
-}
-
-export function useUnifiedSearch(): UseUnifiedSearchReturn {
-  const [results, setResults] = useState<SearchResult | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const search = useCallback(async (options: UseUnifiedSearchOptions) => {
-    if (!options.query.trim()) {
-      setResults({ anime: [], manga: [], totalResults: 0 });
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await searchService.globalSearch(options);
-      
-      if (response.success) {
-        setResults(response.data);
-      } else {
-        throw new Error(response.error || 'Search failed');
-      }
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getSuggestions = useCallback(async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const response = await searchService.getSearchSuggestions(query, 5);
-      
-      if (response.success) {
-        setSuggestions(response.data);
-      }
-    } catch (err) {
-      console.error('Failed to get suggestions:', err);
-    }
-  }, []);
-
-  const clearResults = useCallback(() => {
-    setResults(null);
-    setSuggestions([]);
-    setError(null);
-  }, []);
-
-  return {
-    results,
-    suggestions,
-    loading,
-    error,
-    search,
-    getSuggestions,
-    clearResults
+  filters?: {
+    genre?: string;
+    year?: string;
+    status?: string;
+    type?: string;
+    sort_by?: string;
+    order?: 'asc' | 'desc';
   };
 }
+
+export const useUnifiedSearch = (options: UnifiedSearchOptions = {}) => {
+  const { 
+    query: globalQuery, 
+    setQuery: setGlobalQuery,
+    addToHistory,
+    clearSearch: clearGlobalSearch 
+  } = useSearchStore();
+  
+  const [localQuery, setLocalQuery] = useState('');
+  const [debouncedQuery] = useDebounce(localQuery || globalQuery, 300);
+  
+  const searchFunction = useCallback(async () => {
+    if (!debouncedQuery || debouncedQuery.length < 2) return [];
+    
+    try {
+      // Use cached-content edge function for optimal performance
+      const { data, error } = await supabase.functions.invoke('cached-content', {
+        body: {
+          type: 'search',
+          query: debouncedQuery,
+          contentType: options.contentType || 'anime',
+          limit: options.limit || 20,
+          filters: options.filters
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Add to search history
+      if (debouncedQuery.length >= 2) {
+        addToHistory(debouncedQuery);
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: "Search Error",
+        description: "Search failed. Please try again.",
+        variant: "destructive"
+      });
+      return [];
+    }
+  }, [debouncedQuery, options, addToHistory]);
+  
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['unified-search', debouncedQuery, options],
+    queryFn: searchFunction,
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,   // 10 minutes
+  });
+  
+  // Local search function for components that need local state
+  const search = useCallback((searchQuery: string) => {
+    setLocalQuery(searchQuery);
+    setGlobalQuery(searchQuery);
+  }, [setGlobalQuery]);
+  
+  // Clear search
+  const clearSearch = useCallback(() => {
+    setLocalQuery('');
+    clearGlobalSearch();
+  }, [clearGlobalSearch]);
+  
+  return {
+    // Query state
+    query: localQuery || globalQuery,
+    debouncedQuery,
+    
+    // Results
+    results: data || [],
+    isLoading: isLoading && debouncedQuery.length >= 2,
+    error,
+    
+    // Actions
+    search,
+    setQuery: search, // Alias for compatibility
+    clearSearch,
+    refetch,
+    
+    // Metadata
+    hasResults: (data?.length || 0) > 0,
+    isSearching: isLoading && debouncedQuery.length >= 2,
+    canSearch: debouncedQuery.length >= 2
+  };
+};
