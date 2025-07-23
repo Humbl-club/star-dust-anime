@@ -5,7 +5,7 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// Removed TooltipProvider - not needed and causing hook context issues
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -94,12 +94,11 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <ErrorBoundary>
-            <TooltipProvider>
-              <AuthProvider>
-                <ConnectionStatus />
-                <PWAFeatures />
-                <Toaster />
-                <Routes>
+            <AuthProvider>
+              <ConnectionStatus />
+              <PWAFeatures />
+              <Toaster />
+              <Routes>
                   <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                   <Route path="/auth" element={<Auth />} />
                   <Route 
@@ -204,7 +203,6 @@ const App = () => {
                   />
                 </Routes>
               </AuthProvider>
-            </TooltipProvider>
           </ErrorBoundary>
         </BrowserRouter>
       </QueryClientProvider>
