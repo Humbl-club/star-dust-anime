@@ -31,7 +31,7 @@ import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 
-import { OptimizedSearchBar } from "@/components/OptimizedSearchBar";
+import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
@@ -186,8 +186,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           {/* Search Bar with Real-time Dropdown - Only on large screens and NOT on homepage */}
           {location.pathname !== "/" && (
             <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-xs mx-4">
-              <OptimizedSearchBar 
-                placeholder="Search anime..." 
+              <UnifiedSearchBar
+                placeholder="Search anime, manga..."
+                variant="compact"
+                showDropdown={true}
+                contentType="all"
                 className="max-w-md"
                 onSearch={(query) => {
                   console.log('Navigation search:', query);
@@ -273,8 +276,11 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
-                <OptimizedSearchBar 
-                  placeholder="Search anime..." 
+                <UnifiedSearchBar
+                  placeholder="Search anime, manga..."
+                  variant="default"
+                  showDropdown={true}
+                  contentType="all"
                   onSearch={(query) => {
                     console.log('Mobile search:', query);
                     navigate(`/anime?search=${encodeURIComponent(query)}`);
