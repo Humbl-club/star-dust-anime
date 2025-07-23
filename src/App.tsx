@@ -16,17 +16,21 @@ import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
-// Lazy load heavy components
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Anime = lazy(() => import("./pages/Anime"));
-const Manga = lazy(() => import("./pages/Manga"));
-const AnimeDetail = lazy(() => import("./pages/AnimeDetail"));
-const MangaDetail = lazy(() => import("./pages/MangaDetail"));
-const Settings = lazy(() => import("./pages/Settings"));
-const EmailDebug = lazy(() => import("./pages/EmailDebug"));
-const TestDashboard = lazy(() => import("./pages/TestDashboard"));
-const SyncDashboard = lazy(() => import("./pages/SyncDashboard"));
-const PerformanceMonitoring = lazy(() => import("./pages/PerformanceMonitoring"));
+// Lazy load everything else
+const lazyLoad = (path: string) => lazy(() => import(`./pages/${path}`));
+
+const routes = [
+  { path: '/dashboard', component: lazyLoad('Dashboard') },
+  { path: '/anime', component: lazyLoad('Anime') },
+  { path: '/manga', component: lazyLoad('Manga') },
+  { path: '/anime/:id', component: lazyLoad('AnimeDetail') },
+  { path: '/manga/:id', component: lazyLoad('MangaDetail') },
+  { path: '/settings', component: lazyLoad('Settings') },
+  { path: '/email-debug', component: lazyLoad('EmailDebug') },
+  { path: '/test-dashboard', component: lazyLoad('TestDashboard') },
+  { path: '/sync-dashboard', component: lazyLoad('SyncDashboard') },
+  { path: '/performance-monitoring', component: lazyLoad('PerformanceMonitoring') },
+];
 
 // Loading component
 const PageLoader = () => (
@@ -124,106 +128,19 @@ const App = () => {
                   <Routes>
                     <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route 
-                      path="/dashboard" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <Dashboard />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/anime" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <Anime />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/manga" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <Manga />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/anime/:id" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <AnimeDetail />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/manga/:id" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <MangaDetail />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/settings" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <Settings />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/email-debug" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <EmailDebug />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/test-dashboard" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <TestDashboard />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/sync-dashboard" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <SyncDashboard />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
-                    <Route 
-                      path="/performance-monitoring" 
-                      element={
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <PerformanceMonitoring />
-                          </Suspense>
-                        </ErrorBoundary>
-                      } 
-                    />
+                    {routes.map(({ path, component: Component }) => (
+                      <Route
+                        key={path}
+                        path={path}
+                        element={
+                          <ErrorBoundary>
+                            <Suspense fallback={<PageLoader />}>
+                              <Component />
+                            </Suspense>
+                          </ErrorBoundary>
+                        }
+                      />
+                    ))}
                   </Routes>
                 </AuthProvider>
               </ErrorBoundary>
