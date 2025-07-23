@@ -1,29 +1,11 @@
-// Feature-specific components
-export { AddToListButton } from "./AddToListButton";
-export { AdvancedFiltering } from "./AdvancedFiltering";
-export { AgeVerificationModal } from "./AgeVerificationModal";
-export { AnalyticsCharts } from "./AnalyticsCharts";
-export { AnimeCard } from "./AnimeCard";
-export { AnimeListItem } from "../AnimeListItem";
-export { AnimeStats } from "../AnimeStats";
-export { BulkActionsToolbar } from "../BulkActionsToolbar";
-export { CastSection } from "../CastSection";
-export { CommentsSection } from "../CommentsSection";
-export { ContentGrid, AnimeGrid, MangaGrid } from "./ContentGrid";
-export { ContentRatingBadge } from "../ContentRatingBadge";
-export { ContentReportModal } from "../ContentReportModal";
-export { CuratedLists } from "../CuratedLists";
-export { DetailImageCard } from "../DetailImageCard";
-export { DetailInfoGrid } from "../DetailInfoGrid";
-export { DetailStatsBar } from "../DetailStatsBar";
-export { DragDropListItem } from "../DragDropListItem";
-export { EmailDebugTest } from "../EmailDebugTest";
-export { EmailVerificationBanner } from "../EmailVerificationBanner";
-export { EmailVerificationCornerPopup } from "../EmailVerificationCornerPopup";
-export { EmailVerificationPopup } from "../EmailVerificationPopup";
-export { EmailVerificationTest } from "../EmailVerificationTest";
-export { EnhancedTrailerPlayer } from "../EnhancedTrailerPlayer";
-export { FillerIndicator } from "../FillerIndicator";
-export { FillerToggle } from "../FillerToggle";
-export { HeroSection } from "../HeroSection";
-export { HybridRecommendations } from "../HybridRecommendations";
+import { lazy } from 'react';
+
+// Heavy components - lazy load
+export const ContentGrid = lazy(() => import('./ContentGrid').then(m => ({ default: m.ContentGrid })));
+export const AdvancedFiltering = lazy(() => import('./AdvancedFiltering').then(m => ({ default: m.AdvancedFiltering })));
+export const AnalyticsCharts = lazy(() => import('./AnalyticsCharts').then(m => ({ default: m.AnalyticsCharts })));
+
+// Light components - direct import
+export { AnimeCard } from './AnimeCard';
+export { AddToListButton } from './AddToListButton';
+export { AgeVerificationModal } from './AgeVerificationModal';
