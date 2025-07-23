@@ -1,93 +1,215 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { Navigation } from "@/components/Navigation";  // Remove .tsx extension
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { PWAFeatures } from "@/components/PWAFeatures";
+import { Loader2 } from 'lucide-react';
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 
-// Create everything inline to avoid import issues
+// Lazy load heavy components
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Anime = lazy(() => import("./pages/Anime"));
+const Manga = lazy(() => import("./pages/Manga"));
+const AnimeDetail = lazy(() => import("./pages/AnimeDetail"));
+const MangaDetail = lazy(() => import("./pages/MangaDetail"));
+const Settings = lazy(() => import("./pages/Settings"));
+const EmailDebug = lazy(() => import("./pages/EmailDebug"));
+const TestDashboard = lazy(() => import("./pages/TestDashboard"));
+const SyncDashboard = lazy(() => import("./pages/SyncDashboard"));
+const PerformanceMonitoring = lazy(() => import("./pages/PerformanceMonitoring"));
+
+// Loading component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
+
+// Enhanced query client with comprehensive caching strategy - moved outside component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 60 * 1000,
-      retry: 2,
+      staleTime: 30 * 60 * 1000, // 30 minutes - longer for better performance
+      gcTime: 2 * 60 * 60 * 1000, // 2 hours - keep in memory longer
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always',
+      networkMode: 'online',
+      // Enable background refetching for fresh data
+      refetchInterval: 5 * 60 * 1000, // Background refresh every 5 minutes
+      refetchIntervalInBackground: false, // Only when tab is active
+    },
+    mutations: {
+      retry: 1,
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      },
+      // Optimistic updates for better UX
+      onMutate: () => {
+        console.log('Mutation started - implementing optimistic update');
+      },
     },
   },
 });
 
-// Inline Auth Context
-const AuthContext = createContext<any>({});
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState(null);
-  return (
-    <AuthContext.Provider value={{ user, setUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+// Create persister for React Query
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+  throttleTime: 1000,
+});
 
-// Real Navigation component will be used now
+// Enable query persistence
+persistQueryClient({
+  queryClient,
+  persister,
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  hydrateOptions: {},
+  dehydrateOptions: {
+    shouldDehydrateQuery: (query) => {
+      // Don't persist user-specific data
+      const queryKey = query.queryKey;
+      return !queryKey.some(key => 
+        typeof key === 'string' && (key.includes('user') || key.includes('auth'))
+      );
+    },
+  },
+});
 
-// Inline Pages
-const HomePage = () => (
-  <div className="container mx-auto p-8">
-    <h1 className="text-4xl font-bold mb-4">Welcome to Anithing! 🎉</h1>
-    <p className="text-xl mb-8">Your app is now working!</p>
-    <div className="bg-blue-100 p-6 rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">✅ Working Components:</h2>
-      <ul className="list-disc ml-6 space-y-2">
-        <li>React Router ✓</li>
-        <li>React Query ✓</li>
-        <li>Auth Context ✓</li>
-        <li>Navigation ✓</li>
-      </ul>
-    </div>
-    <div className="mt-8 p-6 bg-yellow-100 rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">⚠️ To Fix:</h2>
-      <p>The star export error is in your component files. Check:</p>
-      <ul className="list-disc ml-6 mt-2">
-        <li>src/components/index.ts</li>
-        <li>src/hooks/index.ts</li>
-        <li>src/pages/index.ts</li>
-      </ul>
-      <p className="mt-4">Look for <code className="bg-gray-200 px-2 py-1">export * from './Something'</code> and change to explicit exports.</p>
-    </div>
-  </div>
-);
-
-const AnimePage = () => (
-  <div className="container mx-auto p-8">
-    <h1 className="text-4xl font-bold">Anime Page</h1>
-    <p>Browse anime here</p>
-  </div>
-);
-
-const MangaPage = () => (
-  <div className="container mx-auto p-8">
-    <h1 className="text-4xl font-bold">Manga Page</h1>
-    <p>Browse manga here</p>
-  </div>
-);
-
-// Main App
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
-            <Navigation />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/anime" element={<AnimePage />} />
-              <Route path="/manga" element={<MangaPage />} />
-              <Route path="*" element={<HomePage />} />
-            </Routes>
-          </div>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <TooltipProvider>
+              <AuthProvider>
+                <ConnectionStatus />
+                <PWAFeatures />
+                <Toaster />
+                <Routes>
+                  <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <Dashboard />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/anime" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <Anime />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/manga" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <Manga />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/anime/:id" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <AnimeDetail />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/manga/:id" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <MangaDetail />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/settings" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <Settings />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/email-debug" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <EmailDebug />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/test-dashboard" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <TestDashboard />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/sync-dashboard" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <SyncDashboard />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                  <Route 
+                    path="/performance-monitoring" 
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                          <PerformanceMonitoring />
+                        </Suspense>
+                      </ErrorBoundary>
+                    } 
+                  />
+                </Routes>
+              </AuthProvider>
+            </TooltipProvider>
+          </ErrorBoundary>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
-};
+}
 
 export default App;

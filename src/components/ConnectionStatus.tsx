@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, HardDrive } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export const ConnectionStatus = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);

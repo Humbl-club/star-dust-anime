@@ -1,10 +1,10 @@
-import React, { useContext, ReactNode } from 'react';
-import { useAuthState } from './useAuthState';
+import { AuthContext } from '@/contexts/AuthContext';
+import { AuthContextType } from '@/types/auth';
+import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthValidation } from '@/hooks/useAuthValidation';
 import { authService } from '@/services/authService';
-import { AuthContext, AuthContextType } from './authContext';
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, session, loading } = useAuthState();
   const { validatePasswordStrength, validateEmailFormat } = useAuthValidation();
 
@@ -21,17 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     validateEmailFormat,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export { useAuth } from '@/contexts/AuthContext';
