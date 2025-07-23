@@ -21,5 +21,4 @@ if (process.env.NODE_ENV === 'development') {
   console.log('Window React:', !!(window as any).React);
 }
 
-// Re-export to ensure consistent imports
-export { React, ReactDOM };
+// Do not re-export React to avoid module resolution conflicts
