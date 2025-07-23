@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sparkles, Zap } from "lucide-react";
-import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
+import { OptimizedSearchBar } from "@/components/OptimizedSearchBar";
 import heroImage from "@/assets/anime-hero-bg.jpg";
 import { useStats } from "@/hooks/useStats";
 
@@ -68,9 +68,10 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           <div className="max-w-4xl mx-auto space-y-6 relative z-30">
             <div className="relative">
               <div className="glass-card border border-primary/30 p-3 hover:border-primary/50 transition-all duration-300">
-                <WorkingSearchDropdown 
-                  placeholder="Discover your next favorite anime or manga..." 
+                <OptimizedSearchBar
+                  placeholder="Discover your next favorite anime or manga..."
                   className="w-full"
+                  onSearch={onSearch}
                 />
               </div>
             </div>

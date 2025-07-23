@@ -31,7 +31,7 @@ import { useNativeSetup } from "@/hooks/useNativeSetup";
 import { useNativeActions } from "@/hooks/useNativeActions";
 import { ProfileMenu } from "@/components/ProfileMenu";
 
-import { WorkingSearchDropdown } from "@/components/WorkingSearchDropdown";
+import { OptimizedSearchBar } from "@/components/OptimizedSearchBar";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
@@ -186,7 +186,14 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
           {/* Search Bar with Real-time Dropdown - Only on large screens and NOT on homepage */}
           {location.pathname !== "/" && (
             <div className="hidden xl:flex items-center space-x-4 flex-1 max-w-xs mx-4">
-              <WorkingSearchDropdown placeholder="Search anime..." />
+              <OptimizedSearchBar 
+                placeholder="Search anime..." 
+                className="max-w-md"
+                onSearch={(query) => {
+                  console.log('Navigation search:', query);
+                  navigate(`/anime?search=${encodeURIComponent(query)}`);
+                }}
+              />
             </div>
           )}
 
@@ -266,9 +273,13 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">
-                <WorkingSearchDropdown 
+                <OptimizedSearchBar 
                   placeholder="Search anime..." 
-                  onResultClick={() => setMobileMenuOpen(false)}
+                  onSearch={(query) => {
+                    console.log('Mobile search:', query);
+                    navigate(`/anime?search=${encodeURIComponent(query)}`);
+                    setMobileMenuOpen(false);
+                  }}
                 />
               </div>
 
