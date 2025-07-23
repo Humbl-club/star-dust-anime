@@ -1,44 +1,38 @@
 import { useEffect, useCallback } from 'react';
-import { indexedDBManager, OfflineAction } from '@/lib/storage/indexedDB';
-import { supabase } from '@/integrations/supabase/client';
+import { indexedDBManager } from '@/lib/storage/indexedDB';
 import { toast } from 'sonner';
+import { SyncResult, OfflineAction } from '@/types/userLists';
+import { 
+  handleAddToList, 
+  handleUpdateProgress, 
+  handleRateTitle, 
+  handleWriteReview,
+  handleUpdateStatus,
+  handleUpdateNotes,
+  syncUserTitleListItem
+} from '@/lib/sync/syncHandlers';
 
 export const useOfflineSync = () => {
-  const syncPendingActions = useCallback(async () => {
-    if (!navigator.onLine) return;
+  const syncPendingActions = useCallback(async (): Promise<SyncResult> => {
+    if (!navigator.onLine) {
+      return { success: false, synced_count: 0, failed_count: 0, errors: [] };
+    }
+
+    const result: SyncResult = {
+      success: true,
+      synced_count: 0,
+      failed_count: 0,
+      errors: []
+    };
 
     try {
       const pendingActions = await indexedDBManager.getPendingActions();
       
       for (const action of pendingActions) {
         try {
-          let success = false;
-          
-          switch (action.type) {
-            case 'add_to_list':
-              await handleAddToList(action);
-              success = true;
-              break;
-            case 'update_progress':
-              await handleUpdateProgress(action);
-              success = true;
-              break;
-            case 'rate_title':
-              await handleRateTitle(action);
-              success = true;
-              break;
-            case 'write_review':
-              await handleWriteReview(action);
-              success = true;
-              break;
-            default:
-              console.warn('Unknown action type:', action.type);
-              success = true; // Remove unknown actions
-          }
-          
-          if (success) {
-            await indexedDBManager.removeOfflineAction(action.id);
-          }
+          await syncAction(action);
+          await indexedDBManager.removeOfflineAction(action.id);
+          result.synced_count++;
         } catch (error) {
           console.error('Error syncing action:', action.type, error);
           
@@ -49,7 +43,17 @@ export const useOfflineSync = () => {
           if (action.retry_count >= 3) {
             await indexedDBManager.removeOfflineAction(action.id);
             toast.error(`Failed to sync ${action.type} after 3 attempts`);
+            
+            result.errors.push({
+              action_id: action.id,
+              error_message: error instanceof Error ? error.message : 'Unknown error',
+              timestamp: Date.now(),
+              retry_count: action.retry_count
+            });
           }
+          
+          result.failed_count++;
+          result.success = false;
         }
       }
       
@@ -57,56 +61,61 @@ export const useOfflineSync = () => {
       const pendingListItems = await indexedDBManager.getPendingSyncItems();
       for (const item of pendingListItems) {
         try {
-          // For now, just mark as synced since the exact table structure needs to be confirmed
-          // This will be updated once user_lists table is properly set up
-          await indexedDBManager.updateSyncStatus(item.id, 'synced');
-          console.log('Offline sync: would sync user list item', item);
+          const syncResult = await syncUserTitleListItem(item);
+          if (syncResult.success) {
+            await indexedDBManager.updateSyncStatus(item.id, 'synced');
+            result.synced_count++;
+          } else {
+            await indexedDBManager.updateSyncStatus(item.id, 'failed');
+            result.failed_count++;
+            result.success = false;
+          }
         } catch (error) {
           console.error('Error syncing list item:', error);
           await indexedDBManager.updateSyncStatus(item.id, 'failed');
+          result.failed_count++;
+          result.success = false;
         }
       }
       
     } catch (error) {
       console.error('Error during sync:', error);
+      result.success = false;
     }
+
+    return result;
   }, []);
 
-  const handleAddToList = async (action: OfflineAction) => {
-    // Placeholder for add to list action - will be implemented once user_lists table is set up
-    console.log('Offline sync: would add to list', action.data);
-  };
-
-  const handleUpdateProgress = async (action: OfflineAction) => {
-    // Placeholder for update progress action - will be implemented once user_lists table is set up
-    console.log('Offline sync: would update progress', action.data);
-  };
-
-  const handleRateTitle = async (action: OfflineAction) => {
-    // Placeholder for rate title action - will be implemented once user_lists table is set up
-    console.log('Offline sync: would rate title', action.data);
-  };
-
-  const handleWriteReview = async (action: OfflineAction) => {
-    const { title_id, user_id, content, rating, spoiler_warning } = action.data;
-    
-    const { error } = await supabase
-      .from('reviews')
-      .insert({
-        title_id,
-        user_id,
-        content,
-        rating,
-        spoiler_warning: spoiler_warning || false
-      });
-    
-    if (error) throw error;
+  const syncAction = async (action: any) => {
+    switch (action.type) {
+      case 'add_to_list':
+        return handleAddToList(action as OfflineAction<'add_to_list'>);
+      case 'update_progress':
+        return handleUpdateProgress(action as OfflineAction<'update_progress'>);
+      case 'rate_title':
+        return handleRateTitle(action as OfflineAction<'rate_title'>);
+      case 'write_review':
+        return handleWriteReview(action as OfflineAction<'write_review'>);
+      case 'update_status':
+        return handleUpdateStatus(action as OfflineAction<'update_status'>);
+      case 'update_notes':
+        return handleUpdateNotes(action as OfflineAction<'update_notes'>);
+      default:
+        console.warn('Unknown action type:', (action as any).type);
+        return Promise.resolve(); // Resolve unknown actions to remove them
+    }
   };
 
   // Auto-sync when coming back online
   useEffect(() => {
-    const handleOnline = () => {
-      syncPendingActions();
+    const handleOnline = async () => {
+      const result = await syncPendingActions();
+      if (result.synced_count > 0) {
+        toast.success(`Synced ${result.synced_count} pending changes`);
+      }
+      if (result.failed_count > 0) {
+        toast.warning(`Failed to sync ${result.failed_count} changes`);
+      }
     };
 
     window.addEventListener('online', handleOnline);

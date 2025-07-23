@@ -34,13 +34,14 @@ export interface UserListItem {
   id: string;
   title_id: string;
   user_id: string;
-  status: string;
+  status_id: string;
   media_type: 'anime' | 'manga';
   rating?: number;
   progress?: number;
   notes?: string;
   cached_at: number;
   sync_status: 'synced' | 'pending' | 'failed';
+  sort_order?: number;
 }
 
 export interface SearchHistoryItem {
@@ -51,9 +52,9 @@ export interface SearchHistoryItem {
   results_count: number;
 }
 
-export interface OfflineAction {
+export interface LegacyOfflineAction {
   id: string;
-  type: 'add_to_list' | 'update_progress' | 'rate_title' | 'write_review';
+  type: 'add_to_list' | 'update_progress' | 'rate_title' | 'write_review' | 'update_status' | 'update_notes';
   data: any;
   timestamp: number;
   retry_count: number;
@@ -217,9 +218,9 @@ class IndexedDBManager {
   }
 
   // Offline actions operations
-  async addOfflineAction(action: Omit<OfflineAction, 'id' | 'timestamp' | 'retry_count'>) {
+  async addOfflineAction(action: Omit<LegacyOfflineAction, 'id' | 'timestamp' | 'retry_count'>) {
     const db = await this.initDB();
-    const offlineAction: OfflineAction = {
+    const offlineAction: LegacyOfflineAction = {
       ...action,
       id: `${Date.now()}-${Math.random()}`,
       timestamp: Date.now(),
@@ -228,16 +229,11 @@ class IndexedDBManager {
     await db.put('offline_actions', offlineAction);
   }
 
-  async getPendingActions(): Promise<OfflineAction[]> {
+  async getPendingActions(): Promise<LegacyOfflineAction[]> {
     const db = await this.initDB();
     const tx = db.transaction('offline_actions', 'readonly');
     const index = tx.store.index('timestamp');
     return index.getAll();
-  }
-
-  async removeOfflineAction(id: string) {
-    const db = await this.initDB();
-    await db.delete('offline_actions', id);
   }
 
   async incrementRetryCount(id: string) {
@@ -248,6 +244,12 @@ class IndexedDBManager {
       await db.put('offline_actions', action);
     }
   }
+
+  async removeOfflineAction(id: string) {
+    const db = await this.initDB();
+    await db.delete('offline_actions', id);
+  }
+
 
   // Cleanup operations
   async cleanupOldData() {
