@@ -3,62 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Offline - AniThing</title>
+  <title>AniThing - Offline</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
       font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: #0a0a0a;
-      color: #fafafa;
+      padding: 20px;
     }
+    
     .container {
       text-align: center;
-      padding: 2rem;
-      max-width: 400px;
+      max-width: 500px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
     }
+    
     .icon {
       width: 80px;
       height: 80px;
-      margin: 0 auto 2rem;
-      opacity: 0.5;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #8b5cf6, #a855f7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
     }
+    
     h1 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+    
     p {
-      color: #a1a1aa;
+      font-size: 1.1rem;
+      opacity: 0.8;
+      margin-bottom: 30px;
       line-height: 1.6;
     }
+    
+    .actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
     button {
-      margin-top: 2rem;
-      padding: 0.75rem 2rem;
-      background: #8b5cf6;
+      background: linear-gradient(135deg, #8b5cf6, #a855f7);
       color: white;
       border: none;
-      border-radius: 0.5rem;
-      font-size: 1rem;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
     }
+    
     button:hover {
-      background: #7c3aed;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+    }
+    
+    .secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .cached-content {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(139, 92, 246, 0.1);
+    }
+    
+    .cached-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .cached-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+    }
+    
+    .cached-image {
+      width: 40px;
+      height: 60px;
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    
+    .cached-info {
+      text-align: left;
+      flex: 1;
+    }
+    
+    .cached-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .cached-meta {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
-      <line x1="16" y1="8" x2="2" y2="22"/>
-      <line x1="17.5" y1="15" x2="9" y2="15"/>
-    </svg>
+    <div class="icon">📱</div>
     <h1>You're Offline</h1>
-    <p>It looks like you've lost your internet connection. Some features may be unavailable until you're back online.</p>
-    <button onclick="window.location.reload()">Try Again</button>
+    <p>No internet connection detected. You can still browse your cached content and manage your lists offline.</p>
+    
+    <div class="actions">
+      <button onclick="goHome()">Go Home</button>
+      <button onclick="retry()" class="secondary">Try Again</button>
+      <button onclick="showCachedContent()" class="secondary">View Cached</button>
+    </div>
+    
+    <div id="cachedContent" class="cached-content" style="display: none;">
+      <h3 style="margin-bottom: 15px; color: #8b5cf6;">Recently Viewed</h3>
+      <div id="cachedList"></div>
+    </div>
   </div>
+
+  <script>
+    function goHome() {
+      window.location.href = '/';
+    }
+    
+    function retry() {
+      window.location.reload();
+    }
+    
+    async function showCachedContent() {
+      const cachedContent = document.getElementById('cachedContent');
+      const cachedList = document.getElementById('cachedList');
+      
+      if (cachedContent.style.display === 'none') {
+        cachedContent.style.display = 'block';
+        
+        try {
+          // Try to get cached content from IndexedDB
+          const db = await openIndexedDB();
+          const transaction = db.transaction(['recentlyViewed'], 'readonly');
+          const store = transaction.objectStore('recentlyViewed');
+          const request = store.getAll();
+          
+          request.onsuccess = () => {
+            const items = request.result;
+            if (items.length === 0) {
+              cachedList.innerHTML = '<p style="opacity: 0.7; font-size: 14px;">No cached content available</p>';
+              return;
+            }
+            
+            cachedList.innerHTML = items.slice(0, 5).map(item => `
+              <div class="cached-item" onclick="openCachedItem('${item.type}', '${item.id}')">
+                <div class="cached-image"></div>
+                <div class="cached-info">
+                  <div class="cached-title">${item.title}</div>
+                  <div class="cached-meta">${item.type} • Cached ${new Date(item.cachedAt).toLocaleDateString()}</div>
+                </div>
+              </div>
+            `).join('');
+          };
+          
+          request.onerror = () => {
+            cachedList.innerHTML = '<p style="opacity: 0.7; font-size: 14px;">Unable to load cached content</p>';
+          };
+        } catch (error) {
+          cachedList.innerHTML = '<p style="opacity: 0.7; font-size: 14px;">IndexedDB not available</p>';
+        }
+      } else {
+        cachedContent.style.display = 'none';
+      }
+    }
+    
+    function openIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('anithing-cache', 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+    
+    function openCachedItem(type, id) {
+      window.location.href = `/${type}/${id}`;
+    }
+    
+    // Check online status
+    function updateOnlineStatus() {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }
+    
+    window.addEventListener('online', updateOnlineStatus);
+  </script>
 </body>
 </html>
