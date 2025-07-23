@@ -2,6 +2,7 @@ import { Navigation } from "@/components/Navigation";
 import { useStats } from "@/hooks/useStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LiveTitleViewer } from "@/components/LiveTitleViewer";
+import { ArchivedLogsViewer } from "@/components/ArchivedLogsViewer";
 import { 
   Database, 
   RefreshCw, 
@@ -83,6 +84,11 @@ const SyncDashboard = () => {
         
         {/* Live Title Viewer */}
         <LiveTitleViewer />
+
+        {/* Archived Logs */}
+        <div className="mt-8">
+          <ArchivedLogsViewer />
+        </div>
 
         {/* Automated Sync Info */}
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
