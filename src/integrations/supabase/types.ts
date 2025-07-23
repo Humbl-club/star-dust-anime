@@ -310,6 +310,411 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_logs_archive: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_01: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_02: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_03: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_04: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_05: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_06: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_07: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_08: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_09: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_10: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_11: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2024_12: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2025_01: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cron_job_logs_archive_2025_08: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       daily_activities: {
         Row: {
           activity_type: string
@@ -1875,6 +2280,10 @@ export type Database = {
         }
         Returns: string
       }
+      archive_old_cron_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       assign_random_username: {
         Args: { user_id_param: string }
         Returns: {
@@ -1920,7 +2329,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_archives: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_old_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_monthly_partition: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1961,6 +2378,15 @@ export type Database = {
           last_sync_check: string
           genres: Json
           studios: Json
+        }[]
+      }
+      get_archive_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_archived: number
+          oldest_log: string
+          newest_log: string
+          jobs_by_status: Json
         }[]
       }
       get_manga_detail: {
