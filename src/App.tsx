@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { Navigation } from "@/components/Navigation.tsx";  // Direct file import
+import { Navigation } from "@/components/Navigation.tsx";  // Named export, direct import
 
 // Create everything inline to avoid import issues
 const queryClient = new QueryClient({
