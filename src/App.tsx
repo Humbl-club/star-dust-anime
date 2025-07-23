@@ -26,6 +26,7 @@ const routes = [
   { path: '/manga', component: lazyLoad('Manga') },
   { path: '/anime/:id', component: lazyLoad('AnimeDetail') },
   { path: '/manga/:id', component: lazyLoad('MangaDetail') },
+  { path: '/admin', component: lazyLoad('admin/AdminDashboard') },
   { path: '/settings', component: lazyLoad('Settings') },
   { path: '/email-debug', component: lazyLoad('EmailDebug') },
   { path: '/test-dashboard', component: lazyLoad('TestDashboard') },
