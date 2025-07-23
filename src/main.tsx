@@ -5,6 +5,7 @@ import './index.css';
 import './native.css';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { initSentry } from '@/lib/sentry';
 
 // Ensure React is available globally for development
 if (typeof window !== 'undefined') {
@@ -117,6 +118,9 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
 }
+
+// Initialize Sentry before rendering
+initSentry();
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
