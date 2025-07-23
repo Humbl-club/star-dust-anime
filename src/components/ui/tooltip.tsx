@@ -1,5 +1,5 @@
 // Temporarily use the compatibility wrapper due to React bundling issues
-export * from './tooltip-compat'
+export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from './tooltip-compat'
 
 // Original Radix UI implementation commented out due to React bundling issue
 // import * as React from "react"
