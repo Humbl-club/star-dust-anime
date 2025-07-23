@@ -1,25 +1,28 @@
 
 import React from 'react';
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const App = () => {
-  console.log('App rendering');
-  console.log('BrowserRouter exists:', !!BrowserRouter);
+  console.log('App rendering with Routes');
   
   return (
-    <div style={{ 
-      position: 'relative', 
-      zIndex: 100, 
-      backgroundColor: 'white', 
-      padding: '50px' 
-    }}>
-      <h1 style={{ color: 'black' }}>Before Router</h1>
+    <div style={{ backgroundColor: 'white', padding: '20px' }}>
+      <h1 style={{ color: 'black' }}>Testing Routes</h1>
       <BrowserRouter>
-        <div>
-          <h2 style={{ color: 'black' }}>Inside Router!</h2>
-        </div>
+        <Routes>
+          <Route path="/" element={
+            <div>
+              <h2 style={{ color: 'green' }}>✅ Home Route Works!</h2>
+              <p>Router and Routes are functioning properly</p>
+            </div>
+          } />
+          <Route path="*" element={
+            <div>
+              <h2 style={{ color: 'red' }}>404 - Not Found</h2>
+            </div>
+          } />
+        </Routes>
       </BrowserRouter>
-      <h3 style={{ color: 'black' }}>After Router</h3>
     </div>
   );
 };
