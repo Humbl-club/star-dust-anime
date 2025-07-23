@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Redis } from "https://deno.land/x/upstash_redis@v1.22.1/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { redis, CACHE_KEYS, CACHE_TTL } from "../_shared/redis.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const redis = new Redis({
-  url: Deno.env.get('UPSTASH_REDIS_URL')!,
-  token: Deno.env.get('UPSTASH_REDIS_TOKEN')!,
-});
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,20 +18,18 @@ serve(async (req) => {
   }
 
   try {
-    const { action = 'get', dateRange = 7 } = await req.json();
+    const url = new URL(req.url);
+    const action = url.pathname.split('/').pop() || 'info';
     
     switch (action) {
-      case 'get':
-        return await getCacheStatistics(dateRange);
-      case 'clear':
-        return await clearCacheStatistics();
+      case 'info':
+        return await getCacheInfo();
+      case 'performance':
+        return await getCachePerformance();
       case 'warmup':
-        return await performCacheWarmup();
+        return await triggerCacheWarmup();
       default:
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
+        return await handlePostAction(req);
     }
   } catch (error) {
     console.error('Cache stats error:', error);
@@ -44,147 +43,149 @@ serve(async (req) => {
   }
 });
 
-async function getCacheStatistics(dateRange: number) {
-  const today = new Date();
-  const stats = {
-    daily: [],
-    total: { hits: 0, misses: 0, hitRatio: 0 },
-    topKeys: [],
-    cacheSize: 0,
-    keyCount: 0
-  };
+async function handlePostAction(req: Request) {
+  const { action } = await req.json();
+  
+  switch (action) {
+    case 'warmup':
+      return await triggerCacheWarmup();
+    case 'clear':
+      return await clearCacheStats();
+    default:
+      return await getCacheInfo();
+  }
+}
 
-  // Get daily stats for the specified range
-  for (let i = 0; i < dateRange; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().substring(0, 10);
+async function getCacheInfo() {
+  try {
+    const patterns = [
+      { name: 'trending', pattern: 'cache:trending:*' },
+      { name: 'popular', pattern: 'cache:popular:*' },
+      { name: 'recent', pattern: 'cache:recent:*' },
+      { name: 'search', pattern: 'cache:search:*' },
+      { name: 'homepage', pattern: 'cache:homepage:*' },
+      { name: 'stats', pattern: 'cache:stats:*' }
+    ];
     
-    const [hits, misses] = await Promise.all([
-      redis.get(`cache:stats:hit:${dateStr}`) || 0,
-      redis.get(`cache:stats:miss:${dateStr}`) || 0
-    ]);
+    const patternStats = [];
+    let totalKeys = 0;
     
-    const totalRequests = Number(hits) + Number(misses);
-    const hitRatio = totalRequests > 0 ? (Number(hits) / totalRequests) * 100 : 0;
+    for (const { name, pattern } of patterns) {
+      const keys = await redis.keys(pattern);
+      patternStats.push({
+        pattern: name,
+        keyCount: keys.length
+      });
+      totalKeys += keys.length;
+    }
     
-    stats.daily.push({
-      date: dateStr,
-      hits: Number(hits),
-      misses: Number(misses),
-      total: totalRequests,
-      hitRatio: Math.round(hitRatio * 100) / 100
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: {
+          redisInfo: { totalKeys },
+          patternStats,
+          timestamp: new Date().toISOString()
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
+  }
+}
+
+async function getCachePerformance() {
+  try {
+    const { data: metrics, error } = await supabase
+      .from('cache_performance_metrics')
+      .select('*')
+      .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      
+    if (error) throw error;
+    
+    const hitCount = metrics?.filter(m => m.metric_type === 'hit').length || 0;
+    const missCount = metrics?.filter(m => m.metric_type === 'miss').length || 0;
+    const totalRequests = hitCount + missCount;
+    const hitRatio = totalRequests > 0 ? (hitCount / totalRequests) * 100 : 0;
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: {
+          overall: {
+            hitCount,
+            missCount,
+            totalRequests,
+            hitRatio: Math.round(hitRatio * 100) / 100
+          },
+          timestamp: new Date().toISOString()
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
+  }
+}
+
+async function triggerCacheWarmup() {
+  try {
+    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/cache-utils`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+      },
+      body: JSON.stringify({ action: 'warm', limit: 25 })
     });
     
-    stats.total.hits += Number(hits);
-    stats.total.misses += Number(misses);
+    const warmupResult = await response.json();
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        message: 'Cache warmup completed',
+        data: warmupResult,
+        timestamp: new Date().toISOString()
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
   }
-
-  // Calculate overall hit ratio
-  const totalRequests = stats.total.hits + stats.total.misses;
-  stats.total.hitRatio = totalRequests > 0 
-    ? Math.round((stats.total.hits / totalRequests) * 10000) / 100 
-    : 0;
-
-  // Get top cache keys
-  const keys = await redis.keys('cache:key_stats:*');
-  const keyStats = [];
-  
-  for (const key of keys.slice(0, 20)) { // Limit to top 20
-    const count = await redis.get(key);
-    if (count && Number(count) > 0) {
-      keyStats.push({
-        key: key.replace('cache:key_stats:', ''),
-        count: Number(count)
-      });
-    }
-  }
-  
-  stats.topKeys = keyStats
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  // Get cache size estimation
-  const allKeys = await redis.keys('cache:*');
-  stats.keyCount = allKeys.length;
-  
-  // Estimate cache size (simplified)
-  stats.cacheSize = Math.round(stats.keyCount * 2.5); // Rough estimate in KB
-
-  return new Response(
-    JSON.stringify({ 
-      success: true,
-      data: stats,
-      timestamp: new Date().toISOString()
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
 
-async function clearCacheStatistics() {
-  const statsKeys = await redis.keys('cache:stats:*');
-  const keyStatsKeys = await redis.keys('cache:key_stats:*');
-  
-  const keysToDelete = [...statsKeys, ...keyStatsKeys];
-  
-  if (keysToDelete.length > 0) {
-    await redis.del(...keysToDelete);
-  }
-  
-  return new Response(
-    JSON.stringify({ 
-      success: true,
-      message: `Cleared ${keysToDelete.length} statistics keys`,
-      timestamp: new Date().toISOString()
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function performCacheWarmup() {
-  console.log('🔥 Starting manual cache warmup...');
-  
-  const warmupEndpoints = [
-    { endpoint: 'trending', contentType: 'anime', limit: 20 },
-    { endpoint: 'trending', contentType: 'manga', limit: 20 },
-    { endpoint: 'popular', contentType: 'anime', limit: 20 },
-    { endpoint: 'popular', contentType: 'manga', limit: 20 },
-    { endpoint: 'recent', contentType: 'anime', limit: 20 },
-    { endpoint: 'homepage' }
-  ];
-  
-  const results = [];
-  
-  for (const config of warmupEndpoints) {
-    try {
-      const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/cached-content`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-        },
-        body: JSON.stringify(config)
-      });
+async function clearCacheStats() {
+  try {
+    const { error } = await supabase
+      .from('cache_performance_metrics')
+      .delete()
+      .lt('timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
       
-      if (response.ok) {
-        results.push({ ...config, status: 'success' });
-      } else {
-        results.push({ ...config, status: 'failed', error: response.statusText });
-      }
-    } catch (error) {
-      results.push({ ...config, status: 'error', error: error.message });
-    }
+    if (error) throw error;
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        message: 'Cache statistics cleared',
+        timestamp: new Date().toISOString()
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
   }
-  
-  console.log('✅ Cache warmup completed');
-  
-  return new Response(
-    JSON.stringify({ 
-      success: true,
-      message: 'Cache warmup completed',
-      results,
-      timestamp: new Date().toISOString()
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }

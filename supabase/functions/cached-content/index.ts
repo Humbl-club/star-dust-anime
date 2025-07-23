@@ -5,20 +5,12 @@ const corsHeaders = {
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Redis } from "https://deno.land/x/upstash_redis@v1.22.1/mod.ts"
+import { redis, CACHE_TTL, CACHE_KEYS, getCacheWithStats, setCacheWithStats } from "../_shared/redis.ts"
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
-
-// Redis cache client
-const redis = new Redis({
-  url: Deno.env.get('UPSTASH_REDIS_URL')!,
-  token: Deno.env.get('UPSTASH_REDIS_TOKEN')!,
-})
-
-const CACHE_DURATION = 600 // 10 minutes in seconds
 
 // Cache trending content for faster homepage loading
 const TRENDING_CACHE_KEY = 'trending_content'
@@ -63,13 +55,12 @@ serve(async (req: Request) => {
 })
 
 async function handleTrendingContent(contentType: 'anime' | 'manga', limit: number) {
-  const cacheKey = `cache:${TRENDING_CACHE_KEY}:${contentType}:${limit}`
+  const cacheKey = CACHE_KEYS.TRENDING(contentType, limit)
   
   // Check Redis cache first
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
     console.log(`✅ Cache HIT: ${cacheKey}`)
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
@@ -77,7 +68,6 @@ async function handleTrendingContent(contentType: 'anime' | 'manga', limit: numb
   }
 
   console.log(`❌ Cache MISS: ${cacheKey}`)
-  await trackCacheStats('miss', cacheKey)
 
   // Fetch trending data with complex scoring
   const query = supabase
@@ -127,7 +117,7 @@ async function handleTrendingContent(contentType: 'anime' | 'manga', limit: numb
   })).sort((a, b) => b.trending_score - a.trending_score) || []
 
   // Cache the result in Redis
-  await redis.setex(cacheKey, CACHE_DURATION, JSON.stringify(transformedData))
+  await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.TRENDING)
 
   return new Response(
     JSON.stringify({ data: transformedData, cached: false }),
@@ -136,17 +126,15 @@ async function handleTrendingContent(contentType: 'anime' | 'manga', limit: numb
 }
 
 async function handlePopularContent(contentType: 'anime' | 'manga', limit: number) {
-  const cacheKey = `cache:${POPULAR_CACHE_KEY}:${contentType}:${limit}`
+  const cacheKey = CACHE_KEYS.POPULAR(contentType, limit)
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
     )
   }
-  await trackCacheStats('miss', cacheKey)
 
   const { data, error } = await supabase
     .from('titles')
@@ -166,7 +154,7 @@ async function handlePopularContent(contentType: 'anime' | 'manga', limit: numbe
     genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || []
   })) || []
 
-  await redis.setex(cacheKey, CACHE_DURATION, JSON.stringify(transformedData))
+  await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.POPULAR)
 
   return new Response(
     JSON.stringify({ data: transformedData, cached: false }),
@@ -175,17 +163,15 @@ async function handlePopularContent(contentType: 'anime' | 'manga', limit: numbe
 }
 
 async function handleRecentContent(contentType: 'anime' | 'manga', limit: number) {
-  const cacheKey = `cache:${RECENT_CACHE_KEY}:${contentType}:${limit}`
+  const cacheKey = CACHE_KEYS.RECENT(contentType, limit)
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
     )
   }
-  await trackCacheStats('miss', cacheKey)
 
   const { data, error } = await supabase
     .from('titles')
@@ -204,7 +190,7 @@ async function handleRecentContent(contentType: 'anime' | 'manga', limit: number
     genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || []
   })) || []
 
-  await redis.setex(cacheKey, CACHE_DURATION, JSON.stringify(transformedData))
+  await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.RECENT)
 
   return new Response(
     JSON.stringify({ data: transformedData, cached: false }),
@@ -213,17 +199,15 @@ async function handleRecentContent(contentType: 'anime' | 'manga', limit: number
 }
 
 async function handleHomepageData() {
-  const cacheKey = 'cache:homepage:aggregated'
+  const cacheKey = CACHE_KEYS.HOMEPAGE()
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
     )
   }
-  await trackCacheStats('miss', cacheKey)
 
   // Fetch all homepage data in parallel
   const [
@@ -257,7 +241,7 @@ async function handleHomepageData() {
     stats
   }
 
-  await redis.setex(cacheKey, CACHE_DURATION, JSON.stringify(aggregatedData))
+  await setCacheWithStats(cacheKey, aggregatedData, CACHE_TTL.HOMEPAGE)
 
   return new Response(
     JSON.stringify({ data: aggregatedData, cached: false }),
@@ -273,17 +257,15 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
     )
   }
 
-  const cacheKey = `cache:search:${query}:${contentType}:${limit}`
+  const cacheKey = CACHE_KEYS.SEARCH(query, contentType, limit)
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
     )
   }
-  await trackCacheStats('miss', cacheKey)
 
   const { data, error } = await supabase
     .from('titles')
@@ -303,8 +285,8 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
     genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || []
   })) || []
 
-  // Cache search results for 5 minutes
-  await redis.setex(cacheKey, 300, JSON.stringify(transformedData))
+  // Cache search results for 3 minutes
+  await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.SEARCH)
 
   return new Response(
     JSON.stringify({ data: transformedData, cached: false }),
@@ -320,15 +302,13 @@ async function handleGenericContent(
 ) {
   const cacheKey = `cache:generic:${contentType}:${limit}:${sort_by}:${JSON.stringify(filters)}`
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return new Response(
       JSON.stringify({ data: cached, cached: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json', 'X-Cache': 'HIT' } }
     )
   }
-  await trackCacheStats('miss', cacheKey)
 
   let query = supabase
     .from('titles')
@@ -361,7 +341,7 @@ async function handleGenericContent(
     genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || []
   })) || []
 
-  await redis.setex(cacheKey, CACHE_DURATION, JSON.stringify(transformedData))
+  await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.POPULAR)
 
   return new Response(
     JSON.stringify({ data: transformedData, cached: false }),
@@ -370,14 +350,12 @@ async function handleGenericContent(
 }
 
 async function getStats() {
-  const cacheKey = 'cache:stats:site'
+  const cacheKey = CACHE_KEYS.STATS()
   
-  const cached = await redis.get(cacheKey)
+  const cached = await getCacheWithStats(cacheKey)
   if (cached) {
-    await trackCacheStats('hit', cacheKey)
     return cached
   }
-  await trackCacheStats('miss', cacheKey)
 
   const [animeCount, mangaCount] = await Promise.all([
     supabase.from('titles').select('*', { count: 'exact', head: true }).inner('anime_details'),
@@ -391,8 +369,8 @@ async function getStats() {
     lastUpdated: new Date().toISOString()
   }
 
-  // Cache stats for 30 minutes
-  await redis.setex(cacheKey, 1800, JSON.stringify(stats))
+  // Cache stats for 1 hour
+  await setCacheWithStats(cacheKey, stats, CACHE_TTL.STATS)
 
   return stats
 }
@@ -411,23 +389,7 @@ function calculateTrendingScore(item: any): number {
   return popularityScore + favoritesScore + scoreBonus + recencyBonus
 }
 
-// Cache statistics tracking
-async function trackCacheStats(type: 'hit' | 'miss', cacheKey: string) {
-  try {
-    const statsKey = `cache:stats:${type}:${new Date().toISOString().substring(0, 10)}`
-    await redis.incr(statsKey)
-    await redis.expire(statsKey, 86400 * 7) // Keep stats for 7 days
-    
-    // Track cache key usage
-    const keyStatsKey = `cache:key_stats:${cacheKey}`
-    await redis.incr(keyStatsKey)
-    await redis.expire(keyStatsKey, 86400) // Reset daily
-  } catch (error) {
-    console.error('Failed to track cache stats:', error)
-  }
-}
-
-// Cache warming function
+// Cache warming function - automatically called on startup
 async function warmCache() {
   console.log('🔥 Starting cache warming...')
   
