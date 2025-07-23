@@ -62,7 +62,6 @@ export default defineConfig(({ mode }) => {
       jsx: 'automatic',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
-      jsxInject: `import React from 'react'`,
     },
     
     build: {
