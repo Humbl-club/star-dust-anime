@@ -2,8 +2,8 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";  // ADD THIS
-import Index from "./pages/Index";  // Use real Index
+import { AuthProvider } from "@/hooks/useAuth";  // Add this
+import { Toaster } from "@/components/ui/toaster";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,21 +15,26 @@ const queryClient = new QueryClient({
   },
 });
 
-const TempIndex = () => (
-  <div>
-    <h1>Home Page + Navigation Test</h1>
-    <p>Testing Navigation import specifically</p>
-  </div>
-);
+// Temporary minimal Index
+const Index = () => {
+  return (
+    <div className="min-h-screen bg-background p-8">
+      <h1 className="text-4xl font-bold">Anithing</h1>
+      <p>Home Page (without Navigation for now)</p>
+    </div>
+  );
+};
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Toaster />  {/* ADD THIS */}
-        <Routes>
-          <Route path="*" element={<Index />} />
-        </Routes>
+        <AuthProvider>  {/* Add AuthProvider here */}
+          <Toaster />
+          <Routes>
+            <Route path="*" element={<Index />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
