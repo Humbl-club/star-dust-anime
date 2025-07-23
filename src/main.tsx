@@ -6,6 +6,7 @@ import './native.css';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { initSentry } from '@/lib/sentry';
+import { setupApiErrorTracking } from '@/lib/api-error-handler';
 
 // Ensure React is available globally for development
 if (typeof window !== 'undefined') {
@@ -121,6 +122,9 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 
 // Initialize Sentry before rendering
 initSentry();
+
+// Setup API error tracking
+setupApiErrorTracking();
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
