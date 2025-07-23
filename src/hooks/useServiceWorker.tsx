@@ -20,7 +20,6 @@ export const useServiceWorker = () => {
           newWorker?.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               setUpdateAvailable(true);
-              toast.info('Update available! Refresh to get the latest version.');
             }
           });
         });
