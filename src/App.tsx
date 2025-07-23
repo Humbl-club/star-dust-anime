@@ -12,6 +12,7 @@ import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { PWAFeatures } from "@/components/PWAFeatures";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { GraphQLProvider } from "@/providers/GraphQLProvider";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
@@ -128,6 +129,7 @@ const App = () => {
                   <AuthProvider>
                     <ConnectionStatus />
                     <PWAFeatures />
+                    <InstallPrompt />
                     <Routes>
                       <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                       <Route path="/auth" element={<Auth />} />
