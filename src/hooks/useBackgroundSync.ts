@@ -120,22 +120,25 @@ export function useBackgroundSync() {
   };
 
   const syncItem = async (item: SyncQueueItem) => {
-    const { action, table, data } = item;
+    const { action, data } = item;
+
+    // Use type assertion to work around TypeScript limitations
+    const table = item.table as any;
 
     switch (action) {
       case 'add':
-        await supabase.from(table).insert(data);
+        await (supabase as any).from(table).insert(data);
         break;
       case 'update':
-        await supabase.from(table).update(data).eq('id', data.id);
+        await (supabase as any).from(table).update(data).eq('id', data.id);
         break;
       case 'delete':
-        await supabase.from(table).delete().eq('id', data.id);
+        await (supabase as any).from(table).delete().eq('id', data.id);
         break;
     }
 
     // Invalidate related queries
-    queryClient.invalidateQueries({ queryKey: [table] });
+    queryClient.invalidateQueries({ queryKey: [item.table] });
   };
 
   // Offline actions for user lists

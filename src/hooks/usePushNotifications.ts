@@ -62,7 +62,7 @@ export function usePushNotifications() {
       // Store subscription in database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('push_subscriptions').upsert({
+        await (supabase as any).from('push_subscriptions').upsert({
           user_id: user.id,
           subscription: sub.toJSON(),
           created_at: new Date().toISOString()
@@ -86,7 +86,7 @@ export function usePushNotifications() {
       // Remove from database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+        await (supabase as any).from('push_subscriptions').delete().eq('user_id', user.id);
       }
 
       return true;
@@ -106,20 +106,8 @@ export function usePushNotifications() {
         icon: options.icon || '/icon-192.png',
         badge: options.badge || '/icon-192.png',
         tag: options.tag,
-        data: options.data,
-        vibrate: [200, 100, 200],
-        actions: [
-          {
-            action: 'view',
-            title: 'View',
-            icon: '/icon-192.png'
-          },
-          {
-            action: 'dismiss',
-            title: 'Dismiss'
-          }
-        ]
-      });
+        data: options.data
+      } as any);
       return true;
     } catch (error) {
       console.error('Error showing notification:', error);
