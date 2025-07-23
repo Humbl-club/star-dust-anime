@@ -15,9 +15,8 @@ if (typeof window !== 'undefined') {
 
 // Debug logging in development
 if (process.env.NODE_ENV === 'development') {
-  console.log('🔧 React Fix Applied');
+  console.log('🔧 React Fix Applied - React available:', !!React);
   console.log('React version:', React.version);
-  console.log('React available:', !!React);
   console.log('useState available:', !!React.useState);
   console.log('Window React:', !!(window as any).React);
 }
