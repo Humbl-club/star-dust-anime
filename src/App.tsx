@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -187,6 +188,7 @@ const App = () => {
                 </AuthProvider>
               </ErrorBoundary>
             </BrowserRouter>
+            <ConnectionStatus />
           </TooltipProvider>
         </ErrorBoundary>
       </QueryClientProvider>

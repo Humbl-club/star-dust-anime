@@ -59,6 +59,17 @@ self.addEventListener('install', (event) => {
       caches.open(IMAGE_CACHE_NAME)
     ]).then(() => {
       console.log('✅ Service Worker installation complete');
+      
+      // Notify app that offline support is ready
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'OFFLINE_READY',
+            message: 'Service Worker installed and ready for offline use'
+          });
+        });
+      });
+      
       self.skipWaiting();
     })
   );
@@ -140,6 +151,17 @@ async function handleSupabaseApiRequest(request) {
       
       cache.put(request, cachedResponse.clone());
       console.log('🌐 Cached API response:', url.pathname);
+      
+      // Notify app about cache update
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'CACHE_UPDATED',
+            url: url.pathname,
+            timestamp: new Date().toISOString()
+          });
+        });
+      });
       
       return cachedResponse;
     }
