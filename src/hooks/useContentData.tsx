@@ -114,25 +114,41 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       if (useEdgeCache && contentType === 'anime' && page === 1 && !search && !genre && !status && !type && !year && !season) {
         console.log('🏠 useContentData: Using edge cached home data...');
         
-        const { data, error } = await supabase.functions.invoke('cached-home-data');
+        const { data: cachedData, error } = await supabase.functions.invoke('cached-home-data', {
+          body: {
+            contentType: contentType,
+            sections: ['trending', 'recent', 'topRated']
+          }
+        });
         
         if (error) {
           console.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
-        } else if (data?.sections?.trending?.data) {
+        } else if (cachedData?.success) {
           const endTime = performance.now();
           console.log(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
             success: true,
-            sections: Object.keys(data.sections).length,
-            total: data.metadata.total_items
+            totalItems: (cachedData.data.trending?.length || 0) + (cachedData.data.recent?.length || 0) + (cachedData.data.topRated?.length || 0)
           });
+          
+          // Aggregate all sections into a single data array
+          const allData = [
+            ...(cachedData.data.trending || []),
+            ...(cachedData.data.recent || []),
+            ...(cachedData.data.topRated || [])
+          ];
+          
+          // Remove duplicates based on id
+          const uniqueData = Array.from(
+            new Map(allData.map(item => [item.id, item])).values()
+          );
           
           // Transform edge cache data to match expected format
           return {
-            data: data.sections.trending.data,
+            data: uniqueData.slice(0, limit),
             pagination: {
               current_page: 1,
-              per_page: data.sections.trending.data.length,
-              total: data.sections.trending.data.length,
+              per_page: uniqueData.length,
+              total: uniqueData.length,
               total_pages: 1,
               has_next_page: false,
               has_prev_page: false

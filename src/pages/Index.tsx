@@ -33,21 +33,21 @@ const Index = () => {
   const [populationStatus, setPopulationStatus] = useState<string>('');
   
 
-  // Get anime data directly from database (optimized for homepage with edge caching)
+  // Get anime data using cached edge function for ultra-fast loading
   const { data: allAnime, loading: animeLoading, error: animeError } = useContentData({
     contentType: 'anime',
     page: 1,
-    limit: 50, // Only fetch 50 items for homepage performance
+    limit: 36, // Increased for better homepage sections
     sort_by: 'score',
     order: 'desc',
     useOptimized: true,
-    useEdgeCache: true // Enable edge caching for homepage
+    useEdgeCache: true // Use new edge function for aggregated home data
   });
 
-  // Create homepage sections from limited data using useMemo for performance
-  const trendingAnime = useMemo(() => allAnime?.slice(0, 10) || [], [allAnime]);
-  const recentlyAdded = useMemo(() => allAnime?.slice(10, 20) || [], [allAnime]);
-  const topRated = useMemo(() => allAnime?.slice(20, 30) || [], [allAnime]);
+  // Create homepage sections from cached edge data using useMemo for performance
+  const trendingAnime = useMemo(() => allAnime?.slice(0, 12) || [], [allAnime]);
+  const recentlyAdded = useMemo(() => allAnime?.slice(12, 24) || [], [allAnime]);
+  const topRated = useMemo(() => allAnime?.slice(24, 36) || [], [allAnime]);
   const loading = animeLoading;
   const error = animeError;
 

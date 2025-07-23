@@ -12,140 +12,161 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  );
-
-  // Set aggressive cache headers for CDN and browser caching
-  const headers = {
-    ...corsHeaders,
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400',
-    'X-Cache-Version': '1.0',
-    'X-Cache-Source': 'edge-function',
-  };
-
   try {
-    console.log('🏠 Fetching aggregated home data...');
-    
-    // Fetch all home sections in parallel for maximum performance
-    const [trending, recent, topRated, currentSeason] = await Promise.all([
-      // Trending anime (currently releasing with high scores)
-      supabase
-        .from('titles')
-        .select(`
-          id, anilist_id, title, title_english, image_url, 
-          score, year, favorites, popularity,
-          anime_details!inner(episodes, status, type, season)
-        `)
-        .eq('anime_details.status', 'RELEASING')
-        .not('score', 'is', null)
-        .order('score', { ascending: false })
-        .limit(12),
-      
-      // Recently added anime
-      supabase
-        .from('titles')
-        .select(`
-          id, anilist_id, title, title_english, image_url,
-          score, year, favorites, popularity,
-          anime_details!inner(episodes, status, type, season)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(12),
-      
-      // Top rated anime of all time
-      supabase
-        .from('titles')
-        .select(`
-          id, anilist_id, title, title_english, image_url,
-          score, year, favorites, popularity,
-          anime_details!inner(episodes, status, type, season)
-        `)
-        .not('score', 'is', null)
-        .gte('score', 80)
-        .order('score', { ascending: false })
-        .limit(12),
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
 
-      // Current season anime
-      supabase
-        .from('titles')
-        .select(`
-          id, anilist_id, title, title_english, image_url,
-          score, year, favorites, popularity,
-          anime_details!inner(episodes, status, type, season)
-        `)
-        .eq('anime_details.season', getCurrentSeason())
-        .eq('year', new Date().getFullYear())
-        .order('popularity', { ascending: false })
-        .limit(12),
-    ]);
-
-    // Check for errors
-    if (trending.error) throw trending.error;
-    if (recent.error) throw recent.error;
-    if (topRated.error) throw topRated.error;
-    if (currentSeason.error) throw currentSeason.error;
-
-    const responseData = {
-      sections: {
-        trending: {
-          title: 'Trending Now',
-          data: trending.data || [],
-          count: trending.data?.length || 0,
-        },
-        recent: {
-          title: 'Recently Added',
-          data: recent.data || [],
-          count: recent.data?.length || 0,
-        },
-        topRated: {
-          title: 'Top Rated',
-          data: topRated.data || [],
-          count: topRated.data?.length || 0,
-        },
-        currentSeason: {
-          title: `${getCurrentSeason()} ${new Date().getFullYear()}`,
-          data: currentSeason.data || [],
-          count: currentSeason.data?.length || 0,
-        },
-      },
-      metadata: {
-        cached_at: new Date().toISOString(),
-        total_items: (trending.data?.length || 0) + (recent.data?.length || 0) + 
-                    (topRated.data?.length || 0) + (currentSeason.data?.length || 0),
-        cache_duration: 300, // 5 minutes
-      },
+    // Set aggressive cache headers for CDN
+    const headers = {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400',
+      'CDN-Cache-Control': 'max-age=600',
+      'Surrogate-Control': 'max-age=600',
     };
 
-    console.log(`✅ Home data aggregated: ${responseData.metadata.total_items} items`);
+    // Parse request body for options
+    const { contentType = 'anime', sections = ['trending', 'recent', 'topRated'] } = await req.json().catch(() => ({}));
 
-    return new Response(JSON.stringify(responseData), { headers });
+    console.log(`🏠 Fetching aggregated home data for ${contentType}, sections: ${sections.join(', ')}`);
+
+    // Build queries based on requested sections
+    const queries = [];
+    
+    if (sections.includes('trending') && contentType === 'anime') {
+      queries.push(
+        supabase
+          .from('titles')
+          .select(`
+            id,
+            anilist_id,
+            title,
+            title_english,
+            title_japanese,
+            image_url,
+            score,
+            year,
+            favorites,
+            popularity,
+            anime_details!inner(
+              episodes,
+              status,
+              type,
+              aired_from,
+              aired_to,
+              season
+            )
+          `)
+          .eq('anime_details.status', 'RELEASING')
+          .order('score', { ascending: false })
+          .order('favorites', { ascending: false })
+          .limit(12)
+      );
+    }
+
+    if (sections.includes('recent')) {
+      const detailsTable = contentType === 'anime' ? 'anime_details' : 'manga_details';
+      const detailsFields = contentType === 'anime' 
+        ? 'episodes, status, type, aired_from, aired_to, season'
+        : 'chapters, volumes, status, type, published_from, published_to';
+
+      queries.push(
+        supabase
+          .from('titles')
+          .select(`
+            id,
+            anilist_id,
+            title,
+            title_english,
+            title_japanese,
+            image_url,
+            score,
+            year,
+            favorites,
+            popularity,
+            ${detailsTable}!inner(
+              ${detailsFields}
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(12)
+      );
+    }
+
+    if (sections.includes('topRated')) {
+      const detailsTable = contentType === 'anime' ? 'anime_details' : 'manga_details';
+      const detailsFields = contentType === 'anime' 
+        ? 'episodes, status, type, aired_from, aired_to, season'
+        : 'chapters, volumes, status, type, published_from, published_to';
+
+      queries.push(
+        supabase
+          .from('titles')
+          .select(`
+            id,
+            anilist_id,
+            title,
+            title_english,
+            title_japanese,
+            image_url,
+            score,
+            year,
+            favorites,
+            popularity,
+            ${detailsTable}!inner(
+              ${detailsFields}
+            )
+          `)
+          .order('score', { ascending: false })
+          .limit(12)
+      );
+    }
+
+    // Execute all queries in parallel
+    const results = await Promise.all(queries);
+    
+    // Map results to section names
+    const responseData: any = {
+      cached_at: new Date().toISOString(),
+      cache_ttl: 600,
+      content_type: contentType
+    };
+
+    sections.forEach((section, index) => {
+      responseData[section] = results[index]?.data || [];
+    });
+
+    // Calculate total items
+    const totalItems = sections.reduce((sum, section, index) => {
+      return sum + (results[index]?.data?.length || 0);
+    }, 0);
+
+    console.log(`✅ Home data aggregated: ${totalItems} items`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: responseData
+    }), { headers });
+
   } catch (error) {
-    console.error('❌ Error fetching home data:', error);
+    console.error('❌ Error in cached-home-data function:', error);
     
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        sections: {
-          trending: { title: 'Trending Now', data: [], count: 0 },
-          recent: { title: 'Recently Added', data: [], count: 0 },
-          topRated: { title: 'Top Rated', data: [], count: 0 },
-          currentSeason: { title: 'Current Season', data: [], count: 0 },
-        },
-        metadata: {
-          cached_at: new Date().toISOString(),
-          total_items: 0,
-          error: true,
-        }
+      JSON.stringify({
+        success: false,
+        error: error.message
       }),
       { 
-        status: 500, 
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        }
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
