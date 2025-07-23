@@ -1,4 +1,4 @@
-// Main component exports organized by category
+// Explicit component exports instead of star exports
 export * from './common';
 export * from './features';
 export * from './layouts';

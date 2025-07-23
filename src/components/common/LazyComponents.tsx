@@ -8,16 +8,10 @@ export const LazySettings = lazy(() => import('@/pages/Settings'));
 export const LazyMyLists = lazy(() => import('@/pages/MyLists'));
 export const LazyTrending = lazy(() => import('@/pages/Trending'));
 
-// Lazy load heavy UI components - just use named exports directly
-export const LazyAdvancedFiltering = lazy(() => 
-  import('@/components/features/AdvancedFiltering').then(module => ({ default: module.AdvancedFiltering }))
-);
-export const LazyContentGrid = lazy(() => 
-  import('@/components/features/ContentGrid').then(module => ({ default: module.ContentGrid }))
-);
-export const LazySearchWithFilters = lazy(() => 
-  import('@/components/SearchWithFilters').then(module => ({ default: module.SearchWithFilters }))
-);
+// Lazy load heavy UI components - use direct default imports
+export const LazyAdvancedFiltering = lazy(() => import('@/components/features/AdvancedFiltering'));
+export const LazyContentGrid = lazy(() => import('@/components/features/ContentGrid'));
+export const LazySearchWithFilters = lazy(() => import('@/components/SearchWithFilters'));
 
 // Loading fallback component
 const LoadingFallback = ({ text = "Loading..." }: { text?: string }) => (

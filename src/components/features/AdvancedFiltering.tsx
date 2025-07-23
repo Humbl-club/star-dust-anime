@@ -287,3 +287,6 @@ export function AdvancedFiltering({
     </Sheet>
   );
 }
+
+// Default export for lazy loading
+export default AdvancedFiltering;

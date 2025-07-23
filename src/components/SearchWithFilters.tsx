@@ -84,3 +84,6 @@ export function SearchWithFilters({
     </div>
   );
 }
+
+// Default export for lazy loading
+export default SearchWithFilters;

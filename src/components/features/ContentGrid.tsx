@@ -104,3 +104,6 @@ export const AnimeGrid = (props: Omit<ContentGridProps, 'contentType'>) => (
 export const MangaGrid = (props: Omit<ContentGridProps, 'contentType'>) => (
   <ContentGrid {...props} contentType="manga" />
 );
+
+// Default export for lazy loading
+export default ContentGrid;
