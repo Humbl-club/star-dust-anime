@@ -15,4 +15,8 @@ export { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 export { FeatureWrapper } from "./FeatureWrapper";
 export { InitializationWrapper } from "./InitializationWrapper";
 export { DeepLinkHandler, useTrackingData } from "./DeepLinkHandler";
-export * from "./LazyComponents";
+
+// EXPLICIT LazyComponents exports to avoid circular dependencies
+export { LazyAnimeDetail, LazyMangaDetail, LazySettings, LazyMyLists, LazyTrending } from "./LazyComponents";
+export { LazyAdvancedFiltering, LazyContentGrid, LazySearchWithFilters } from "./LazyComponents";
+export { withLazyLoading } from "./LazyComponents";

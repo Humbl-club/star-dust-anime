@@ -3,6 +3,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,14 +22,16 @@ const TempAuth = () => <div><h1>Auth Page</h1></div>;
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Toaster />
-        <Routes>
-          <Route path="/" element={<TempIndex />} />
-          <Route path="/auth" element={<TempAuth />} />
-          <Route path="*" element={<TempIndex />} />
-        </Routes>
-      </BrowserRouter>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<TempIndex />} />
+            <Route path="/auth" element={<TempAuth />} />
+            <Route path="*" element={<TempIndex />} />
+          </Routes>
+        </BrowserRouter>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 };
