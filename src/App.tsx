@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { Navigation } from "@/components/Navigation";  // Import real Navigation
 
 // Create everything inline to avoid import issues
 const queryClient = new QueryClient({
@@ -25,21 +26,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Inline Navigation
-const Navigation = () => {
-  return (
-    <nav className="bg-gray-900 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">🎌 Anithing</h1>
-        <div className="flex gap-4">
-          <Link to="/" className="hover:text-blue-400">Home</Link>
-          <Link to="/anime" className="hover:text-blue-400">Anime</Link>
-          <Link to="/manga" className="hover:text-blue-400">Manga</Link>
-        </div>
-      </div>
-    </nav>
-  );
-};
+// Real Navigation component will be used now
 
 // Inline Pages
 const HomePage = () => (
