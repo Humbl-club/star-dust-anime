@@ -36,3 +36,9 @@ verify_jwt = false
 
 [functions.cached-content-v2]
 verify_jwt = false
+
+[functions.cache-get]
+verify_jwt = false
+
+[functions.cache-set]
+verify_jwt = false
