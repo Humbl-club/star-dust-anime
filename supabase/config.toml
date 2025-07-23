@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.cache-set]
 verify_jwt = false
+
+[functions.cache-utils]
+verify_jwt = false
