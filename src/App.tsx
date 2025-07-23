@@ -1,29 +1,26 @@
 
 import React from 'react';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30 * 60 * 1000,
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { BrowserRouter } from "react-router-dom";
 
 const App = () => {
-  console.log('App with QueryClient and Router');
+  console.log('App rendering');
+  console.log('BrowserRouter exists:', !!BrowserRouter);
   
   return (
-    <QueryClientProvider client={queryClient}>
+    <div style={{ 
+      position: 'relative', 
+      zIndex: 100, 
+      backgroundColor: 'white', 
+      padding: '50px' 
+    }}>
+      <h1 style={{ color: 'black' }}>Before Router</h1>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<div><h1>QueryClient + Router Work!</h1></div>} />
-        </Routes>
+        <div>
+          <h2 style={{ color: 'black' }}>Inside Router!</h2>
+        </div>
       </BrowserRouter>
-    </QueryClientProvider>
+      <h3 style={{ color: 'black' }}>After Router</h3>
+    </div>
   );
 };
 
