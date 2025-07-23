@@ -33,3 +33,6 @@ enable_confirmations = true
 
 [functions.anime-api-new]
 verify_jwt = false
+
+[functions.cached-content-v2]
+verify_jwt = false
