@@ -8,6 +8,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { PWAFeatures } from "@/components/PWAFeatures";
@@ -89,6 +90,9 @@ persistQueryClient({
 });
 
 const App = () => {
+  // Add service worker hook
+  const { updateAvailable, updateServiceWorker } = useServiceWorker();
+  
   // Safety check for React
   if (!React || !React.useEffect) {
     console.error('React is not properly loaded');
@@ -98,6 +102,17 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
+        {updateAvailable && (
+          <div className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground p-2 text-center z-50">
+            <span>Update available! </span>
+            <button 
+              onClick={updateServiceWorker}
+              className="underline font-semibold hover:opacity-80 transition-opacity"
+            >
+              Refresh now
+            </button>
+          </div>
+        )}
         <ErrorBoundary>
           <TooltipProvider>
             <Toaster />
