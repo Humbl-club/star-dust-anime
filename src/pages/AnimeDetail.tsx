@@ -16,6 +16,9 @@ import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { OfflineFallback } from "@/components/OfflineFallback";
+import { usePWA } from "@/hooks/usePWA";
+import { offlineStorage } from "@/lib/cache/offlineStorage";
 
 
 
@@ -23,12 +26,55 @@ const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getDisplayName } = useNamePreference();
+  const { isOnline } = usePWA();
   
   // Add debugging logs
   console.log('Detail page ID:', id);
   console.log('ID type:', typeof id);
   
   const { anime, loading, error } = useAnimeDetail(id || '');
+  
+  // Cache content when successfully loaded
+  useEffect(() => {
+    if (anime && !loading && !error) {
+      offlineStorage.cacheAnime({
+        id: anime.id,
+        title: anime.title,
+        title_english: anime.title_english,
+        title_japanese: anime.title_japanese,
+        image_url: anime.image_url,
+        synopsis: anime.synopsis,
+        score: anime.score,
+        episodes: anime.episodes,
+        status: anime.status,
+        aired_from: anime.aired_from,
+        aired_to: anime.aired_to,
+        genres: anime.genres?.map(g => g.name) || [],
+        studios: anime.studios?.map(s => s.name) || [],
+        cachedAt: Date.now(),
+        type: 'anime'
+      });
+      
+      // Add to recently viewed
+      offlineStorage.addRecentlyViewed({
+        id: anime.id,
+        title: anime.title,
+        title_english: anime.title_english,
+        title_japanese: anime.title_japanese,
+        image_url: anime.image_url,
+        synopsis: anime.synopsis,
+        score: anime.score,
+        episodes: anime.episodes,
+        status: anime.status,
+        aired_from: anime.aired_from,
+        aired_to: anime.aired_to,
+        genres: anime.genres?.map(g => g.name) || [],
+        studios: anime.studios?.map(s => s.name) || [],
+        cachedAt: Date.now(),
+        type: 'anime'
+      });
+    }
+  }, [anime, loading, error]);
   
   // Debug the fetch result
   console.log('Fetch result:', { anime, loading, error });
@@ -95,6 +141,11 @@ const AnimeDetail = () => {
   }
 
   if (error) {
+    // If offline and there's an error, try to show cached content
+    if (!isOnline) {
+      return <OfflineFallback type="anime" onRetry={() => window.location.reload()} />;
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -113,6 +164,11 @@ const AnimeDetail = () => {
   }
 
   if (!loading && !anime) {
+    // If offline and no cached content, show offline fallback
+    if (!isOnline) {
+      return <OfflineFallback type="anime" onRetry={() => window.location.reload()} />;
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -16,6 +16,9 @@ import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { OfflineFallback } from "@/components/OfflineFallback";
+import { usePWA } from "@/hooks/usePWA";
+import { offlineStorage } from "@/lib/cache/offlineStorage";
 
 
 
@@ -23,12 +26,57 @@ const MangaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getDisplayName } = useNamePreference();
+  const { isOnline } = usePWA();
   
   // Add debugging logs
   console.log('Manga Detail page ID:', id);
   console.log('ID type:', typeof id);
   
   const { manga, loading, error } = useMangaDetail(id || '');
+  
+  // Cache content when successfully loaded
+  useEffect(() => {
+    if (manga && !loading && !error) {
+      offlineStorage.cacheManga({
+        id: manga.id,
+        title: manga.title,
+        title_english: manga.title_english,
+        title_japanese: manga.title_japanese,
+        image_url: manga.image_url,
+        synopsis: manga.synopsis,
+        score: manga.score,
+        chapters: manga.chapters,
+        volumes: manga.volumes,
+        status: manga.status,
+        published_from: manga.published_from,
+        published_to: manga.published_to,
+        genres: manga.genres?.map(g => g.name) || [],
+        authors: manga.authors?.map(a => a.name) || [],
+        cachedAt: Date.now(),
+        type: 'manga'
+      });
+      
+      // Add to recently viewed
+      offlineStorage.addRecentlyViewed({
+        id: manga.id,
+        title: manga.title,
+        title_english: manga.title_english,
+        title_japanese: manga.title_japanese,
+        image_url: manga.image_url,
+        synopsis: manga.synopsis,
+        score: manga.score,
+        chapters: manga.chapters,
+        volumes: manga.volumes,
+        status: manga.status,
+        published_from: manga.published_from,
+        published_to: manga.published_to,
+        genres: manga.genres?.map(g => g.name) || [],
+        authors: manga.authors?.map(a => a.name) || [],
+        cachedAt: Date.now(),
+        type: 'manga'
+      });
+    }
+  }, [manga, loading, error]);
   
   // Debug the fetch result
   console.log('Manga Fetch result:', { manga, loading, error });
@@ -83,14 +131,37 @@ const MangaDetail = () => {
     );
   }
 
-  if (error || !manga) {
+  if (error) {
+    // If offline and there's an error, try to show cached content
+    if (!isOnline) {
+      return <OfflineFallback type="manga" onRetry={() => window.location.reload()} />;
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            {error || 'Manga not found'}
-          </h2>
-          <Button onClick={() => navigate('/manga')}>
+          <h2 className="text-2xl font-bold mb-4">Error Loading Manga</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => navigate('/manga')} className="mt-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Manga List
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!loading && !manga) {
+    // If offline and no cached content, show offline fallback
+    if (!isOnline) {
+      return <OfflineFallback type="manga" onRetry={() => window.location.reload()} />;
+    }
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Manga Not Found</h2>
+          <Button onClick={() => navigate('/manga')} className="mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Manga List
           </Button>

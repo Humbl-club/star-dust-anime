@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { pwaAnalytics } from '@/lib/analytics/pwaAnalytics';
 
 interface PushSubscription {
   endpoint: string;
@@ -53,12 +54,17 @@ export const usePushNotifications = () => {
   const requestPermission = async (): Promise<boolean> => {
     if (!isSupported) return false;
 
+    pwaAnalytics.trackPushPermissionRequest();
+
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
+      
+      pwaAnalytics.trackPushPermissionResult(result === 'granted');
       return result === 'granted';
     } catch (error) {
       console.error('Error requesting permission:', error);
+      pwaAnalytics.trackPushPermissionResult(false);
       return false;
     }
   };
@@ -91,9 +97,11 @@ export const usePushNotifications = () => {
       // Save subscription to backend
       await saveSubscriptionToBackend(subscriptionData);
 
+      pwaAnalytics.trackPushSubscription(true);
       return true;
     } catch (error) {
       console.error('Error subscribing to push notifications:', error);
+      pwaAnalytics.trackPushSubscription(false);
       return false;
     }
   };

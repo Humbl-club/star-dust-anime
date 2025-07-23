@@ -3,6 +3,7 @@ import { Download, X, Smartphone, Monitor, Chrome } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { pwaAnalytics } from '@/lib/analytics/pwaAnalytics';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -42,6 +43,7 @@ export const InstallPrompt: React.FC = () => {
         // 2. It's been more than 7 days since last prompt
         if (!hasSeenPrompt || (lastPromptTime && now - parseInt(lastPromptTime) > 7 * 24 * 60 * 60 * 1000)) {
           setShowPrompt(true);
+          pwaAnalytics.trackInstallPromptShown(platform);
         }
       }, 5000); // Show after 5 seconds of usage
     };
@@ -54,6 +56,8 @@ export const InstallPrompt: React.FC = () => {
   }, []);
 
   const handleInstallClick = async () => {
+    pwaAnalytics.trackInstallAttempted(platform, deferredPrompt ? 'browser_prompt' : 'manual_instructions');
+    
     if (!deferredPrompt) {
       // For browsers that don't support the prompt
       showManualInstallInstructions();
@@ -65,18 +69,12 @@ export const InstallPrompt: React.FC = () => {
       const choice = await deferredPrompt.userChoice;
       
       if (choice.outcome === 'accepted') {
+        pwaAnalytics.trackInstallSuccess(platform);
         toast.success('App installed successfully!', {
           icon: <Download className="h-4 w-4" />,
         });
-        
-        // Track installation
-        if (typeof (window as any).gtag !== 'undefined') {
-          (window as any).gtag('event', 'pwa_install', {
-            method: 'browser_prompt',
-            platform: platform
-          });
-        }
       } else {
+        pwaAnalytics.trackInstallPromptDismissed(platform, 'button');
         toast.info('Installation cancelled');
       }
       
@@ -87,6 +85,7 @@ export const InstallPrompt: React.FC = () => {
       localStorage.setItem('pwa-install-prompt-time', Date.now().toString());
     } catch (error) {
       console.error('Error during installation:', error);
+      pwaAnalytics.trackInstallError(platform, (error as Error).message);
       toast.error('Installation failed. Please try again.');
     }
   };
@@ -122,16 +121,10 @@ export const InstallPrompt: React.FC = () => {
   };
 
   const handleDismiss = () => {
+    pwaAnalytics.trackInstallPromptDismissed(platform, 'button');
     setShowPrompt(false);
     localStorage.setItem('pwa-install-prompt-seen', 'true');
     localStorage.setItem('pwa-install-prompt-time', Date.now().toString());
-    
-    // Track dismissal
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', 'pwa_install_dismissed', {
-        platform: platform
-      });
-    }
   };
 
   if (isInstalled || !showPrompt) {
