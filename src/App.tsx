@@ -3,6 +3,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";  // ADD THIS
+import Index from "./pages/Index";  // ADD THIS
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +23,7 @@ const App = () => {
       <BrowserRouter>
         <Toaster />  {/* ADD THIS */}
         <Routes>
-          <Route path="*" element={<TempIndex />} />
+          <Route path="*" element={<Index />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
