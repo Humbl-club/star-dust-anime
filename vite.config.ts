@@ -11,28 +11,22 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Force React resolution to prevent multiple versions
-      'react': path.resolve(__dirname, 'node_modules/react'),
-      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-      'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime'),
-      'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime'),
+      // Force single React instance
+      'react': path.resolve(__dirname, 'node_modules/react/index.js'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom/index.js'),
     },
-    dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime',
-      '@tanstack/react-query',
-      'zustand',
-      'react-router-dom'
-    ],
-    exclude: ['@supabase/supabase-js'],
-    force: true,
+    include: ['react', 'react-dom'],
+    exclude: [],
     esbuildOptions: {
-      target: 'es2020',
-      jsx: 'automatic',
+      // Ensure React is available globally
+      define: {
+        global: 'globalThis',
+      },
+      loader: {
+        '.js': 'jsx',
+      },
     },
   },
   esbuild: {
@@ -42,6 +36,10 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: 'es2020',
     sourcemap: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      include: [/node_modules/],
+    },
     rollupOptions: {
       output: {
         manualChunks: {

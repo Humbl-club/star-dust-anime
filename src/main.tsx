@@ -1,8 +1,11 @@
-// THIS MUST BE THE VERY FIRST IMPORT
-import './fix-react';
+// Force React to be available before any other imports
+import * as React from 'react';
+import * as ReactDOM from 'react-dom/client';
+(window as any).React = React;
+(window as any).ReactDOM = ReactDOM;
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+// Now import the fix
+import './fix-react';
 import App from './App.tsx';
 import './index.css';
 import './native.css';
