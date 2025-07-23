@@ -1,15 +1,10 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+import './react-shim'; // MUST be first import
+import { React, ReactDOM } from './react-shim';
 import App from './App.tsx';
 import './index.css';
 import './native.css';
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
-
-// Ensure React is available globally for development
-if (typeof window !== 'undefined') {
-  (window as any).React = React;
-}
 
 // Enhanced Service Worker registration with comprehensive offline support
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -118,7 +113,13 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('offline', updateOnlineStatus);
 }
 
-createRoot(document.getElementById("root")!).render(
+const root = document.getElementById('root');
+
+if (!root) {
+  throw new Error('Root element not found');
+}
+
+ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

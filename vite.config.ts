@@ -1,30 +1,39 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
   plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
+    react({
+      babel: {
+        plugins: ['@babel/plugin-transform-react-jsx']
+      }
+    }),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      'react': path.resolve(__dirname, 'node_modules/react'),
-      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      '@tanstack/react-query',
+      'zustand',
+      'react-router-dom'
+    ],
+    exclude: ['@supabase/supabase-js'],
+    esbuildOptions: {
+      target: 'es2020',
+    },
   },
   build: {
+    target: 'es2020',
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -49,6 +58,12 @@ export default defineConfig(({ mode }) => ({
       }
     },
     chunkSizeWarningLimit: 1000,
-    sourcemap: false,
+  },
+  server: {
+    host: "::",
+    port: 8080,
+    hmr: {
+      overlay: false,
+    },
   },
 }));

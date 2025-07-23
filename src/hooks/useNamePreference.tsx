@@ -1,3 +1,4 @@
+import React from 'react';
 import { useUserPreferencesStore } from '@/store';
 
 export const useNamePreference = () => {
