@@ -1,3 +1,5 @@
+
+import './radix-bypass';
 // Must be first - this loads React globally
 import './module-preload';
 
