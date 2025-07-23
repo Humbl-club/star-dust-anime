@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSearchStore } from '@/store/searchStore';
 import { toast } from '@/hooks/use-toast';
 
-interface UnifiedSearchOptions {
+export interface UnifiedSearchOptions {
   contentType?: 'anime' | 'manga' | 'all';
   limit?: number;
   filters?: {
