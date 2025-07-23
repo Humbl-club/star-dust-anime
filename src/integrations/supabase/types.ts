@@ -715,6 +715,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_logs_archive_default: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       daily_activities: {
         Row: {
           activity_type: string
