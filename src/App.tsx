@@ -12,6 +12,7 @@ import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { PWAFeatures } from "@/components/PWAFeatures";
+import { GraphQLProvider } from "@/providers/GraphQLProvider";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -106,48 +107,50 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        {updateAvailable && (
-          <div className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground p-2 text-center z-50">
-            <span>Update available! </span>
-            <button 
-              onClick={updateServiceWorker}
-              className="underline font-semibold hover:opacity-80 transition-opacity"
-            >
-              Refresh now
-            </button>
-          </div>
-        )}
-        <ErrorBoundary>
-          <TooltipProvider>
-            <Toaster />
-            <BrowserRouter>
-              <ErrorBoundary>
-                <AuthProvider>
-                  <ConnectionStatus />
-                  <PWAFeatures />
-                  <Routes>
-                    <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
-                    <Route path="/auth" element={<Auth />} />
-                    {routes.map(({ path, component: Component }) => (
-                      <Route
-                        key={path}
-                        path={path}
-                        element={
-                          <ErrorBoundary>
-                            <Suspense fallback={<PageLoader />}>
-                              <Component />
-                            </Suspense>
-                          </ErrorBoundary>
-                        }
-                      />
-                    ))}
-                  </Routes>
-                </AuthProvider>
-              </ErrorBoundary>
-            </BrowserRouter>
-            <ConnectionStatus />
-          </TooltipProvider>
-        </ErrorBoundary>
+        <GraphQLProvider>
+          {updateAvailable && (
+            <div className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground p-2 text-center z-50">
+              <span>Update available! </span>
+              <button 
+                onClick={updateServiceWorker}
+                className="underline font-semibold hover:opacity-80 transition-opacity"
+              >
+                Refresh now
+              </button>
+            </div>
+          )}
+          <ErrorBoundary>
+            <TooltipProvider>
+              <Toaster />
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <AuthProvider>
+                    <ConnectionStatus />
+                    <PWAFeatures />
+                    <Routes>
+                      <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+                      <Route path="/auth" element={<Auth />} />
+                      {routes.map(({ path, component: Component }) => (
+                        <Route
+                          key={path}
+                          path={path}
+                          element={
+                            <ErrorBoundary>
+                              <Suspense fallback={<PageLoader />}>
+                                <Component />
+                              </Suspense>
+                            </ErrorBoundary>
+                          }
+                        />
+                      ))}
+                    </Routes>
+                  </AuthProvider>
+                </ErrorBoundary>
+              </BrowserRouter>
+              <ConnectionStatus />
+            </TooltipProvider>
+          </ErrorBoundary>
+        </GraphQLProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
