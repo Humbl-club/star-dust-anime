@@ -11,35 +11,34 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Force React resolution to prevent multiple versions
-      'react': path.resolve(__dirname, 'node_modules/react'),
-      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-      'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime'),
-      'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime'),
     },
-    dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: [
-      'react', 
-      'react-dom', 
-      'react/jsx-runtime',
-      '@tanstack/react-query',
-      'zustand',
-      'react-router-dom'
-    ],
+    // Exclude packages that depend on React from pre-bundling
     exclude: [
+      '@tanstack/react-query',
+      '@tanstack/react-query-devtools',
+      '@tanstack/react-query-persist-client',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-scroll-area',
+      'zustand',
+      'react-router-dom',
+      'framer-motion',
       '@supabase/supabase-js',
       '@supabase/postgrest-js',
       '@supabase/storage-js',
       '@supabase/realtime-js',
       '@supabase/gotrue-js'
     ],
+    // Force include React first
+    include: ['react', 'react-dom', 'react/jsx-runtime'],
     force: true,
-    esbuildOptions: {
-      target: 'es2020',
-      jsx: 'automatic',
-    },
   },
   esbuild: {
     jsx: 'automatic',
@@ -81,6 +80,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     hmr: {
       overlay: false,
+    },
+    // Force full reload on changes
+    watch: {
+      usePolling: true,
     },
   },
 }));
