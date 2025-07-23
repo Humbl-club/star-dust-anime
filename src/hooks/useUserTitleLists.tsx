@@ -23,10 +23,14 @@ export const useUserTitleLists = () => {
 
   // Helper function to convert unified entry to anime entry format
   const toAnimeEntry = (entry: UserTitleListEntry): UserAnimeListEntry => {
+    const statusValue = (entry.status as any)?.name || entry.status;
     const animeEntry: UserAnimeListEntry = {
       id: entry.id,
       user_id: entry.user_id,
       title_id: entry.title_id,
+      media_type: 'anime',
+      status_id: entry.status_id,
+      added_at: entry.added_at,
       episodes_watched: entry.episodes_watched,
       score: entry.score,
       start_date: entry.start_date,
@@ -34,9 +38,7 @@ export const useUserTitleLists = () => {
       notes: entry.notes,
       created_at: entry.created_at,
       updated_at: entry.updated_at,
-      // Remove anime_detail_id since the column was dropped
-      anime_detail_id: entry.title_id, // Use title_id for backward compatibility
-      status: (entry.status?.name as AnimeStatus) || 'plan_to_watch',
+      status: (statusValue as AnimeStatus) || 'plan_to_watch',
       title: entry.title,
       anime_details: {
         ...entry.anime_details,
@@ -48,14 +50,18 @@ export const useUserTitleLists = () => {
 
   // Helper function to convert unified entry to manga entry format
   const toMangaEntry = (entry: UserTitleListEntry): UserMangaListEntry => {
-    const statusName = entry.status?.name === 'on_hold_manga' ? 'on_hold' : 
-                      entry.status?.name === 'dropped_manga' ? 'dropped' : 
-                      entry.status?.name;
+    const statusValue = (entry.status as any)?.name || entry.status;
+    const statusName = statusValue === 'on_hold_manga' ? 'on_hold' : 
+                      statusValue === 'dropped_manga' ? 'dropped' : 
+                      statusValue;
     
     const mangaEntry: UserMangaListEntry = {
       id: entry.id,
       user_id: entry.user_id,
       title_id: entry.title_id,
+      media_type: 'manga',
+      status_id: entry.status_id,
+      added_at: entry.added_at,
       chapters_read: entry.chapters_read,
       volumes_read: entry.volumes_read,
       score: entry.score,
@@ -64,8 +70,6 @@ export const useUserTitleLists = () => {
       notes: entry.notes,
       created_at: entry.created_at,
       updated_at: entry.updated_at,
-      // Remove manga_detail_id since the column was dropped
-      manga_detail_id: entry.title_id, // Use title_id for backward compatibility
       status: (statusName as MangaStatus) || 'plan_to_read',
       title: entry.title,
       manga_details: {
