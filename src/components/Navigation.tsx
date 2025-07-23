@@ -24,18 +24,18 @@ import {
   Languages
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth.tsx";
-import { useSimpleGameification } from "@/hooks/useSimpleGameification.tsx";
-import { useSearch } from "@/hooks/useSearch.tsx";
-import { useNativeSetup } from "@/hooks/useNativeSetup.tsx";
-import { useNativeActions } from "@/hooks/useNativeActions.tsx";
-import { ProfileMenu } from "@/components/ProfileMenu.tsx";
+import { useAuth } from "@/hooks/useAuth";
+import { useSimpleGameification } from "@/hooks/useSimpleGameification";
+import { useSearch } from "@/hooks/useSearch";
+import { useNativeSetup } from "@/hooks/useNativeSetup";
+import { useNativeActions } from "@/hooks/useNativeActions";
+import { ProfileMenu } from "@/components/ProfileMenu";
 
-import { OptimizedSearchBar } from "@/components/OptimizedSearchBar.tsx";
-import { useNamePreference } from "@/hooks/useNamePreference.tsx";
-import { useUIStore } from "@/store/index.tsx";
-import { Switch } from "@/components/ui/switch.tsx";
-import { FeatureWrapper } from "@/components/common/FeatureWrapper.tsx";
+import { OptimizedSearchBar } from "@/components/OptimizedSearchBar";
+import { useNamePreference } from "@/hooks/useNamePreference";
+import { useUIStore } from "@/store";
+import { Switch } from "@/components/ui/switch";
+import { FeatureWrapper } from "@/components/common/FeatureWrapper";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
