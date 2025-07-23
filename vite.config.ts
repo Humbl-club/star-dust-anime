@@ -2,9 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { componentTagger } from "lovable-tagger";
+import { reactSingleton } from './vite-plugin-react-singleton';
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    reactSingleton(), // Must be first
     react(),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
@@ -53,23 +55,27 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks(id) {
+          // Ensure React is in its own chunk
+          if (id.includes('node_modules/react/')) {
+            return 'react-vendor';
+          }
+          if (id.includes('node_modules/react-dom/')) {
+            return 'react-dom-vendor';
+          }
           // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip'
-          ],
-          'query-vendor': ['@tanstack/react-query', '@tanstack/react-virtual'],
-          'animation-vendor': ['framer-motion', 'lottie-react'],
-          'utility-vendor': ['date-fns', 'clsx', 'zod', 'sonner'],
-          'auth': ['@supabase/supabase-js'],
-          'charts': ['recharts'],
-          'forms': ['react-hook-form', '@hookform/resolvers'],
-          'media': ['react-player', 'react-image-gallery', 'howler'],
+          if (id.includes('node_modules/@radix-ui/')) {
+            return 'ui-vendor';
+          }
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'query-vendor';
+          }
+          if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lottie-react')) {
+            return 'animation-vendor';
+          }
+          if (id.includes('node_modules/@supabase/')) {
+            return 'auth';
+          }
         }
       }
     },

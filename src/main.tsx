@@ -1,14 +1,15 @@
-// THIS MUST BE THE VERY FIRST IMPORT
-import './fix-react';
+// Must be first - this loads React globally
+import './module-preload';
 
+// Now import normally
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// import App from './App.tsx';
-import AppSimple from './AppSimple'; // Test with simple app first
+import App from './App';
 import './index.css';
-import './native.css';
-// import { toast } from '@/hooks/use-toast';
-// import { ToastAction } from '@/components/ui/toast';
+
+// Verify React is available
+console.log('Main: React version', React.version);
+console.log('Main: Global React', !!(window as any).React);
 
 // Simplified service worker registration for testing
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -25,6 +26,6 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <AppSimple />
+    <App />
   </React.StrictMode>
 );
