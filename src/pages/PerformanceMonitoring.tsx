@@ -179,13 +179,13 @@ export default function PerformanceMonitoring() {
                 {bundleMetrics.totalSize > 4 * 1024 * 1024 && (
                   <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
                     <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm">Bundle size is quite large (>4MB)</span>
+                    <span className="text-sm">Bundle size is quite large ({'>'}4MB)</span>
                   </div>
                 )}
                 {webVitals.lcp && webVitals.lcp > 4000 && (
                   <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
                     <AlertTriangle className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm">Largest Contentful Paint is slow (>4s)</span>
+                    <span className="text-sm">Largest Contentful Paint is slow ({'>'}4s)</span>
                   </div>
                 )}
                 {parseInt(cacheStats.ratio) >= 70 && bundleMetrics.totalSize <= 4 * 1024 * 1024 && (!webVitals.lcp || webVitals.lcp <= 4000) && (

@@ -74,7 +74,7 @@ export function useWebVitals() {
         setMetrics(prev => ({
           ...prev,
           ttfb: navigation.responseStart - navigation.requestStart,
-          fcp: navigation.domContentLoadedEventStart - navigation.navigationStart,
+          fcp: navigation.domContentLoadedEventStart - navigation.fetchStart,
         }));
       }
     };

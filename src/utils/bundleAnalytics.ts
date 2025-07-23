@@ -18,7 +18,7 @@ export function getBundleMetrics(): BundleMetrics {
   
   // Get performance navigation timing
   const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-  const loadTime = navigation ? navigation.loadEventEnd - navigation.navigationStart : 0;
+  const loadTime = navigation ? navigation.loadEventEnd - navigation.fetchStart : 0;
 
   // Mock bundle analysis data - in production this would come from build tools
   const mockLargestModules = [
