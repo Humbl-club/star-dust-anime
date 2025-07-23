@@ -110,17 +110,6 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <GraphQLProvider>
-          {updateAvailable && (
-            <div className="fixed top-0 left-0 right-0 bg-primary text-primary-foreground p-2 text-center z-50">
-              <span>Update available! </span>
-              <button 
-                onClick={updateServiceWorker}
-                className="underline font-semibold hover:opacity-80 transition-opacity"
-              >
-                Refresh now
-              </button>
-            </div>
-          )}
           <ErrorBoundary>
             <TooltipProvider>
               <Toaster />
