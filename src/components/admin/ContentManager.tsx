@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, RefreshCw, Database, Eye } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { Search, Edit, Trash, RefreshCw, Database, Eye } from 'lucide-react';
 
 export const ContentManager = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [activeType, setActiveType] = useState('anime');
-
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
   const { data: content, isLoading } = useQuery({
-    queryKey: ['admin-content', activeType, searchTerm],
+    queryKey: ['admin-content', activeType, search],
     queryFn: async () => {
       let query = supabase
         .from('titles')
@@ -34,8 +37,8 @@ export const ContentManager = () => {
         query = query.not('manga_details', 'is', null);
       }
 
-      if (searchTerm) {
-        query = query.ilike('title', `%${searchTerm}%`);
+      if (search) {
+        query = query.ilike('title', `%${search}%`);
       }
 
       const { data, error } = await query;
@@ -43,19 +46,33 @@ export const ContentManager = () => {
       return data;
     }
   });
-
-  const syncContent = async () => {
-    try {
-      await supabase.functions.invoke('sync-anime', {
-        body: { pages: 1 }
+  
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('ultra-fast-sync', {
+        body: { contentType: activeType, pages: 1 }
       });
-      // Refresh the data after sync
-      window.location.reload();
-    } catch (error) {
-      console.error('Sync failed:', error);
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sync completed",
+        description: "Content has been synchronized successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-content'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Sync failed",
+        description: "Failed to synchronize content. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Sync error:', error);
     }
-  };
-
+  });
+  
   return (
     <div className="space-y-6">
       <Card>
@@ -71,13 +88,17 @@ export const ContentManager = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Button onClick={syncContent} className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
+            <Button 
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
               Sync Content
             </Button>
           </div>
@@ -125,12 +146,28 @@ export const ContentManager = () => {
                           </span>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   ))}
+                  
+                  {content?.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No content found. Try adjusting your search or sync some content.
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
