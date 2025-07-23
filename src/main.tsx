@@ -1,5 +1,8 @@
-import './react-shim'; // MUST be first import
-import { React, ReactDOM } from './react-shim';
+// THIS MUST BE THE VERY FIRST IMPORT
+import './fix-react';
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './native.css';
@@ -113,13 +116,13 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('offline', updateOnlineStatus);
 }
 
-const root = document.getElementById('root');
+const rootElement = document.getElementById('root');
 
-if (!root) {
-  throw new Error('Root element not found');
+if (!rootElement) {
+  throw new Error('Failed to find the root element');
 }
 
-ReactDOM.createRoot(root).render(
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

@@ -1,35 +1,43 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    react({
-      babel: {
-        plugins: ['@babel/plugin-transform-react-jsx']
-      }
-    }),
+    react(),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Force React resolution to prevent multiple versions
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime'),
+      'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
     include: [
-      'react',
-      'react-dom',
+      'react', 
+      'react-dom', 
       'react/jsx-runtime',
       '@tanstack/react-query',
       'zustand',
       'react-router-dom'
     ],
     exclude: ['@supabase/supabase-js'],
+    force: true,
     esbuildOptions: {
       target: 'es2020',
+      jsx: 'automatic',
     },
+  },
+  esbuild: {
+    jsx: 'automatic',
+    jsxDev: mode === 'development',
   },
   build: {
     target: 'es2020',
@@ -49,7 +57,6 @@ export default defineConfig(({ mode }) => ({
           'query-vendor': ['@tanstack/react-query', '@tanstack/react-virtual'],
           'animation-vendor': ['framer-motion', 'lottie-react'],
           'utility-vendor': ['date-fns', 'clsx', 'zod', 'sonner'],
-          // Feature chunks
           'auth': ['@supabase/supabase-js'],
           'charts': ['recharts'],
           'forms': ['react-hook-form', '@hookform/resolvers'],

@@ -1,6 +1,14 @@
 
 import React, { lazy, Suspense } from 'react'; // MUST be first
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Debug React availability in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('🚀 App.tsx - React version:', React.version);
+  console.log('🚀 App.tsx - React available:', !!React);
+  console.log('🚀 App.tsx - useState available:', !!React.useState);
+  console.log('🚀 App.tsx - Window React:', !!(window as any).React);
+}
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
