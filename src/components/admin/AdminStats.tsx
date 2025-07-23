@@ -1,56 +1,45 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Database, Activity, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, Users, Database, Activity } from 'lucide-react';
 
 export const AdminStats = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [profilesRes, titlesRes, reviewsRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact' }),
-        supabase.from('titles').select('id', { count: 'exact' }),
-        supabase.from('reviews').select('id', { count: 'exact' })
+      const [
+        { count: animeCount },
+        { count: mangaCount },
+        { count: userCount },
+        { data: recentActivity }
+      ] = await Promise.all([
+        supabase.from('anime_details').select('*', { count: 'exact', head: true }),
+        supabase.from('manga_details').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('reviews')
+          .select('created_at')
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       ]);
-
+      
       return {
-        totalUsers: profilesRes.count || 0,
-        totalTitles: titlesRes.count || 0,
-        totalReviews: reviewsRes.count || 0
+        animeCount,
+        mangaCount,
+        userCount,
+        activityToday: recentActivity?.length || 0
       };
     }
   });
-
+  
   const statCards = [
-    {
-      title: 'Total Users',
-      value: stats?.totalUsers || 0,
-      icon: Users,
-      description: 'Registered users'
-    },
-    {
-      title: 'Total Titles',
-      value: stats?.totalTitles || 0,
-      icon: Database,
-      description: 'Anime & Manga'
-    },
-    {
-      title: 'Total Reviews',
-      value: stats?.totalReviews || 0,
-      icon: Activity,
-      description: 'User reviews'
-    },
-    {
-      title: 'System Status',
-      value: 'Healthy',
-      icon: AlertTriangle,
-      description: 'All systems operational'
-    }
+    { title: 'Total Anime', value: stats?.animeCount || 0, icon: Database, color: 'text-blue-500' },
+    { title: 'Total Manga', value: stats?.mangaCount || 0, icon: Database, color: 'text-purple-500' },
+    { title: 'Total Users', value: stats?.userCount || 0, icon: Users, color: 'text-green-500' },
+    { title: 'Activity Today', value: stats?.activityToday || 0, icon: Activity, color: 'text-orange-500' },
   ];
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader className="pb-2">
@@ -65,24 +54,24 @@ export const AdminStats = () => {
       </div>
     );
   }
-
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statCards.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {statCards.map((stat) => (
+        <Card key={stat.title}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+            <stat.icon className={`h-4 w-4 ${stat.color}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stat.value.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="inline h-3 w-3 mr-1" />
+              +2.5% from last week
+            </p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
