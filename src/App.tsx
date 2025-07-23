@@ -3,7 +3,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";  // ADD THIS
-import { Navigation } from "@/components/Navigation";  // TEST THIS IMPORT
+import TestIndex from "./pages/TestIndex";  // TEST MINIMAL INDEX
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +28,7 @@ const App = () => {
       <BrowserRouter>
         <Toaster />  {/* ADD THIS */}
         <Routes>
-          <Route path="*" element={<TempIndex />} />
+          <Route path="*" element={<TestIndex />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
