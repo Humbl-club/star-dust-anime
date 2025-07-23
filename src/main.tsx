@@ -3,20 +3,18 @@ import './radix-bypass';
 import './module-preload';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
 
-console.log('Main.tsx executing');
-console.log('Main.tsx loaded');
+console.log('Main.tsx loaded, React:', React.version);
 
 const root = document.getElementById('root');
-console.log('Root element:', root);
 
 if (root) {
   ReactDOM.createRoot(root).render(
-    <div style={{ padding: '50px' }}>
-      <h1>React is working!</h1>
-      <p>React version: {React.version}</p>
+    <div>
+      <h1>Testing App Component...</h1>
+      <App />
     </div>
   );
-} else {
-  document.body.innerHTML = '<h1>No root element found!</h1>';
 }
