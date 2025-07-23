@@ -89,124 +89,133 @@ persistQueryClient({
 });
 
 const App = () => {
+  // Safety check for React
+  if (!React || !React.useEffect) {
+    console.error('React is not properly loaded');
+    return <div>Loading...</div>;
+  }
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <ErrorBoundary>
-            <TooltipProvider>
-              <AuthProvider>
-                <ConnectionStatus />
-                <PWAFeatures />
-                <Toaster />
-                <Routes>
-                  <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route 
-                    path="/dashboard" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <Dashboard />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/anime" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <Anime />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/manga" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <Manga />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/anime/:id" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <AnimeDetail />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/manga/:id" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <MangaDetail />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/settings" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <Settings />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/email-debug" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <EmailDebug />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/test-dashboard" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <TestDashboard />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/sync-dashboard" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <SyncDashboard />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                  <Route 
-                    path="/performance-monitoring" 
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                          <PerformanceMonitoring />
-                        </Suspense>
-                      </ErrorBoundary>
-                    } 
-                  />
-                </Routes>
-              </AuthProvider>
-            </TooltipProvider>
-          </ErrorBoundary>
-        </BrowserRouter>
+        <ErrorBoundary>
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <ErrorBoundary>
+                <AuthProvider>
+                  <ConnectionStatus />
+                  <PWAFeatures />
+                  <Routes>
+                    <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route 
+                      path="/dashboard" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Dashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/anime" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Anime />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/manga" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Manga />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/anime/:id" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <AnimeDetail />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/manga/:id" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <MangaDetail />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <Settings />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/email-debug" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <EmailDebug />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/test-dashboard" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <TestDashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/sync-dashboard" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <SyncDashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/performance-monitoring" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <PerformanceMonitoring />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                  </Routes>
+                </AuthProvider>
+              </ErrorBoundary>
+            </BrowserRouter>
+            <ConnectionStatus />
+          </TooltipProvider>
+        </ErrorBoundary>
       </QueryClientProvider>
     </HelmetProvider>
   );
