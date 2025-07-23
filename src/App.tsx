@@ -12,6 +12,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
 import { PWAFeatures } from "@/components/PWAFeatures";
 import { Loader2 } from 'lucide-react';
+import { ScrollPerformanceMonitor } from "@/components/ScrollPerformanceMonitor";
+import './styles/smoothScroll.css';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
@@ -95,6 +97,7 @@ const App = () => {
         <BrowserRouter>
           <ErrorBoundary>
             <AuthProvider>
+              {process.env.NODE_ENV === 'development' && <ScrollPerformanceMonitor />}
               <ConnectionStatus />
               <PWAFeatures />
               <Toaster />

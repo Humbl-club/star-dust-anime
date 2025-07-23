@@ -1,29 +1,56 @@
-import { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LazyImage } from "@/components/ui/lazy-image";
+import { LazyImage } from "@/components/LazyImage";
 import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "./AddToListButton";
 import { ContentReportModal } from "@/components/ContentReportModal";
 import { TrailerPreview } from "@/components/TrailerPreview";
 import { type Anime } from "@/data/animeData";
+import { cn } from "@/lib/utils";
 
 interface AnimeCardProps {
   anime: Anime;
   onClick?: () => void;
   showCountdown?: boolean;
   getDisplayName?: (anime: Anime) => string;
+  index?: number;
 }
 
 export const AnimeCard = memo(({ 
   anime,
   onClick,
   showCountdown = true,
-  getDisplayName
+  getDisplayName,
+  index = 0
 }: AnimeCardProps) => {
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for smooth entrance animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { 
+        rootMargin: '50px',
+        threshold: 0.01 
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const displayName = getDisplayName ? getDisplayName(anime) : anime.title;
 
@@ -46,8 +73,21 @@ export const AnimeCard = memo(({
   return (
     <>
       <Card 
-        className="anime-card cursor-pointer group relative h-[400px] hover-scale"
+        ref={cardRef}
+        data-card="anime"
+        className={cn(
+          "anime-card cursor-pointer group relative h-[400px]",
+          "transform-gpu will-change-transform", // Hardware acceleration
+          "transition-all duration-300 ease-out",
+          "smooth-entrance",
+          isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        )}
         onClick={handleCardClick}
+        style={{
+          contentVisibility: 'auto', // Browser optimization
+          containIntrinsicSize: '200px 400px', // Estimated size
+          animationDelay: `${index * 100}ms`, // Staggered animation
+        }}
       >
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
       

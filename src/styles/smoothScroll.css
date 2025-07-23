@@ -1,0 +1,250 @@
+/* Global smooth scroll optimizations */
+* {
+  /* Smooth scrolling for all elements */
+  scroll-behavior: smooth;
+  
+  /* Optimize scrolling performance */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Prevent scroll jank */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+}
+
+/* Root optimizations */
+html, body {
+  /* Ensure consistent scrolling */
+  scroll-behavior: smooth;
+  
+  /* Optimize font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+}
+
+/* Container optimizations */
+.scroll-container {
+  /* Hardware acceleration */
+  will-change: scroll-position;
+  transform: translateZ(0);
+  
+  /* Contain layout calculations */
+  contain: layout style paint;
+  
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card container optimizations */
+.card-grid {
+  /* Prevent layout recalculation */
+  contain: layout;
+  
+  /* GPU acceleration for transforms */
+  transform: translateZ(0);
+  will-change: transform;
+  
+  /* Optimize grid layout */
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+/* Individual card optimizations */
+.anime-card, 
+.manga-card,
+[data-card="anime"],
+[data-card="manga"] {
+  /* Isolate card rendering */
+  contain: layout style paint;
+  
+  /* Prepare for animations */
+  will-change: transform, opacity;
+  
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  
+  /* Prevent text rendering issues */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Optimize content */
+  content-visibility: auto;
+}
+
+/* Optimize hover states */
+.anime-card:hover, 
+.manga-card:hover,
+[data-card="anime"]:hover,
+[data-card="manga"]:hover {
+  /* Use transform instead of position changes */
+  transform: translateY(-4px) translateZ(0);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Image optimizations */
+img {
+  /* Hardware acceleration for images */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  
+  /* Smooth image rendering */
+  image-rendering: optimizeQuality;
+  -webkit-image-rendering: optimizeQuality;
+  
+  /* Prevent layout shifts */
+  content-visibility: auto;
+}
+
+/* Loading state optimizations */
+.loading-skeleton {
+  /* Efficient skeleton animation */
+  background: linear-gradient(90deg, 
+    hsl(var(--muted)) 25%, 
+    hsl(var(--muted-foreground) / 0.1) 50%, 
+    hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  will-change: background-position;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Intersection observer optimizations */
+.fade-in-view {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  will-change: transform, opacity;
+}
+
+.fade-in-view.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  .scroll-container {
+    /* Increase touch target size */
+    scroll-padding: 20px;
+    
+    /* Smooth elastic scrolling */
+    scroll-snap-type: y proximity;
+    
+    /* Optimize touch scrolling */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  .anime-card, 
+  .manga-card,
+  [data-card="anime"],
+  [data-card="manga"] {
+    /* Snap points for better mobile scrolling */
+    scroll-snap-align: start;
+    
+    /* Reduce motion for better performance */
+    animation-duration: 0.2s !important;
+  }
+  
+  /* Optimize touch interactions */
+  .anime-card:active,
+  .manga-card:active,
+  [data-card="anime"]:active,
+  [data-card="manga"]:active {
+    transform: scale(0.98) translateZ(0);
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Performance optimizations for grids */
+.virtualized-grid {
+  /* Contain paint operations */
+  contain: strict;
+  
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  
+  /* Optimize rendering */
+  will-change: scroll-position;
+}
+
+.virtualized-item {
+  /* Isolate item rendering */
+  contain: layout style paint;
+  
+  /* Prepare for visibility changes */
+  will-change: transform, opacity;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .loading-skeleton {
+    animation: none;
+    background: hsl(var(--muted));
+  }
+}
+
+/* High refresh rate display optimizations */
+@media (min-resolution: 120dpi) {
+  .anime-card, 
+  .manga-card,
+  [data-card="anime"],
+  [data-card="manga"] {
+    /* Smoother animations on high-DPI displays */
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+}
+
+/* GPU memory optimization */
+.gpu-layer {
+  /* Create new stacking context */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  
+  /* Isolate for GPU */
+  isolation: isolate;
+  
+  /* Optimize compositing */
+  will-change: transform;
+}
+
+/* Performance-critical animations */
+@keyframes smooth-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+.smooth-entrance {
+  animation: smooth-fade-in 0.3s ease-out forwards;
+  will-change: transform, opacity;
+}
