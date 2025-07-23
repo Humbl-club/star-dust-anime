@@ -167,6 +167,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_performance_metrics: {
+        Row: {
+          cache_key: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          timestamp: string | null
+        }
+        Insert: {
+          cache_key?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          timestamp?: string | null
+        }
+        Update: {
+          cache_key?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
       claimed_usernames: {
         Row: {
           claimed_at: string | null
@@ -688,7 +715,7 @@ export type Database = {
         }
         Relationships: []
       }
-      cron_job_logs_archive_2025_08: {
+      cron_job_logs_archive_2025_02: {
         Row: {
           details: Json | null
           error_message: string | null
@@ -2676,6 +2703,15 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
+      log_cache_performance: {
+        Args: {
+          metric_type_param: string
+          metric_value_param: number
+          cache_key_param?: string
+          metadata_param?: Json
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           user_id_param: string
@@ -2734,6 +2770,10 @@ export type Database = {
       verify_user_email: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      warm_cache_manually: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
     }
     Enums: {

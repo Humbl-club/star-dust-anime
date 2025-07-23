@@ -17,31 +17,59 @@ serve(async (req) => {
   }
 
   try {
-    const { action, pattern, keys, limit = 20 } = await req.json();
+    const { action, pattern, patterns, keys, limit = 20 } = await req.json();
     
     switch (action) {
       case 'invalidate':
-        // Invalidate cache by pattern
+        // Invalidate cache by single pattern
         console.log(`🗑️ Invalidating cache with pattern: ${pattern || '*'}`);
-        const keysToDelete = await redis.keys(pattern || 'cache:*');
-        let deleted = 0;
+      
+      case 'invalidate_patterns':
+        // Invalidate cache by multiple patterns  
+        const patternsToInvalidate = patterns || [pattern || 'cache:*'];
+        console.log(`🗑️ Invalidating cache with patterns:`, patternsToInvalidate);
+        let totalDeleted = 0;
+        const results = [];
         
-        if (keysToDelete.length > 0) {
-          // Delete in batches to avoid timeout
-          const batchSize = 100;
-          for (let i = 0; i < keysToDelete.length; i += batchSize) {
-            const batch = keysToDelete.slice(i, i + batchSize);
-            await redis.del(...batch);
-            deleted += batch.length;
+        for (const patternToDelete of patternsToInvalidate) {
+          try {
+            const keysToDelete = await redis.keys(patternToDelete);
+            let deleted = 0;
+            
+            if (keysToDelete.length > 0) {
+              // Delete in batches to avoid timeout
+              const batchSize = 100;
+              for (let i = 0; i < keysToDelete.length; i += batchSize) {
+                const batch = keysToDelete.slice(i, i + batchSize);
+                await redis.del(...batch);
+                deleted += batch.length;
+              }
+            }
+            
+            totalDeleted += deleted;
+            results.push({ 
+              pattern: patternToDelete, 
+              deleted, 
+              success: true 
+            });
+            console.log(`✅ Deleted ${deleted} keys for pattern: ${patternToDelete}`);
+          } catch (error) {
+            console.error(`❌ Failed to delete pattern ${patternToDelete}:`, error);
+            results.push({ 
+              pattern: patternToDelete, 
+              deleted: 0, 
+              success: false, 
+              error: error.message 
+            });
           }
         }
         
-        console.log(`✅ Deleted ${deleted} cache keys`);
         return new Response(
           JSON.stringify({ 
             success: true,
-            deleted,
-            pattern: pattern || 'cache:*',
+            totalDeleted,
+            results,
+            action: action,
             timestamp: new Date().toISOString()
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
