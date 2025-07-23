@@ -772,39 +772,6 @@ export type Database = {
           },
         ]
       }
-      notification_logs: {
-        Row: {
-          body: string
-          data: Json | null
-          id: string
-          sent_at: string | null
-          sent_count: number | null
-          title: string
-          total_subscriptions: number | null
-          user_id: string | null
-        }
-        Insert: {
-          body: string
-          data?: Json | null
-          id?: string
-          sent_at?: string | null
-          sent_count?: number | null
-          title: string
-          total_subscriptions?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          body?: string
-          data?: Json | null
-          id?: string
-          sent_at?: string | null
-          sent_count?: number | null
-          title?: string
-          total_subscriptions?: number | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -847,33 +814,6 @@ export type Database = {
           username?: string | null
           verification_required_until?: string | null
           verification_status?: string | null
-        }
-        Relationships: []
-      }
-      push_subscriptions: {
-        Row: {
-          active: boolean | null
-          created_at: string | null
-          id: string
-          subscription: Json
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          created_at?: string | null
-          id?: string
-          subscription: Json
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          created_at?: string | null
-          id?: string
-          subscription?: Json
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -1164,39 +1104,6 @@ export type Database = {
           operation_type?: string | null
           page?: number | null
           status?: string | null
-        }
-        Relationships: []
-      }
-      sync_queue: {
-        Row: {
-          action: string
-          created_at: string | null
-          data: Json
-          id: string
-          processed_at: string | null
-          retry_count: number | null
-          table_name: string
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          data: Json
-          id?: string
-          processed_at?: string | null
-          retry_count?: number | null
-          table_name: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          data?: Json
-          id?: string
-          processed_at?: string | null
-          retry_count?: number | null
-          table_name?: string
-          user_id?: string | null
         }
         Relationships: []
       }

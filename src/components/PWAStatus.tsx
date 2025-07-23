@@ -9,7 +9,7 @@ import {
   Bell, 
   BellOff, 
   Download, 
-  RotateCcw as Sync, 
+  Sync, 
   Smartphone,
   CheckCircle,
   AlertCircle

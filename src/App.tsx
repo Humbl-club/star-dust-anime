@@ -10,7 +10,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
-import { PWAFeatures } from "@/components/PWAFeatures";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -104,8 +103,6 @@ const App = () => {
             <BrowserRouter>
               <ErrorBoundary>
                 <AuthProvider>
-                  <ConnectionStatus />
-                  <PWAFeatures />
                   <Routes>
                     <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                     <Route path="/auth" element={<Auth />} />
