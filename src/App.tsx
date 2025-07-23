@@ -1,17 +1,17 @@
 
 import React from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Make sure it's a default export
 const App = () => {
-  console.log('App component rendering');
+  console.log('App with Router');
   
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>App Component Loaded!</h1>
-      <p>React is working in App component</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<div><h1>Home Page Works!</h1></div>} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
-// Explicit default export
 export default App;
