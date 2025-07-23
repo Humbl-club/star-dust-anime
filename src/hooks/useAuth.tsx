@@ -1,3 +1,4 @@
+import React from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { AuthContextType } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
