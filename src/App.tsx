@@ -23,6 +23,8 @@ const MangaDetail = lazy(() => import("./pages/MangaDetail"));
 const Settings = lazy(() => import("./pages/Settings"));
 const EmailDebug = lazy(() => import("./pages/EmailDebug"));
 const TestDashboard = lazy(() => import("./pages/TestDashboard"));
+const SyncDashboard = lazy(() => import("./pages/SyncDashboard"));
+const PerformanceMonitoring = lazy(() => import("./pages/PerformanceMonitoring"));
 
 // Loading component
 const PageLoader = () => (
@@ -180,6 +182,26 @@ const App = () => {
                         <ErrorBoundary>
                           <Suspense fallback={<PageLoader />}>
                             <TestDashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/sync-dashboard" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <SyncDashboard />
+                          </Suspense>
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/performance-monitoring" 
+                      element={
+                        <ErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <PerformanceMonitoring />
                           </Suspense>
                         </ErrorBoundary>
                       } 
