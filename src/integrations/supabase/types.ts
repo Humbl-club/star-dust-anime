@@ -1063,6 +1063,24 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string
+          id?: string
+        }
+        Relationships: []
+      }
       generated_characters: {
         Row: {
           character_data: Json
@@ -2754,6 +2772,14 @@ export type Database = {
       safe_date_cast: {
         Args: { date_string: string }
         Returns: string
+      }
+      safe_refresh_materialized_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      set_service_key: {
+        Args: { key_value: string }
+        Returns: undefined
       }
       test_sync_connectivity: {
         Args: Record<PropertyKey, never>
