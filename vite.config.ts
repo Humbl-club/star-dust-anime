@@ -28,7 +28,13 @@ export default defineConfig(({ mode }) => ({
       'zustand',
       'react-router-dom'
     ],
-    exclude: ['@supabase/supabase-js'],
+    exclude: [
+      '@supabase/supabase-js',
+      '@supabase/postgrest-js',
+      '@supabase/storage-js',
+      '@supabase/realtime-js',
+      '@supabase/gotrue-js'
+    ],
     force: true,
     esbuildOptions: {
       target: 'es2020',
