@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -157,21 +156,13 @@ export const UnifiedSearchBar = ({
       </div>
       
       <AnimatePresence>
-        {showDropdown && isOpen && createPortal(
+        {showDropdown && isOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            style={{
-              position: 'fixed',
-              top: searchRef.current?.getBoundingClientRect().bottom || 0,
-              left: searchRef.current?.getBoundingClientRect().left || 0,
-              width: searchRef.current?.getBoundingClientRect().width || 0,
-              marginTop: '8px',
-              zIndex: 9999
-            }}
-            className="bg-background border rounded-lg shadow-lg overflow-hidden"
+            className="absolute z-[200] w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden"
           >
             {/* Search Results */}
             {hasResults && (
@@ -278,8 +269,7 @@ export const UnifiedSearchBar = ({
                 No results found for "{query}"
               </div>
             )}
-          </motion.div>,
-          document.body
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
