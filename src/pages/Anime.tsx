@@ -43,7 +43,7 @@ const Anime = () => {
   const [availableStudios, setAvailableStudios] = useState<string[]>([]);
   
   // Use search store for state management
-  const { query, filters, setFilters } = useSearchStore();
+  const { query, filters, setFilters, setQuery } = useSearchStore();
   
   // Initialize filters from URL params
   useEffect(() => {
@@ -224,7 +224,8 @@ const Anime = () => {
                   contentType="anime"
                   placeholder="Search anime by title, studio, or description..."
                   showDropdown={true}
-                  onSearch={handleSearch}
+                  className="flex-1"
+                  onSearch={(query) => setQuery(query)}
                 />
               </div>
               

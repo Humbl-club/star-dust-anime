@@ -259,7 +259,8 @@ const Manga = () => {
                   contentType="manga"
                   placeholder="Search by title, author, or description..."
                   showDropdown={true}
-                  onSearch={(searchQuery) => setQuery(searchQuery)}
+                  className="flex-1"
+                  onSearch={(query) => setQuery(query)}
                 />
               </div>
               
