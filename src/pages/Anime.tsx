@@ -31,15 +31,16 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
 import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
+import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Anime = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
+  const [availableStudios, setAvailableStudios] = useState<string[]>([]);
   
   // Use search store for state management
   const { query, filters, setFilters } = useSearchStore();
@@ -166,6 +167,16 @@ const Anime = () => {
     setSearchParams(params);
   }, [query, filters, setSearchParams]);
 
+  // Extract studios from anime data for filtering
+  useEffect(() => {
+    if (animeList.length > 0) {
+      const studios = [...new Set(
+        animeList.flatMap(anime => anime.studios || []).filter(Boolean)
+      )].sort();
+      setAvailableStudios(studios);
+    }
+  }, [animeList]);
+
   // Set filtered anime directly from API data
   useEffect(() => {
     setFilteredAnime(animeList);
@@ -206,12 +217,24 @@ const Anime = () => {
         {/* Search and Filters */}
         <Card className="anime-card mb-8 glow-card">
           <CardHeader>
-            <UnifiedSearchBar
-              contentType="anime"
-              placeholder="Search anime by title, studio, or description..."
-              showDropdown={true}
-              onSearch={handleSearch}
-            />
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1">
+                <UnifiedSearchBar
+                  contentType="anime"
+                  placeholder="Search anime by title, studio, or description..."
+                  showDropdown={true}
+                  onSearch={handleSearch}
+                />
+              </div>
+              
+              {/* Advanced Filters */}
+              <AdvancedFiltering
+                contentType="anime"
+                availableGenres={genres}
+                availableStudios={availableStudios}
+              />
+            </div>
           </CardHeader>
         </Card>
 

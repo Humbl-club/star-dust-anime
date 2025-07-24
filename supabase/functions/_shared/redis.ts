@@ -1,9 +1,28 @@
 import { Redis } from "https://deno.land/x/upstash_redis@v1.22.1/mod.ts";
 
-export const redis = new Redis({
-  url: Deno.env.get("UPSTASH_REDIS_REST_URL")!,
-  token: Deno.env.get("UPSTASH_REDIS_REST_TOKEN")!,
-});
+// Check if Redis environment variables are available
+const REDIS_URL = Deno.env.get("UPSTASH_REDIS_REST_URL");
+const REDIS_TOKEN = Deno.env.get("UPSTASH_REDIS_REST_TOKEN");
+
+let redis: Redis | null = null;
+
+// Only initialize Redis if environment variables are available
+if (REDIS_URL && REDIS_TOKEN) {
+  try {
+    redis = new Redis({
+      url: REDIS_URL,
+      token: REDIS_TOKEN,
+    });
+    console.log("✅ Redis initialized successfully");
+  } catch (error) {
+    console.warn("⚠️ Redis initialization failed:", error);
+    redis = null;
+  }
+} else {
+  console.warn("⚠️ Redis environment variables not found - caching disabled");
+}
+
+export { redis };
 
 export const CACHE_TTL = {
   TRENDING: 300, // 5 minutes
@@ -29,6 +48,12 @@ export const CACHE_KEYS = {
 
 // Cache utility functions
 export async function getCacheWithStats(key: string): Promise<any> {
+  // If Redis is not available, return null (cache miss)
+  if (!redis) {
+    await logCacheMetric('disabled', 0, key);
+    return null;
+  }
+
   try {
     const start = Date.now();
     const cached = await redis.get(key);
@@ -46,6 +71,12 @@ export async function getCacheWithStats(key: string): Promise<any> {
 }
 
 export async function setCacheWithStats(key: string, value: any, ttl: number): Promise<void> {
+  // If Redis is not available, skip caching
+  if (!redis) {
+    await logCacheMetric('disabled', 0, key);
+    return;
+  }
+
   try {
     const start = Date.now();
     await redis.setex(key, ttl, JSON.stringify(value));
@@ -59,6 +90,12 @@ export async function setCacheWithStats(key: string, value: any, ttl: number): P
 }
 
 export async function invalidatePattern(pattern: string): Promise<number> {
+  // If Redis is not available, return 0
+  if (!redis) {
+    await logCacheMetric('disabled', 0, pattern);
+    return 0;
+  }
+
   try {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {

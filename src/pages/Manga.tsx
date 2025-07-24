@@ -6,6 +6,7 @@ import { Grid3x3, List } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
+import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useContentData } from "@/hooks/useContentData";
+import { useSearchStore } from "@/store/searchStore";
 import { Navigation } from "@/components/Navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -89,25 +91,42 @@ const MangaCard = ({ manga }: { manga: Manga }) => {
 const Manga = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredManga, setFilteredManga] = useState<Manga[]>([]);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") || "all");
-  const [selectedStatus, setSelectedStatus] = useState(searchParams.get("status") || "all");
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "popularity");
-  const [showFilters, setShowFilters] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
+  const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
   const { toast } = useToast();
+  
+  // Use search store for state management
+  const { query, filters, setFilters, setQuery } = useSearchStore();
+
+  // Initialize filters from URL params
+  useEffect(() => {
+    const urlGenre = searchParams.get("genre");
+    const urlStatus = searchParams.get("status");
+    const urlSort = searchParams.get("sort");
+    const urlSearch = searchParams.get("search");
+    
+    if (urlGenre || urlStatus || urlSort || urlSearch) {
+      setFilters({
+        contentType: 'manga',
+        ...(urlGenre && urlGenre !== 'all' && { genre: urlGenre }),
+        ...(urlStatus && urlStatus !== 'all' && { status: urlStatus }),
+        sort_by: urlSort || 'popularity',
+        order: 'desc'
+      });
+    }
+  }, [searchParams, setFilters]);
 
   // Fetch manga data based on view mode
   const paginatedQuery = useContentData({ 
     contentType: 'manga',
     page: currentPage,
     limit: 24,
-    search: searchQuery || undefined,
-    genre: selectedGenre !== 'all' ? selectedGenre : undefined,
-    status: selectedStatus !== 'all' ? selectedStatus : undefined,
-    sort_by: sortBy,
+    search: query || undefined,
+    genre: filters.genre !== 'all' ? filters.genre : undefined,
+    status: filters.status !== 'all' ? filters.status : undefined,
+    sort_by: filters.sort_by || 'popularity',
     order: 'desc',
     useOptimized: true
   });
@@ -115,10 +134,10 @@ const Manga = () => {
   const infiniteQuery = useInfiniteContentData({
     contentType: 'manga',
     limit: 24,
-    search: searchQuery || undefined,
-    genre: selectedGenre !== 'all' ? selectedGenre : undefined,
-    status: selectedStatus !== 'all' ? selectedStatus : undefined,
-    sort_by: sortBy,
+    search: query || undefined,
+    genre: filters.genre !== 'all' ? filters.genre : undefined,
+    status: filters.status !== 'all' ? filters.status : undefined,
+    sort_by: filters.sort_by || 'popularity',
     order: 'desc',
     useOptimized: true
   });
@@ -137,10 +156,10 @@ const Manga = () => {
       contentType: 'manga',
       page: 1,
       limit: 1000,
-      search: searchQuery,
-      genre: selectedGenre !== 'all' ? selectedGenre : undefined,
-      status: selectedStatus !== 'all' ? selectedStatus : undefined,
-      sort_by: sortBy,
+          search: query,
+          genre: filters.genre !== 'all' ? filters.genre : undefined,
+          status: filters.status !== 'all' ? filters.status : undefined,
+          sort_by: filters.sort_by || 'popularity',
       order: 'desc'
     },
     timestamp: new Date().toISOString()
@@ -161,12 +180,22 @@ const Manga = () => {
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery) params.set("search", searchQuery);
-    if (selectedGenre !== "all") params.set("genre", selectedGenre);
-    if (selectedStatus !== "all") params.set("status", selectedStatus);
-    if (sortBy !== "popularity") params.set("sort", sortBy);
+    if (query) params.set("search", query);
+    if (filters.genre && filters.genre !== "all") params.set("genre", filters.genre);
+    if (filters.status && filters.status !== "all") params.set("status", filters.status);
+    if (filters.sort_by && filters.sort_by !== "popularity") params.set("sort", filters.sort_by);
     setSearchParams(params);
-  }, [searchQuery, selectedGenre, selectedStatus, sortBy, setSearchParams]);
+  }, [query, filters, setSearchParams]);
+
+  // Extract authors from manga data for filtering
+  useEffect(() => {
+    if (mangaData.length > 0) {
+      const authors = [...new Set(
+        mangaData.flatMap(manga => manga.authors || []).filter(Boolean)
+      )].sort();
+      setAvailableAuthors(authors);
+    }
+  }, [mangaData]);
 
   // Update filtered manga when data changes
   useEffect(() => {
@@ -174,10 +203,11 @@ const Manga = () => {
   }, [mangaData]);
 
   const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedGenre("all");
-    setSelectedStatus("all");
-    setSortBy("popularity");
+    setFilters({
+      contentType: 'manga',
+      sort_by: 'popularity',
+      order: 'desc'
+    });
   };
 
   const triggerMangaSync = async () => {
@@ -284,69 +314,21 @@ const Manga = () => {
           <CardHeader>
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
-              <div className="relative flex-1">
+              <div className="flex-1">
                 <UnifiedSearchBar
                   contentType="manga"
                   placeholder="Search by title, author, or description..."
                   showDropdown={true}
-                  onSearch={(query) => setSearchQuery(query)}
+                  onSearch={(searchQuery) => setQuery(searchQuery)}
                 />
               </div>
-
-              {/* Filter Toggle */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-            </div>
-
-            {/* Filters */}
-            <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-border/50">
-                <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Browse all genres" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Genres</SelectItem>
-                    {genres.map(genre => (
-                      <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Any status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {mangaStatuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by popularity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popularity">Popularity</SelectItem>
-                    <SelectItem value="score">Score</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
-                    <SelectItem value="chapters">Chapters</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
+              
+              {/* Advanced Filters */}
+              <AdvancedFiltering
+                contentType="manga"
+                availableGenres={genres}
+                availableAuthors={availableAuthors}
+              />
             </div>
           </CardHeader>
         </Card>
