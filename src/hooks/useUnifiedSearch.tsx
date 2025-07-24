@@ -37,9 +37,10 @@ export const useUnifiedSearch = (options: UnifiedSearchOptions = {}) => {
       const { data, error } = await supabase.functions.invoke('cached-content', {
         body: {
           type: 'search',
+          query: debouncedQuery,
           contentType: options.contentType || 'anime',
           limit: options.limit || 20,
-          filters: { query: debouncedQuery, ...options.filters }
+          filters: options.filters
         }
       });
       
