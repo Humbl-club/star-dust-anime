@@ -40,7 +40,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-20 text-center max-w-5xl mx-auto mobile-safe-padding">
+      <div className="relative text-center max-w-5xl mx-auto mobile-safe-padding">
         <div className="space-y-6 md:space-y-8">
           {/* Title Section */}
           <div className="space-y-4">
