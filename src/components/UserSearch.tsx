@@ -99,7 +99,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
       </div>
 
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-dropdown max-h-96 overflow-y-auto">
           <CardContent className="p-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-4">

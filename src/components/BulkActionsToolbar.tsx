@@ -53,7 +53,7 @@ export function BulkActionsToolbar({
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-modal"
         >
           <Card className="p-4 bg-card border shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-4">

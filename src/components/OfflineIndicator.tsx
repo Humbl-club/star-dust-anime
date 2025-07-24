@@ -34,7 +34,7 @@ export function OfflineIndicator() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
+    <div className="fixed bottom-4 left-4 z-modal">
       <Card 
         className={`cursor-pointer transition-all duration-300 ${
           !isOnline 

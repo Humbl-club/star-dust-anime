@@ -85,11 +85,13 @@ export default {
 			},
 			zIndex: {
 				'base': '10',
-				'dropdown': '50',
-				'overlay': '60',
-				'modal': '70',
-				'popover': '80',
-				'tooltip': '90',
+				'dropdown': '100', 
+				'sticky': '110',
+				'fixed': '120',
+				'modal-backdrop': '130',
+				'modal': '140',
+				'popover': '150',
+				'tooltip': '160',
 			},
 			keyframes: {
 				'accordion-down': {

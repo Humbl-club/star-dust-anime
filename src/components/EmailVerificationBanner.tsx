@@ -82,7 +82,7 @@ export const EmailVerificationBanner = () => {
         initial={{ opacity: 0, y: -100 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -100 }}
-        className="fixed top-0 left-0 right-0 z-40 p-4"
+        className="fixed top-0 left-0 right-0 z-sticky p-4"
       >
         <Card className="mx-auto max-w-4xl bg-yellow-50 border-yellow-200 shadow-lg">
           <CardContent className="p-4">

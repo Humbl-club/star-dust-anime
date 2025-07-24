@@ -74,14 +74,14 @@ export const WelcomeAnimation = ({ isFirstTime, username, tier, onComplete, isVi
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-start"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-modal flex justify-center items-start"
     >
       {/* Skip Button */}
       <Button
         onClick={onComplete}
         variant="ghost"
         size="sm"
-        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10 z-60"
+        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10 z-tooltip"
       >
         <X className="w-4 h-4" />
       </Button>

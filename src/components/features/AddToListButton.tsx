@@ -158,7 +158,7 @@ export const AddToListButton = ({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">
+      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-dropdown">
         <div className="p-2 text-sm font-medium text-muted-foreground">
           Change Status
         </div>
@@ -207,7 +207,7 @@ export const AddToListButton = ({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-50">
+      <DropdownMenuContent className="w-48 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl z-dropdown">
         <div className="p-2 text-sm font-medium text-muted-foreground">
           Add to {type === "anime" ? "Anime" : "Manga"} List
         </div>

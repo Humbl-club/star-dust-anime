@@ -51,7 +51,7 @@ export const EmailVerificationCornerPopup = ({ isVisible, onDismiss }: EmailVeri
 
   return (
     <div className={cn(
-      "fixed bottom-4 left-4 z-50 max-w-sm animate-slide-in-left",
+      "fixed bottom-4 left-4 z-modal max-w-sm animate-slide-in-left",
       "glass-card border border-orange-200/50 bg-orange-50/90 dark:bg-orange-900/20",
       "shadow-lg backdrop-blur-md rounded-lg p-4"
     )}>

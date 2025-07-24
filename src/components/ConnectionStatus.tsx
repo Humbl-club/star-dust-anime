@@ -96,7 +96,7 @@ export const ConnectionStatus = () => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex gap-2">
+    <div className="fixed bottom-4 right-4 z-modal flex gap-2">
       {/* Connection Status */}
       <Badge
         variant={isOnline ? 'default' : 'secondary'}
