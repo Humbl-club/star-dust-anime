@@ -63,6 +63,13 @@ interface AnimeServiceResponse<T> {
   error: string | null;
 }
 
+// Simple query result type to avoid deep instantiation
+interface QueryResult {
+  data: any[] | null;
+  error: any | null;
+  count: number | null;
+}
+
 class AnimeApiService extends BaseApiService {
   // Fetch anime data using edge function
   async fetchAnime(options: AnimeQueryOptions): Promise<ServiceResponse<ApiResponse<AnimeContent>>> {
@@ -113,89 +120,68 @@ class AnimeApiService extends BaseApiService {
         offset: (page - 1) * limit
       });
 
-      // Build query with explicit type to avoid deep instantiation
-      let query: any;
+      // Build the select query string based on genre filter
+      const selectQuery = genre 
+        ? `*, anime_details!inner(*), title_genres!inner(genres!inner(*)), title_studios(studios(*))`
+        : `*, anime_details!inner(*), title_genres(genres(*)), title_studios(studios(*))`;
 
-      if (genre) {
-        // When filtering by genre, use inner joins
-        query = this.supabase
-          .from('titles')
-          .select(`
-            *,
-            anime_details!inner(*),
-            title_genres!inner(genres!inner(*)),
-            title_studios(studios(*))
-          `, { count: 'exact' })
-          .eq('content_type', 'anime');
-      } else {
-        // Without genre filter, use regular joins
-        query = this.supabase
-          .from('titles')
-          .select(`
-            *,
-            anime_details!inner(*),
-            title_genres(genres(*)),
-            title_studios(studios(*))
-          `, { count: 'exact' })
-          .eq('content_type', 'anime');
-      }
+      // Execute the query with explicit result typing
+      const queryBuilder = this.supabase
+        .from('titles')
+        .select(selectQuery, { count: 'exact' })
+        .eq('content_type', 'anime');
 
-      // Apply anime-specific filters at database level
+      // Apply anime-specific filters
       if (status) {
-        query = query.eq('anime_details.status', status);
+        queryBuilder.eq('anime_details.status', status);
       }
       if (type) {
-        query = query.eq('anime_details.type', type);
+        queryBuilder.eq('anime_details.type', type);
       }
       if (season) {
-        query = query.eq('anime_details.season', season);
+        queryBuilder.eq('anime_details.season', season);
       }
 
-      // Apply genre filter at database level
+      // Apply genre filter
       if (genre) {
-        query = query.eq('title_genres.genres.name', genre);
+        queryBuilder.eq('title_genres.genres.name', genre);
       }
 
-      // Apply year filter using the optimized year index
+      // Apply year filter
       if (year) {
-        query = query.eq('year', parseInt(year));
+        queryBuilder.eq('year', parseInt(year));
       }
 
-      // Apply text search using the new full-text search index
+      // Apply text search
       if (search) {
         const searchTerm = search.trim();
         if (searchTerm) {
-          // Use the new GIN index for full-text search
-          query = query.textSearch('fts', searchTerm, {
+          queryBuilder.textSearch('fts', searchTerm, {
             type: 'websearch',
             config: 'english'
           });
         }
       }
 
-      // Apply sorting using the optimized indexes
+      // Apply sorting
       if (sort_by === 'score') {
-        // Use the new score index for optimal performance
-        query = query.order('score', { ascending: order === 'asc', nullsFirst: false });
+        queryBuilder.order('score', { ascending: order === 'asc', nullsFirst: false });
       } else if (sort_by === 'year') {
-        // Use the new year index for optimal performance
-        query = query.order('year', { ascending: order === 'asc', nullsFirst: false });
+        queryBuilder.order('year', { ascending: order === 'asc', nullsFirst: false });
       } else {
-        query = query.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+        queryBuilder.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
       }
 
       // Apply pagination
       const from = (page - 1) * limit;
       const to = from + limit - 1;
-      query = query.range(from, to);
+      queryBuilder.range(from, to);
 
       console.log('🎯 AnimeService: Executing optimized query...');
       
-      // Execute query with explicit typing to avoid deep instantiation
-      const result = await query;
-      const response = result.data;
-      const error = result.error;
-      const count = result.count;
+      // Execute query and cast to simple type
+      const queryResult = await queryBuilder as unknown as Promise<QueryResult>;
+      const { data: response, error, count } = queryResult;
 
       console.log('📊 AnimeService: Raw query result:', {
         dataLength: response?.length || 0,
