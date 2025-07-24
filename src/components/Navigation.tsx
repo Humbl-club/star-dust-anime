@@ -121,7 +121,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 z-navigation transition-all duration-500 mt-2",
+      "fixed top-0 left-0 right-0 z-sticky transition-all duration-500 mt-2",
       isScrolled 
         ? "glass-nav" 
         : "bg-transparent",
@@ -272,7 +272,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
         {/* Mobile Menu - Enhanced */}
         {navigation.isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-border/50 glass-card animate-fade-in">
+          <div className="lg:hidden border-t border-border/50 glass-card animate-fade-in z-modal">
             <div className="py-6 space-y-3">
               {/* Mobile Search */}
               <div className="px-4 mb-4">

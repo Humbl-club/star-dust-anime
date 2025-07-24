@@ -121,7 +121,7 @@ export const ProfileMenu = () => {
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-64 glass-dropdown border border-primary/20 animate-fade-in" align="end" forceMount>
+      <DropdownMenuContent className="w-64 glass-dropdown border border-primary/20 animate-fade-in z-dropdown" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-4">
           <div className="flex flex-col space-y-2">
             <div className="flex items-center gap-3">
