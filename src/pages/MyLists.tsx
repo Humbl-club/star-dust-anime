@@ -235,8 +235,8 @@ const MyLists = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Empty State */}
-        {titleLists.length === 0 && (
+        {/* Empty State - only show if no lists at all */}
+        {titleLists.length === 0 && !isLoading && (
           <Card className="text-center p-12">
             <CardContent className="space-y-4">
               <Heart className="w-16 h-16 mx-auto text-muted-foreground" />
