@@ -162,7 +162,7 @@ export const UnifiedSearchBar = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-[200] w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden"
+            className="absolute z-[9999] w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden"
           >
             {/* Search Results */}
             {hasResults && (
