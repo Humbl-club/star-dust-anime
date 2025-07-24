@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,26 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Filter, X, Save, RotateCcw, Star } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Filter, X, Save, RotateCcw, Star, Bookmark, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchStore, useUIStore } from '@/store';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface AdvancedFilteringProps {
   contentType: 'anime' | 'manga';
   availableGenres: string[];
   availableStudios?: string[];
+  availableAuthors?: string[];
 }
 
+interface FilterPreset {
+  id: string;
+  name: string;
+  filters: any;
+}
 
 const animeStatuses = [
   'Currently Airing',
@@ -56,9 +67,16 @@ const sortOptions = [
 export function AdvancedFiltering({
   contentType,
   availableGenres,
-  availableStudios = []
+  availableStudios = [],
+  availableAuthors = []
 }: AdvancedFilteringProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [presetName, setPresetName] = useState('');
+  const [showPresetDialog, setShowPresetDialog] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   
   // Use stores instead of props
   const { query, filters, setFilters } = useSearchStore();
@@ -70,16 +88,116 @@ export function AdvancedFiltering({
   const statuses = contentType === 'anime' ? animeStatuses : mangaStatuses;
   const types = contentType === 'anime' ? animeTypes : mangaTypes;
 
+  // Fetch user's filter presets
+  const { data: presets = [] } = useQuery({
+    queryKey: ['filter-presets', user?.id, contentType],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('user_filter_presets')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('content_type', contentType)
+        .order('name');
+      
+      if (error) throw error;
+      return data as FilterPreset[];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Save preset mutation
+  const savePreset = useMutation({
+    mutationFn: async ({ name }: { name: string }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('user_filter_presets')
+        .insert({
+          user_id: user.id,
+          name,
+          content_type: contentType,
+          filters: {
+            ...filters,
+            genres: selectedGenres,
+            studios: selectedStudios,
+            authors: selectedAuthors,
+          },
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['filter-presets'] });
+      setShowPresetDialog(false);
+      setPresetName('');
+      toast({ title: 'Filter preset saved successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to save preset', variant: 'destructive' });
+    },
+  });
+
+  // Load preset
+  const loadPreset = (preset: FilterPreset) => {
+    const presetFilters = preset.filters;
+    setFilters(presetFilters);
+    setSelectedGenres(presetFilters.genres || []);
+    setSelectedStudios(presetFilters.studios || []);
+    setSelectedAuthors(presetFilters.authors || []);
+    toast({ title: `Loaded preset: ${preset.name}` });
+  };
+
+  // Delete preset mutation
+  const deletePreset = useMutation({
+    mutationFn: async (presetId: string) => {
+      const { error } = await supabase
+        .from('user_filter_presets')
+        .delete()
+        .eq('id', presetId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['filter-presets'] });
+      toast({ title: 'Preset deleted' });
+    },
+  });
+
+  // Update filter function with enhanced logic
   const updateFilter = (key: string, value: any) => {
     setFilters({ [key]: value });
   };
 
+  // Enhanced genre handling - multi-select
   const toggleGenre = (genre: string) => {
-    // For simplicity, just toggle main genre filter
-    const currentGenre = filters.genre;
-    setFilters({ 
-      genre: currentGenre === genre ? undefined : genre 
-    });
+    const newGenres = selectedGenres.includes(genre)
+      ? selectedGenres.filter(g => g !== genre)
+      : [...selectedGenres, genre];
+    
+    setSelectedGenres(newGenres);
+    setFilters({ genres: newGenres });
+  };
+
+  // Studio handling
+  const toggleStudio = (studio: string) => {
+    const newStudios = selectedStudios.includes(studio)
+      ? selectedStudios.filter(s => s !== studio)
+      : [...selectedStudios, studio];
+    
+    setSelectedStudios(newStudios);
+    setFilters({ studios: newStudios });
+  };
+
+  // Author handling
+  const toggleAuthor = (author: string) => {
+    const newAuthors = selectedAuthors.includes(author)
+      ? selectedAuthors.filter(a => a !== author)
+      : [...selectedAuthors, author];
+    
+    setSelectedAuthors(newAuthors);
+    setFilters({ authors: newAuthors });
   };
 
   const clearFilters = () => {
@@ -88,22 +206,43 @@ export function AdvancedFiltering({
       sort_by: 'score',
       order: 'desc'
     });
+    setSelectedGenres([]);
+    setSelectedStudios([]);
+    setSelectedAuthors([]);
   };
 
-  const hasActiveFilters = Boolean(
-    filters.genre || filters.status || filters.type || 
-    filters.year || filters.season || filters.score_min || filters.score_max
-  );
+  // Calculate active filters count with enhanced logic
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    
+    if (selectedGenres.length > 0) count++;
+    if (selectedStudios.length > 0) count++;
+    if (selectedAuthors.length > 0) count++;
+    if (filters.status) count++;
+    if (filters.type) count++;
+    if (filters.year) count++;
+    if (filters.season) count++;
+    if (filters.score_min && filters.score_min > 0) count++;
+    if (filters.score_max && filters.score_max < 10) count++;
+    if (filters.year_min) count++;
+    if (filters.year_max) count++;
+    if (filters.episodes_min) count++;
+    if (filters.episodes_max) count++;
+    if (filters.chapters_min) count++;
+    if (filters.chapters_max) count++;
+    
+    return count;
+  };
 
-  const activeFiltersCount = [
-    filters.genre && 1,
-    filters.status && 1,
-    filters.type && 1,
-    filters.year && 1,
-    filters.season && 1,
-    (filters.score_min && filters.score_min > 0) && 1,
-    (filters.score_max && filters.score_max < 10) && 1
-  ].filter(Boolean).length;
+  const activeFiltersCount = getActiveFiltersCount();
+
+  // Initialize state on load
+  useEffect(() => {
+    // Load first preset if available
+    if (presets.length > 0 && !activeFiltersCount) {
+      loadPreset(presets[0]);
+    }
+  }, [presets]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -112,7 +251,7 @@ export function AdvancedFiltering({
           <Filter className="w-4 h-4" />
           Advanced Filters
           {activeFiltersCount > 0 && (
-            <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+            <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -129,35 +268,154 @@ export function AdvancedFiltering({
 
         <ScrollArea className="h-[calc(100vh-100px)] pr-4">
           <div className="space-y-6 mt-6">
+            {/* Filter Presets */}
+            {user && presets.length > 0 && (
+              <div className="space-y-3">
+                <Label>Filter Presets</Label>
+                <div className="flex flex-wrap gap-2">
+                  {presets.map(preset => (
+                    <div key={preset.id} className="flex items-center gap-1">
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary/20"
+                        onClick={() => loadPreset(preset)}
+                      >
+                        {preset.name}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        onClick={() => deletePreset.mutate(preset.id)}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Score Range */}
             <div className="space-y-3">
-              <Label>Minimum Score</Label>
-              <div className="px-2">
-                <Slider
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  value={[filters.score_min || 0]}
-                  onValueChange={(value) => updateFilter('score_min', value[0])}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                  <span>0</span>
-                  <span>{filters.score_min || 0}</span>
+              <Label>Score Range</Label>
+              <div className="px-2 space-y-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Minimum Score</Label>
+                  <Slider
+                    min={0}
+                    max={10}
+                    step={0.1}
+                    value={[filters.score_min || 0]}
+                    onValueChange={(value) => updateFilter('score_min', value[0])}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                    <span>0</span>
+                    <span>{(filters.score_min || 0).toFixed(1)}</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Maximum Score</Label>
+                  <Slider
+                    min={0}
+                    max={10}
+                    step={0.1}
+                    value={[filters.score_max || 10]}
+                    onValueChange={(value) => updateFilter('score_max', value[0])}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                    <span>0</span>
+                    <span>{(filters.score_max || 10).toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Year */}
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                placeholder="e.g., 2023"
-                value={filters.year || ''}
-                onChange={(e) => updateFilter('year', e.target.value || undefined)}
-              />
+            {/* Year Range */}
+            <div className="space-y-3">
+              <Label>Year Range</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-sm text-muted-foreground">From</Label>
+                  <Input
+                    type="number"
+                    placeholder="1960"
+                    min="1960"
+                    max="2030"
+                    value={filters.year_min || ''}
+                    onChange={(e) => updateFilter('year_min', e.target.value ? parseInt(e.target.value) : undefined)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">To</Label>
+                  <Input
+                    type="number"
+                    placeholder="2024"
+                    min="1960"
+                    max="2030"
+                    value={filters.year_max || ''}
+                    onChange={(e) => updateFilter('year_max', e.target.value ? parseInt(e.target.value) : undefined)}
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* Episode/Chapter Count Range */}
+            {contentType === 'anime' ? (
+              <div className="space-y-3">
+                <Label>Episode Count Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Min Episodes</Label>
+                    <Input
+                      type="number"
+                      placeholder="1"
+                      min="1"
+                      value={filters.episodes_min || ''}
+                      onChange={(e) => updateFilter('episodes_min', e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Max Episodes</Label>
+                    <Input
+                      type="number"
+                      placeholder="999"
+                      min="1"
+                      value={filters.episodes_max || ''}
+                      onChange={(e) => updateFilter('episodes_max', e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Label>Chapter Count Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Min Chapters</Label>
+                    <Input
+                      type="number"
+                      placeholder="1"
+                      min="1"
+                      value={filters.chapters_min || ''}
+                      onChange={(e) => updateFilter('chapters_min', e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Max Chapters</Label>
+                    <Input
+                      type="number"
+                      placeholder="999"
+                      min="1"
+                      value={filters.chapters_max || ''}
+                      onChange={(e) => updateFilter('chapters_max', e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Status */}
             <div className="space-y-2">
@@ -228,22 +486,72 @@ export function AdvancedFiltering({
 
             <Separator />
 
-            {/* Genres */}
+            {/* Genres - Multi-select with checkboxes */}
             <div className="space-y-3">
-              <Label>Genre</Label>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                {availableGenres.map(genre => (
-                  <Badge
-                    key={genre}
-                    variant={filters.genre === genre ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-primary/80"
-                    onClick={() => toggleGenre(genre)}
-                  >
-                    {genre}
-                  </Badge>
-                ))}
-              </div>
+              <Label>Genres ({selectedGenres.length} selected)</Label>
+              <ScrollArea className="h-32">
+                <div className="space-y-2">
+                  {availableGenres.map(genre => (
+                    <div key={genre} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`genre-${genre}`}
+                        checked={selectedGenres.includes(genre)}
+                        onCheckedChange={() => toggleGenre(genre)}
+                      />
+                      <Label htmlFor={`genre-${genre}`} className="text-sm cursor-pointer">
+                        {genre}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
+
+            {/* Studios (anime only) */}
+            {contentType === 'anime' && availableStudios.length > 0 && (
+              <div className="space-y-3">
+                <Label>Studios ({selectedStudios.length} selected)</Label>
+                <ScrollArea className="h-32">
+                  <div className="space-y-2">
+                    {availableStudios.map(studio => (
+                      <div key={studio} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`studio-${studio}`}
+                          checked={selectedStudios.includes(studio)}
+                          onCheckedChange={() => toggleStudio(studio)}
+                        />
+                        <Label htmlFor={`studio-${studio}`} className="text-sm cursor-pointer">
+                          {studio}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            {/* Authors (manga only) */}
+            {contentType === 'manga' && availableAuthors.length > 0 && (
+              <div className="space-y-3">
+                <Label>Authors ({selectedAuthors.length} selected)</Label>
+                <ScrollArea className="h-32">
+                  <div className="space-y-2">
+                    {availableAuthors.map(author => (
+                      <div key={author} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`author-${author}`}
+                          checked={selectedAuthors.includes(author)}
+                          onCheckedChange={() => toggleAuthor(author)}
+                        />
+                        <Label htmlFor={`author-${author}`} className="text-sm cursor-pointer">
+                          {author}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             {/* Season (for anime) */}
             {contentType === 'anime' && (
@@ -267,18 +575,51 @@ export function AdvancedFiltering({
             <Separator />
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                disabled={!hasActiveFilters}
-                className="flex-1"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
-              <Button onClick={() => setIsOpen(false)} className="flex-1">
-                Apply Filters
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  disabled={activeFiltersCount === 0}
+                  className="flex-1"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Clear All
+                </Button>
+                {user && (
+                  <Dialog open={showPresetDialog} onOpenChange={setShowPresetDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Save Filter Preset</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Preset name"
+                          value={presetName}
+                          onChange={(e) => setPresetName(e.target.value)}
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => savePreset.mutate({ name: presetName })}
+                            disabled={!presetName.trim()}
+                            className="w-full"
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Preset
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+              <Button onClick={() => setIsOpen(false)} className="w-full">
+                Apply Filters ({activeFiltersCount} active)
               </Button>
             </div>
           </div>

@@ -4,14 +4,23 @@ import { AnimeContent, MangaContent } from '@/services/api';
 export interface SearchFilters {
   contentType: 'anime' | 'manga' | 'both';
   genre?: string;
+  genres?: string[];
+  studios?: string[];
+  authors?: string[];
   status?: string;
   type?: string;
   year?: string;
+  year_min?: number;
+  year_max?: number;
   season?: string;
   sort_by?: string;
   order?: 'asc' | 'desc';
   score_min?: number;
   score_max?: number;
+  episodes_min?: number;
+  episodes_max?: number;
+  chapters_min?: number;
+  chapters_max?: number;
 }
 
 export interface SearchResult {
