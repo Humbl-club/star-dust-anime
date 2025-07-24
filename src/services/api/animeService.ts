@@ -1,4 +1,3 @@
-
 import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
 import { PaginationInfo } from '@/types/api.types';
 
@@ -56,15 +55,12 @@ interface AnimeListResponse {
   pagination: PaginationInfo;
 }
 
-type SimpleServiceResponse<T> = {
-  success: true;
-  data: T;
-  error: null;
-} | {
-  success: false;
-  data: null;
-  error: string;
-};
+// Explicit simple response type to avoid deep instantiation
+interface AnimeServiceResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: string | null;
+}
 
 class AnimeApiService extends BaseApiService {
   // Fetch anime data using edge function
@@ -94,7 +90,7 @@ class AnimeApiService extends BaseApiService {
   }
 
   // Direct database query with optimized filtering using new indexes
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<SimpleServiceResponse<AnimeListResponse>> {
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<AnimeServiceResponse<AnimeListResponse>> {
     try {
       const {
         page = 1,
@@ -296,7 +292,7 @@ class AnimeApiService extends BaseApiService {
     return this.syncImages('anime', limit);
   }
 
-  async getAnimeById(id: string): Promise<SimpleServiceResponse<AnimeContent | null>> {
+  async getAnimeById(id: string): Promise<AnimeServiceResponse<AnimeContent>> {
     try {
       const { data, error } = await this.supabase
         .from('titles')

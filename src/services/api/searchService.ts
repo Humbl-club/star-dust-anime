@@ -180,7 +180,9 @@ class SearchApiService extends BaseApiService {
               type: details?.type || 'TV',
               trailer_url: details?.trailer_url,
               next_episode_date: details?.next_episode_date,
-              studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
+              studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || [],
+              created_at: item.created_at || new Date().toISOString(),
+              updated_at: item.updated_at || new Date().toISOString()
             };
           }) || [];
         }
@@ -255,7 +257,9 @@ class SearchApiService extends BaseApiService {
               status: details?.status || 'Unknown',
               type: details?.type || 'Manga',
               next_chapter_date: details?.next_chapter_date,
-              authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || []
+              authors: item.title_authors?.map((ta) => ta.authors?.name).filter(Boolean) || [],
+              created_at: item.created_at || new Date().toISOString(),
+              updated_at: item.updated_at || new Date().toISOString()
             };
           }) || [];
         }
