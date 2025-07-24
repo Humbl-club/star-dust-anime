@@ -113,21 +113,32 @@ class AnimeApiService extends BaseApiService {
         offset: (page - 1) * limit
       });
 
-      // Build optimized query leveraging the new content_type column and indexes
-      const selectQuery = `
-        *,
-        anime_details!inner(*),
-        ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
-        title_studios(studios(*))
-      `;
+      // Build query with explicit type to avoid deep instantiation
+      let query: any;
 
-      // Create the query with explicit typing to avoid deep instantiation
-      const baseQuery = this.supabase
-        .from('titles')
-        .select(selectQuery, { count: 'exact' })
-        .eq('content_type', 'anime');
-
-      let query = baseQuery;
+      if (genre) {
+        // When filtering by genre, use inner joins
+        query = this.supabase
+          .from('titles')
+          .select(`
+            *,
+            anime_details!inner(*),
+            title_genres!inner(genres!inner(*)),
+            title_studios(studios(*))
+          `, { count: 'exact' })
+          .eq('content_type', 'anime');
+      } else {
+        // Without genre filter, use regular joins
+        query = this.supabase
+          .from('titles')
+          .select(`
+            *,
+            anime_details!inner(*),
+            title_genres(genres(*)),
+            title_studios(studios(*))
+          `, { count: 'exact' })
+          .eq('content_type', 'anime');
+      }
 
       // Apply anime-specific filters at database level
       if (status) {
@@ -181,8 +192,10 @@ class AnimeApiService extends BaseApiService {
       console.log('🎯 AnimeService: Executing optimized query...');
       
       // Execute query with explicit typing to avoid deep instantiation
-      const queryResult = await query;
-      const { data: response, error, count } = queryResult;
+      const result = await query;
+      const response = result.data;
+      const error = result.error;
+      const count = result.count;
 
       console.log('📊 AnimeService: Raw query result:', {
         dataLength: response?.length || 0,
@@ -201,7 +214,7 @@ class AnimeApiService extends BaseApiService {
       const animeItems: AnimeContent[] = [];
       
       if (response && Array.isArray(response)) {
-        response.forEach((item: any) => {
+        response.forEach((item: DatabaseAnimeResponse) => {
           const details = item.anime_details;
           
           // Map database status to frontend expectations
@@ -272,14 +285,14 @@ class AnimeApiService extends BaseApiService {
         has_prev_page: page > 1
       };
 
-      const result: AnimeListResponse = {
+      const result_data: AnimeListResponse = {
         data: animeItems,
         pagination: paginationInfo
       };
 
       return {
         success: true,
-        data: result,
+        data: result_data,
         error: null
       };
     } catch (err: unknown) {
