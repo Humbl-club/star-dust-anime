@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +10,11 @@ import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Filter, X, Save, RotateCcw, Star, Bookmark, Plus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Filter, X, Save, Upload, Trash2, MoreVertical, RotateCcw } from 'lucide-react';
 import { useSearchStore, useUIStore } from '@/store';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useFilterPresets } from '@/hooks/useFilterPresets';
+import { toast } from 'sonner';
 
 interface AdvancedFilteringProps {
   contentType: 'anime' | 'manga';
@@ -70,8 +67,7 @@ export function AdvancedFiltering({
   availableStudios = [],
   availableAuthors = []
 }: AdvancedFilteringProps) {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { presets, savePreset, loadPreset, deletePreset, isLoading: presetsLoading } = useFilterPresets(contentType);
   const [presetName, setPresetName] = useState('');
   const [showPresetDialog, setShowPresetDialog] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -88,82 +84,39 @@ export function AdvancedFiltering({
   const statuses = contentType === 'anime' ? animeStatuses : mangaStatuses;
   const types = contentType === 'anime' ? animeTypes : mangaTypes;
 
-  // Fetch user's filter presets
-  const { data: presets = [] } = useQuery({
-    queryKey: ['filter-presets', user?.id, contentType],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('user_filter_presets')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('content_type', contentType)
-        .order('name');
-      
-      if (error) throw error;
-      return data as FilterPreset[];
-    },
-    enabled: !!user?.id,
-  });
-
-  // Save preset mutation
-  const savePreset = useMutation({
-    mutationFn: async ({ name }: { name: string }) => {
-      if (!user?.id) throw new Error('User not authenticated');
-
-      const { error } = await supabase
-        .from('user_filter_presets')
-        .insert({
-          user_id: user.id,
-          name,
-          content_type: contentType,
-          filters: {
-            ...filters,
-            genres: selectedGenres,
-            studios: selectedStudios,
-            authors: selectedAuthors,
-          },
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['filter-presets'] });
-      setShowPresetDialog(false);
-      setPresetName('');
-      toast({ title: 'Filter preset saved successfully' });
-    },
-    onError: () => {
-      toast({ title: 'Failed to save preset', variant: 'destructive' });
-    },
-  });
-
-  // Load preset
-  const loadPreset = (preset: FilterPreset) => {
-    const presetFilters = preset.filters;
-    setFilters(presetFilters);
-    setSelectedGenres(presetFilters.genres || []);
-    setSelectedStudios(presetFilters.studios || []);
-    setSelectedAuthors(presetFilters.authors || []);
-    toast({ title: `Loaded preset: ${preset.name}` });
+  // Load preset handler
+  const handleLoadPreset = async (presetId: string) => {
+    try {
+      const preset = await loadPreset(presetId);
+      const presetFilters = preset.filters as any;
+      setFilters(presetFilters);
+      setSelectedGenres(presetFilters.genres || []);
+      setSelectedStudios(presetFilters.studios || []);
+      setSelectedAuthors(presetFilters.authors || []);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Failed to load preset:', error);
+    }
   };
 
-  // Delete preset mutation
-  const deletePreset = useMutation({
-    mutationFn: async (presetId: string) => {
-      const { error } = await supabase
-        .from('user_filter_presets')
-        .delete()
-        .eq('id', presetId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['filter-presets'] });
-      toast({ title: 'Preset deleted' });
-    },
-  });
+  // Save preset handler
+  const handleSavePreset = () => {
+    if (!presetName.trim()) {
+      toast.error('Please enter a preset name');
+      return;
+    }
+    
+    const filtersToSave = {
+      ...filters,
+      genres: selectedGenres,
+      studios: selectedStudios,
+      authors: selectedAuthors,
+    };
+    
+    savePreset(presetName, filtersToSave);
+    setPresetName('');
+    setShowPresetDialog(false);
+  };
 
   // Update filter function with enhanced logic
   const updateFilter = (key: string, value: any) => {
@@ -240,7 +193,7 @@ export function AdvancedFiltering({
   useEffect(() => {
     // Load first preset if available
     if (presets.length > 0 && !activeFiltersCount) {
-      loadPreset(presets[0]);
+      handleLoadPreset(presets[0].id);
     }
   }, [presets]);
 
@@ -268,33 +221,68 @@ export function AdvancedFiltering({
 
         <ScrollArea className="h-[calc(100vh-100px)] pr-4">
           <div className="space-y-6 mt-6">
-            {/* Filter Presets */}
-            {user && presets.length > 0 && (
-              <div className="space-y-3">
-                <Label>Filter Presets</Label>
-                <div className="flex flex-wrap gap-2">
-                  {presets.map(preset => (
-                    <div key={preset.id} className="flex items-center gap-1">
-                      <Badge
-                        variant="outline"
-                        className="cursor-pointer hover:bg-primary/20"
-                        onClick={() => loadPreset(preset)}
-                      >
-                        {preset.name}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0"
-                        onClick={() => deletePreset.mutate(preset.id)}
-                      >
-                        <X className="w-3 h-3" />
+            {/* Filter Presets Section */}
+            <div className="flex gap-2 pt-4">
+              <Dialog open={showPresetDialog} onOpenChange={setShowPresetDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Preset
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Save Filter Preset</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="preset-name">Preset Name</Label>
+                      <Input
+                        id="preset-name"
+                        value={presetName}
+                        onChange={(e) => setPresetName(e.target.value)}
+                        placeholder="Enter preset name..."
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleSavePreset}>Save</Button>
+                      <Button variant="outline" onClick={() => setShowPresetDialog(false)}>
+                        Cancel
                       </Button>
                     </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={presetsLoading || presets.length === 0}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Load Preset ({presets.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {presets.map((preset) => (
+                    <DropdownMenuItem key={preset.id} className="flex items-center justify-between">
+                      <span onClick={() => handleLoadPreset(preset.id)} className="flex-1 cursor-pointer">
+                        {preset.name}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 ml-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePreset(preset.id);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuItem>
                   ))}
-                </div>
-              </div>
-            )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             {/* Score Range */}
             <div className="space-y-3">
@@ -586,37 +574,6 @@ export function AdvancedFiltering({
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Clear All
                 </Button>
-                {user && (
-                  <Dialog open={showPresetDialog} onOpenChange={setShowPresetDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <Save className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Save Filter Preset</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Input
-                          placeholder="Preset name"
-                          value={presetName}
-                          onChange={(e) => setPresetName(e.target.value)}
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => savePreset.mutate({ name: presetName })}
-                            disabled={!presetName.trim()}
-                            className="w-full"
-                          >
-                            <Save className="w-4 h-4 mr-2" />
-                            Save Preset
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
               </div>
               <Button onClick={() => setIsOpen(false)} className="w-full">
                 Apply Filters ({activeFiltersCount} active)

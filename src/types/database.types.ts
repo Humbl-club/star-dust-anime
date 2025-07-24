@@ -191,10 +191,28 @@ export type NonNullable<T> = T extends null | undefined ? never : T;
 export type Nullable<T> = T | null;
 export type Optional<T> = T | undefined;
 
+// User Filter Presets types
+export interface UserFilterPreset {
+  id: string;
+  user_id: string;
+  name: string;
+  content_type: ContentType;
+  filters: Record<string, unknown>;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Placeholder for generated types
 export interface Database {
   public: {
-    Tables: Record<string, {
+    Tables: {
+      user_filter_presets: {
+        Row: UserFilterPreset;
+        Insert: Omit<UserFilterPreset, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<UserFilterPreset, 'id' | 'created_at' | 'updated_at'>>;
+      };
+    } & Record<string, {
       Row: Record<string, unknown>;
       Insert: Record<string, unknown>;
       Update: Record<string, unknown>;
