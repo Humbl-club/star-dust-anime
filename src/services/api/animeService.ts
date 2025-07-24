@@ -46,6 +46,12 @@ interface DatabaseAnimeResponse {
   title_studios?: Array<{ studios: { name: string } }>;
 }
 
+// Simplified response type to avoid circular references
+interface OptimizedAnimeResponse {
+  data: AnimeContent[];
+  pagination: PaginationInfo;
+}
+
 class AnimeApiService extends BaseApiService {
   // Fetch anime data using edge function
   async fetchAnime(options: AnimeQueryOptions): Promise<ServiceResponse<ApiResponse<AnimeContent>>> {
@@ -74,7 +80,7 @@ class AnimeApiService extends BaseApiService {
   }
 
   // Direct database query with optimized filtering using new indexes
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<{ data: AnimeContent[], pagination: PaginationInfo }>> {
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<OptimizedAnimeResponse>> {
     try {
       const {
         page = 1,
@@ -173,7 +179,7 @@ class AnimeApiService extends BaseApiService {
       }
 
       // Transform data to match expected format
-      const transformedData = (response as DatabaseAnimeResponse[])?.map((item) => {
+      const transformedData: AnimeContent[] = (response as DatabaseAnimeResponse[])?.map((item) => {
         const details = item.anime_details;
         
         // Map database status to frontend expectations
@@ -230,7 +236,7 @@ class AnimeApiService extends BaseApiService {
 
       // Build pagination info
       const totalPages = count ? Math.ceil(count / limit) : 1;
-      const pagination = {
+      const pagination: PaginationInfo = {
         current_page: page,
         per_page: limit,
         total: count || 0,
