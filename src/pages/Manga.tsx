@@ -277,7 +277,7 @@ const Manga = () => {
               <AdvancedFiltering
                 contentType="manga"  
                 availableGenres={genres}
-                availableAuthors={['Eiichiro Oda', 'Masashi Kishimoto', 'Tite Kubo']}
+                availableAuthors={['Eiichiro Oda', 'Masashi Kishimoto', 'Tite Kubo', 'Hajime Isayama']}
               />
             </div>
           </CardHeader>

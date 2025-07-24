@@ -242,7 +242,7 @@ const Anime = () => {
               <AdvancedFiltering
                 contentType="anime"
                 availableGenres={genres}
-                availableStudios={['Madhouse', 'Bones', 'Wit Studio', 'A-1 Pictures']}
+                availableStudios={['Madhouse', 'Bones', 'Wit Studio', 'A-1 Pictures', 'Ufotable']}
               />
             </div>
           </CardHeader>
