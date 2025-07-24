@@ -63,13 +63,6 @@ interface AnimeServiceResponse<T> {
   error: string | null;
 }
 
-// Simple database response type
-interface SimpleDbResponse {
-  data: any[] | null;
-  error: any | null;
-  count: number | null;
-}
-
 class AnimeApiService extends BaseApiService {
   // Fetch anime data using edge function
   async fetchAnime(options: AnimeQueryOptions): Promise<ServiceResponse<ApiResponse<AnimeContent>>> {
@@ -97,7 +90,7 @@ class AnimeApiService extends BaseApiService {
     }
   }
 
-  // Direct database query with optimized filtering using new indexes
+  // Direct database query with simple typing to avoid deep instantiation
   async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<AnimeServiceResponse<AnimeListResponse>> {
     try {
       const {
@@ -113,125 +106,109 @@ class AnimeApiService extends BaseApiService {
         order = 'desc'
       } = options;
 
-      console.log('🎬 AnimeService: Fetching anime with optimized query using new indexes:', {
+      console.log('🎬 AnimeService: Fetching anime with simple query approach:', {
         ...options,
         page,
         limit,
         offset: (page - 1) * limit
       });
 
-      // Build the select query string based on genre filter
-      const selectQuery = genre 
-        ? `*, anime_details!inner(*), title_genres!inner(genres!inner(*)), title_studios(studios(*))`
-        : `*, anime_details!inner(*), title_genres(genres(*)), title_studios(studios(*))`;
+      // Use the edge function instead of complex database queries
+      const { data: response, error } = await this.supabase.functions.invoke('anime-api', {
+        body: {
+          contentType: 'anime',
+          page,
+          limit,
+          search,
+          genre,
+          status,
+          type,
+          year,
+          season,
+          sort_by,
+          order
+        }
+      });
 
-      // Execute the raw query to avoid complex types
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
-
-      console.log('🎯 AnimeService: Building query with explicit typing...');
-
-      // Use raw query approach to avoid deep type instantiation
-      const queryResponse = await this.supabase.rpc('get_anime_with_filters', {
-        p_limit: limit,
-        p_offset: from,
-        p_search: search || null,
-        p_genre: genre || null,
-        p_status: status || null,
-        p_type: type || null,
-        p_year: year ? parseInt(year) : null,
-        p_season: season || null,
-        p_sort_by: sort_by,
-        p_order: order
-      }) as unknown as SimpleDbResponse;
-
-      const { data: response, error, count } = queryResponse;
-
-      console.log('📊 AnimeService: Raw query result:', {
-        dataLength: response?.length || 0,
+      console.log('📊 AnimeService: Edge function result:', {
+        hasData: !!response?.data,
+        dataLength: response?.data?.length || 0,
         error: error?.message,
-        totalCount: count,
-        sampleData: response?.[0],
-        fullError: error
+        pagination: response?.pagination
       });
 
       if (error) {
-        console.error('❌ AnimeService: Query error:', error);
+        console.error('❌ AnimeService: Edge function error:', error);
         throw error;
       }
 
-      // Transform data to match expected format with explicit typing
-      const animeItems: AnimeContent[] = [];
-      
-      if (response && Array.isArray(response)) {
-        response.forEach((item: DatabaseAnimeResponse) => {
-          const details = item.anime_details;
-          
-          // Map database status to frontend expectations
-          let mappedStatus = details?.status || 'Unknown';
-          switch (mappedStatus) {
-            case 'RELEASING':
-              mappedStatus = 'Currently Airing';
-              break;
-            case 'FINISHED':
-              mappedStatus = 'Finished Airing';
-              break;
-            case 'NOT_YET_RELEASED':
-              mappedStatus = 'Not Yet Aired';
-              break;
-            case 'CANCELLED':
-              mappedStatus = 'Cancelled';
-              break;
-          }
-          
-          const animeItem: AnimeContent = {
-            id: item.id,
-            anilist_id: item.anilist_id,
-            title: item.title || 'Unknown Title',
-            title_english: item.title_english,
-            title_japanese: item.title_japanese,
-            synopsis: item.synopsis || '',
-            image_url: item.image_url || '',
-            score: item.score,
-            anilist_score: item.anilist_score,
-            rank: item.rank,
-            popularity: item.popularity,
-            favorites: item.favorites || 0,
-            year: item.year,
-            color_theme: item.color_theme,
-            genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
-            members: item.popularity || 0,
-            episodes: details?.episodes || 0,
-            aired_from: details?.aired_from,
-            aired_to: details?.aired_to,
-            season: details?.season,
-            status: mappedStatus,
-            type: details?.type || 'TV',
-            trailer_url: details?.trailer_url,
-            next_episode_date: details?.next_episode_date,
-            studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
-            created_at: item.created_at || new Date().toISOString(),
-            updated_at: item.updated_at || new Date().toISOString()
-          };
-          
-          animeItems.push(animeItem);
-        });
+      if (!response?.data) {
+        throw new Error('No data received from anime API');
       }
 
+      // Transform data to match expected format
+      const animeItems: AnimeContent[] = response.data.map((item: any) => {
+        // Map database status to frontend expectations
+        let mappedStatus = item.status || 'Unknown';
+        switch (mappedStatus) {
+          case 'RELEASING':
+            mappedStatus = 'Currently Airing';
+            break;
+          case 'FINISHED':
+            mappedStatus = 'Finished Airing';
+            break;
+          case 'NOT_YET_RELEASED':
+            mappedStatus = 'Not Yet Aired';
+            break;
+          case 'CANCELLED':
+            mappedStatus = 'Cancelled';
+            break;
+        }
+        
+        return {
+          id: item.id,
+          anilist_id: item.anilist_id || 0,
+          title: item.title || 'Unknown Title',
+          title_english: item.title_english,
+          title_japanese: item.title_japanese,
+          synopsis: item.synopsis || '',
+          image_url: item.image_url || '',
+          score: item.score,
+          anilist_score: item.anilist_score,
+          rank: item.rank,
+          popularity: item.popularity,
+          favorites: item.favorites || 0,
+          year: item.year,
+          color_theme: item.color_theme,
+          genres: [], // Will be populated by edge function
+          members: item.popularity || 0,
+          episodes: item.episodes || 0,
+          aired_from: item.aired_from,
+          aired_to: item.aired_to,
+          season: item.season,
+          status: mappedStatus,
+          type: item.type || 'TV',
+          trailer_url: item.trailer_url,
+          next_episode_date: item.next_episode_date,
+          studios: [], // Will be populated by edge function
+          created_at: item.created_at || new Date().toISOString(),
+          updated_at: item.updated_at || new Date().toISOString()
+        };
+      });
+
       console.log('🔄 AnimeService: Transformed data:', {
-        originalLength: response?.length || 0,
+        originalLength: response.data.length,
         transformedLength: animeItems.length,
         sampleTransformed: animeItems[0]
       });
 
-      // Build pagination info with explicit typing
-      const totalPages = count ? Math.ceil(count / limit) : 1;
-      const paginationInfo: PaginationInfo = {
+      // Build pagination info
+      const paginationInfo: PaginationInfo = response.pagination || {
         current_page: page,
         per_page: limit,
-        total: count || 0,
-        total_pages: totalPages,
-        has_next_page: page < totalPages,
+        total: animeItems.length,
+        total_pages: Math.ceil(animeItems.length / limit),
+        has_next_page: false,
         has_prev_page: page > 1
       };
 
@@ -247,6 +224,7 @@ class AnimeApiService extends BaseApiService {
       };
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('❌ AnimeService: Fetch error:', errorMessage);
       return {
         success: false,
         data: null,
@@ -266,23 +244,18 @@ class AnimeApiService extends BaseApiService {
 
   async getAnimeById(id: string): Promise<AnimeServiceResponse<AnimeContent>> {
     try {
-      const { data, error } = await this.supabase
-        .from('titles')
-        .select(`
-          *,
-          anime_details(*),
-          title_genres(genres(*)),
-          title_studios(studios(*))
-        `)
-        .eq('id', id)
-        .eq('content_type', 'anime') // Use the new content_type column
-        .maybeSingle();
+      // Use edge function for single anime fetch to avoid complex typing
+      const { data: response, error } = await this.supabase.functions.invoke('anime-detail-single', {
+        method: 'POST',
+        body: { id }
+      });
 
       if (error) {
+        console.error('❌ AnimeService: Single anime fetch error:', error);
         throw error;
       }
 
-      if (!data) {
+      if (!response?.success || !response?.data) {
         return {
           success: true,
           data: null,
@@ -290,12 +263,12 @@ class AnimeApiService extends BaseApiService {
         };
       }
 
-      // Transform single anime data
-      const animeData = data as DatabaseAnimeResponse;
-      const details = animeData.anime_details;
+      const animeData = response.data;
+      
+      // Transform single anime data with simple mapping
       const transformedAnime: AnimeContent = {
         id: animeData.id,
-        anilist_id: animeData.anilist_id,
+        anilist_id: animeData.anilist_id || 0,
         title: animeData.title || 'Unknown Title',
         title_english: animeData.title_english,
         title_japanese: animeData.title_japanese,
@@ -308,17 +281,17 @@ class AnimeApiService extends BaseApiService {
         favorites: animeData.favorites || 0,
         year: animeData.year,
         color_theme: animeData.color_theme,
-        genres: animeData.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
+        genres: animeData.genres || [],
         members: animeData.popularity || 0,
-        episodes: details?.episodes || 0,
-        aired_from: details?.aired_from,
-        aired_to: details?.aired_to,
-        season: details?.season,
-        status: details?.status || 'Unknown',
-        type: details?.type || 'TV',
-        trailer_url: details?.trailer_url,
-        next_episode_date: details?.next_episode_date,
-        studios: animeData.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || [],
+        episodes: animeData.episodes || 0,
+        aired_from: animeData.aired_from,
+        aired_to: animeData.aired_to,
+        season: animeData.season,
+        status: animeData.status || 'Unknown',
+        type: animeData.type || 'TV',
+        trailer_url: animeData.trailer_url,
+        next_episode_date: animeData.next_episode_date,
+        studios: animeData.studios || [],
         created_at: animeData.created_at || new Date().toISOString(),
         updated_at: animeData.updated_at || new Date().toISOString()
       };
@@ -330,6 +303,7 @@ class AnimeApiService extends BaseApiService {
       };
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('❌ AnimeService: Get by ID error:', errorMessage);
       return {
         success: false,
         data: null,
