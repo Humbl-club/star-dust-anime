@@ -256,11 +256,14 @@ const Manga = () => {
               {/* Search Bar */}
               <div className="flex-1">
                 <UnifiedSearchBar
-                  contentType="manga"
-                  placeholder="Search by title, author, or description..."
+                  placeholder="Search manga..."
                   showDropdown={true}
+                  contentType="manga"
                   className="flex-1"
-                  onSearch={(query) => setQuery(query)}
+                  onSearch={(query) => {
+                    setSearchParams(query ? { search: query } : {});
+                    setQuery(query);
+                  }}
                 />
               </div>
               

@@ -221,11 +221,14 @@ const Anime = () => {
               {/* Search Bar */}
               <div className="flex-1">
                 <UnifiedSearchBar
-                  contentType="anime"
-                  placeholder="Search anime by title, studio, or description..."
+                  placeholder="Search anime..."
                   showDropdown={true}
+                  contentType="anime"
                   className="flex-1"
-                  onSearch={(query) => setQuery(query)}
+                  onSearch={(query) => {
+                    setSearchParams(query ? { search: query } : {});
+                    setQuery(query);
+                  }}
                 />
               </div>
               
