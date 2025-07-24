@@ -12,3 +12,4 @@ export { VirtualizedList } from './VirtualizedList';
 
 // Add the unified search bar export
 export { UnifiedSearchBar } from './UnifiedSearchBar';
+export { SyncStatus } from './SyncStatus';

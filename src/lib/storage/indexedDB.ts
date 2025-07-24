@@ -39,6 +39,8 @@ export interface UserListItem {
   rating?: number;
   progress?: number;
   notes?: string;
+  added_at?: string;
+  updated_at?: string;
   cached_at: number;
   sync_status: 'synced' | 'pending' | 'failed';
   sort_order?: number;

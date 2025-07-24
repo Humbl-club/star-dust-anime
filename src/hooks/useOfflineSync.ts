@@ -86,7 +86,7 @@ export const useOfflineSync = () => {
     return result;
   }, []);
 
-  const syncAction = async (action: any) => {
+  const syncAction = async (action: OfflineAction): Promise<void> => {
     switch (action.type) {
       case 'add_to_list':
         return handleAddToList(action as OfflineAction<'add_to_list'>);
