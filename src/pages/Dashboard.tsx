@@ -7,6 +7,8 @@ import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useSimpleGameification } from "@/hooks/useSimpleGameification";
 import { User, Sparkles, BookOpen, Heart, TrendingUp, Crown, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RecommendedForYou } from "@/components/RecommendedForYou";
+import { BecauseYouWatched } from "@/components/BecauseYouWatched";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -226,6 +228,12 @@ const Dashboard = () => {
               </div>
             </a>
           </div>
+        </div>
+
+        {/* Recommendations Section */}
+        <div className="space-y-8">
+          <RecommendedForYou />
+          <BecauseYouWatched limit={5} />
         </div>
       </div>
     </div>

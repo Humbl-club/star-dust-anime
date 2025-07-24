@@ -19,6 +19,7 @@ import { DetailInfoGrid } from "@/components/DetailInfoGrid";
 import { OfflineFallback } from "@/components/OfflineFallback";
 import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
+import { SimilarTitles } from "@/components/SimilarTitles";
 
 
 
@@ -339,6 +340,15 @@ const MangaDetail = () => {
             <CommentsSection titleId={manga.id} />
           </div>
         </div>
+      </div>
+
+      {/* Similar Titles Section */}
+      <div className="mt-12 animate-fade-in" style={{ animationDelay: '1.0s' }}>
+        <SimilarTitles 
+          titleId={manga.id} 
+          contentType="manga" 
+          currentTitle={getDisplayName(manga)}
+        />
       </div>
     </DetailPageLayout>
   );
