@@ -29,6 +29,7 @@ const routes = [
   { path: '/manga/:id', component: lazyLoad('MangaDetail') },
   { path: '/trending', component: lazyLoad('Trending') },
   { path: '/my-lists', component: lazyLoad('MyLists') },
+  { path: '/user/:username', component: lazyLoad('UserProfile') },
   { path: '/analytics', component: lazyLoad('Analytics') },
   { path: '/gamification', component: lazyLoad('Gamification') },
   { path: '/admin', component: lazyLoad('admin/AdminDashboard') },

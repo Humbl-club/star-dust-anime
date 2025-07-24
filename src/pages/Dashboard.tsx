@@ -9,6 +9,7 @@ import { User, Sparkles, BookOpen, Heart, TrendingUp, Crown, Star } from "lucide
 import { cn } from "@/lib/utils";
 import { RecommendedForYou } from "@/components/RecommendedForYou";
 import { BecauseYouWatched } from "@/components/BecauseYouWatched";
+import { ActivityFeed } from "@/components/ActivityFeed";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -234,6 +235,7 @@ const Dashboard = () => {
         <div className="space-y-8">
           <RecommendedForYou />
           <BecauseYouWatched limit={5} />
+          <ActivityFeed />
         </div>
       </div>
     </div>
