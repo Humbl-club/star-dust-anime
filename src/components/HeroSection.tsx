@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import heroImage from "@/assets/anime-hero-bg.jpg";
 import { useStats } from "@/hooks/useStats";
@@ -46,7 +46,6 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           <div className="space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="w-8 h-8 text-primary" />
-              <Zap className="w-6 h-6 text-accent" />
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -77,24 +76,15 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex justify-center items-center mt-6">
               <Button 
                 variant="default" 
                 size="lg" 
-                className="group w-full sm:w-auto px-8 py-4 text-lg touch-friendly transition-all duration-300 hover:scale-105"
+                className="px-8 py-4 text-lg"
                 onClick={() => window.location.href = '/trending'}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Explore Trending
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="group w-full sm:w-auto px-8 py-4 text-lg touch-friendly transition-all duration-300 hover:scale-105"
-                onClick={() => window.location.href = '/my-lists'}
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                My Collection
               </Button>
             </div>
           </div>
