@@ -226,8 +226,14 @@ const Anime = () => {
                   contentType="anime"
                   className="flex-1"
                   onSearch={(query) => {
-                    setSearchParams(query ? { search: query } : {});
                     setQuery(query);
+                    if (query) {
+                      searchParams.set('search', query);
+                      setSearchParams(searchParams);
+                    } else {
+                      searchParams.delete('search');
+                      setSearchParams(searchParams);
+                    }
                   }}
                 />
               </div>
