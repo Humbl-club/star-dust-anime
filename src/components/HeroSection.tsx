@@ -64,7 +64,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
           </p>
 
           {/* Search Section */}
-          <div className="max-w-4xl mx-auto space-y-6 relative z-30">
+          <div className="max-w-4xl mx-auto space-y-6 relative">
             <div className="relative">
               <div className="glass-card border border-primary/30 p-3 hover:border-primary/50 transition-all duration-300">
                 <UnifiedSearchBar
