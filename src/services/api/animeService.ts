@@ -1,3 +1,4 @@
+
 import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
 import { PaginationInfo } from '@/types/api.types';
 
@@ -33,8 +34,8 @@ interface DatabaseAnimeResponse {
   year?: number;
   color_theme?: string;
   content_type?: string;
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   anime_details?: {
     episodes?: number;
     aired_from?: string;
@@ -113,15 +114,20 @@ class AnimeApiService extends BaseApiService {
       });
 
       // Build optimized query leveraging the new content_type column and indexes
-      let query = this.supabase
+      const selectQuery = `
+        *,
+        anime_details!inner(*),
+        ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
+        title_studios(studios(*))
+      `;
+
+      // Create the query with explicit typing to avoid deep instantiation
+      const baseQuery = this.supabase
         .from('titles')
-        .select(`
-          *,
-          anime_details!inner(*),
-          ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
-          title_studios(studios(*))
-        `, { count: 'exact' })
-        .eq('content_type', 'anime'); // Use the new indexed content_type column
+        .select(selectQuery, { count: 'exact' })
+        .eq('content_type', 'anime');
+
+      let query = baseQuery;
 
       // Apply anime-specific filters at database level
       if (status) {
@@ -173,7 +179,10 @@ class AnimeApiService extends BaseApiService {
       query = query.range(from, to);
 
       console.log('🎯 AnimeService: Executing optimized query...');
-      const { data: response, error, count } = await query;
+      
+      // Execute query with explicit typing to avoid deep instantiation
+      const queryResult = await query;
+      const { data: response, error, count } = queryResult;
 
       console.log('📊 AnimeService: Raw query result:', {
         dataLength: response?.length || 0,
@@ -188,7 +197,7 @@ class AnimeApiService extends BaseApiService {
         throw error;
       }
 
-      // Transform data to match expected format
+      // Transform data to match expected format with explicit typing
       const animeItems: AnimeContent[] = [];
       
       if (response && Array.isArray(response)) {
@@ -252,7 +261,7 @@ class AnimeApiService extends BaseApiService {
         sampleTransformed: animeItems[0]
       });
 
-      // Build pagination info
+      // Build pagination info with explicit typing
       const totalPages = count ? Math.ceil(count / limit) : 1;
       const paginationInfo: PaginationInfo = {
         current_page: page,
