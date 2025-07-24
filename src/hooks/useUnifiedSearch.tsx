@@ -36,7 +36,7 @@ export const useUnifiedSearch = (options: UnifiedSearchOptions = {}) => {
       // Use cached-content edge function for optimal performance
       const { data, error } = await supabase.functions.invoke('cached-content', {
         body: {
-          endpoint: 'search',
+          type: 'search',
           contentType: options.contentType || 'anime',
           limit: options.limit || 20,
           filters: { query: debouncedQuery, ...options.filters }
