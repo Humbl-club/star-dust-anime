@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
 import { AnimeCard } from '@/components/features/AnimeCard';
+import { MangaCard } from '@/components/features/MangaCard';
 import { type AnimeContent, type MangaContent } from '@/types/api.types';
 
 interface VirtualizedContentGridProps {
@@ -43,7 +44,9 @@ export function VirtualizedContentGrid({
   });
 
   const renderContentCard = (item: AnimeContent | MangaContent) => {
-    // Use AnimeCard for both types for now (can be extended for manga)
+    if (contentType === 'manga') {
+      return <MangaCard key={item.id} manga={item as any} />;
+    }
     return <AnimeCard key={item.id} anime={item as any} />;
   };
 

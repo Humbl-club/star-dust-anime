@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
@@ -219,17 +219,25 @@ const Index = () => {
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-          {animeList.map((anime) => (
-            <div key={anime.id} className="group">
-              <AnimeCard 
-                anime={anime} 
-                onClick={() => handleAnimeClick(anime)}
-                getDisplayName={getDisplayName}
-              />
-            </div>
-          ))}
-        </div>
+        <Suspense fallback={
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="h-[400px] bg-muted/20 animate-pulse rounded-lg" />
+            ))}
+          </div>
+        }>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+            {animeList.map((anime) => (
+              <div key={anime.id} className="group">
+                <AnimeCard 
+                  anime={anime} 
+                  onClick={() => handleAnimeClick(anime)}
+                  getDisplayName={getDisplayName}
+                />
+              </div>
+            ))}
+          </div>
+        </Suspense>
       </div>
     </section>
   );
@@ -297,7 +305,13 @@ const Index = () => {
       
 
       {/* Hero Section */}
-      <HeroSection />
+      <Suspense fallback={
+        <div className="h-[600px] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      }>
+        <HeroSection />
+      </Suspense>
 
       {/* Search Results */}
       {isSearching && (

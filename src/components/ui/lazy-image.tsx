@@ -6,6 +6,7 @@ interface LazyImageProps {
   alt: string;
   className?: string;
   placeholderClassName?: string;
+  blurDataURL?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -15,6 +16,7 @@ export function LazyImage({
   alt, 
   className, 
   placeholderClassName,
+  blurDataURL,
   onLoad,
   onError
 }: LazyImageProps) {
@@ -53,14 +55,20 @@ export function LazyImage({
 
   return (
     <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-      {/* Placeholder */}
+      {/* Placeholder with blur */}
       <div 
         className={cn(
-          'absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/80 animate-pulse',
+          'absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/80',
           'flex items-center justify-center',
           placeholderClassName,
           (isLoaded && !hasError) && 'opacity-0 transition-opacity duration-300'
-        )} 
+        )}
+        style={blurDataURL ? {
+          backgroundImage: `url(${blurDataURL})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(20px)'
+        } : {}}
       >
         {/* Placeholder SVG */}
         <svg

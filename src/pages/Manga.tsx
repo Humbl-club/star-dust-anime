@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useInfiniteContentData } from "@/hooks/useInfiniteContentData";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
@@ -23,97 +23,37 @@ import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useContentData } from "@/hooks/useContentData";
 import { useSearchStore } from "@/store/searchStore";
 import { Navigation } from "@/components/Navigation";
+import { MangaCard } from "@/components/features/MangaCard";
+import { VirtualizedContentGrid } from "@/components/layouts/VirtualizedContentGrid";
 import { useToast } from "@/hooks/use-toast";
 
-const MangaCard = ({ manga }: { manga: Manga }) => {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate(`/manga/${manga.id}`);
-  };
-
-  return (
-    <Card 
-      className="anime-card group hover-scale cursor-pointer touch-friendly"
-      onClick={handleClick}
-    >
-      <CardContent className="p-0">
-      <div className="relative overflow-hidden rounded-t-lg">
-        <LazyImage
-          src={manga.image_url}
-          alt={manga.title}
-          className="w-full h-48 md:h-64"
-          placeholderClassName="bg-gradient-to-br from-primary/20 to-accent/20"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
-        {/* Score Badge */}
-        {manga.score && (
-          <Badge className="absolute top-2 right-2 glass-card border border-primary/20 glow-primary">
-            <Star className="w-3 h-3 mr-1" />
-            {manga.score}
-          </Badge>
-        )}
-      </div>
-      
-      <div className="p-4">
-        <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-gradient-primary transition-colors">
-          {manga.title}
-        </h3>
-        
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{manga.type}</span>
-          {manga.status && (
-            <>
-              <span>•</span>
-              <span className={
-                manga.status === 'Publishing' ? 'text-green-400' :
-                manga.status === 'Finished' ? 'text-blue-400' :
-                'text-yellow-400'
-              }>
-                {manga.status}
-              </span>
-            </>
-          )}
-          {manga.chapters && (
-            <>
-              <span>•</span>
-              <span>{manga.chapters} ch</span>
-            </>
-          )}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-  );
-};
-
 const Manga = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filteredManga, setFilteredManga] = useState<Manga[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
-  const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
   const { toast } = useToast();
   
-  // Use search store for state management
-  const { query, filters, setFilters, setQuery } = useSearchStore();
-
+  // State management
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filteredManga, setFilteredManga] = useState<any[]>([]);
+  const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('infinite');
+  
+  // Get filters from URL params and search store
+  const { filters, setFilters, query, setQuery } = useSearchStore();
+  
   // Initialize filters from URL params
   useEffect(() => {
-    const urlGenre = searchParams.get("genre");
-    const urlStatus = searchParams.get("status");
-    const urlSort = searchParams.get("sort");
-    const urlSearch = searchParams.get("search");
+    const genre = searchParams.get("genre");
+    const status = searchParams.get("status");
+    const sort = searchParams.get("sort");
     
-    if (urlGenre || urlStatus || urlSort || urlSearch) {
+    if (genre || status || sort) {
       setFilters({
-        contentType: 'manga',
-        ...(urlGenre && urlGenre !== 'all' && { genre: urlGenre }),
-        ...(urlStatus && urlStatus !== 'all' && { status: urlStatus }),
-        sort_by: urlSort || 'popularity',
-        order: 'desc'
+        ...filters,
+        genre: genre || filters.genre,
+        status: status || filters.status,
+        sort_by: sort || filters.sort_by,
       });
     }
   }, [searchParams, setFilters]);
@@ -344,19 +284,53 @@ const Manga = () => {
               currentItems={infiniteQuery.currentItems}
               enableAutoLoad={true}
             >
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
-                {filteredManga.map((manga) => (
-                  <MangaCard key={manga.id} manga={manga} />
-                ))}
-              </div>
+              <Suspense fallback={
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <div key={i} className="h-[400px] bg-muted/20 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              }>
+                {filteredManga.length > 50 ? (
+                  <VirtualizedContentGrid
+                    content={filteredManga}
+                    contentType="manga"
+                    containerHeight={800}
+                    itemsPerRow={6}
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
+                    {filteredManga.map((manga) => (
+                      <MangaCard key={manga.id} manga={manga} />
+                    ))}
+                  </div>
+                )}
+              </Suspense>
             </InfiniteScrollContainer>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                {filteredManga.map((manga) => (
-                  <MangaCard key={manga.id} manga={manga} />
-                ))}
-              </div>
+              <Suspense fallback={
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <div key={i} className="h-[400px] bg-muted/20 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              }>
+                {filteredManga.length > 50 ? (
+                  <VirtualizedContentGrid
+                    content={filteredManga}
+                    contentType="manga"
+                    containerHeight={600}
+                    itemsPerRow={6}
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                    {filteredManga.map((manga) => (
+                      <MangaCard key={manga.id} manga={manga} />
+                    ))}
+                  </div>
+                )}
+              </Suspense>
 
               {/* Pagination */}
               {pagination && pagination.total_pages > 1 && (
