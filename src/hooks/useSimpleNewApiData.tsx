@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -86,7 +87,7 @@ export function useSimpleNewApiData(params: UseSimpleNewApiDataParams): UseSimpl
   const { data, isLoading, error, refetch } = useQuery({
     queryKey,
     queryFn: async () => {
-      // Build the query
+      // Use the new content_type column for efficient filtering
       let query = supabase
         .from('titles')
         .select(`
@@ -94,13 +95,22 @@ export function useSimpleNewApiData(params: UseSimpleNewApiDataParams): UseSimpl
           ${contentType}_details!inner(*),
           ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
           ${contentType === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))'}
-        `);
+        `)
+        .eq('content_type', contentType); // Use the new indexed content_type column
 
-      // Apply filters
+      // Apply text search using the new full-text search index
       if (search) {
-        query = query.textSearch('fts', search);
+        const searchTerm = search.trim();
+        if (searchTerm) {
+          // Use the new GIN index for full-text search
+          query = query.textSearch('fts', searchTerm, {
+            type: 'websearch',
+            config: 'english'
+          });
+        }
       }
 
+      // Apply filters
       if (genre) {
         query = query.eq('title_genres.genres.name', genre);
       }
@@ -121,8 +131,14 @@ export function useSimpleNewApiData(params: UseSimpleNewApiDataParams): UseSimpl
         query = query.eq('anime_details.season', season);
       }
 
-      // Apply sorting
-      query = query.order(sort_by, { ascending: order === 'asc' });
+      // Apply sorting using the new optimized indexes
+      if (sort_by === 'score') {
+        query = query.order('score', { ascending: order === 'asc', nullsFirst: false });
+      } else if (sort_by === 'year') {
+        query = query.order('year', { ascending: order === 'asc', nullsFirst: false });
+      } else {
+        query = query.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+      }
 
       // Apply pagination
       const from = page * limit;

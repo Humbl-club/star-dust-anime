@@ -1,3 +1,4 @@
+
 import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
 import { PaginationInfo } from '@/types/api.types';
 
@@ -30,6 +31,7 @@ interface DatabaseAnimeResponse {
   favorites?: number;
   year?: number;
   color_theme?: string;
+  content_type?: string;
   anime_details?: {
     episodes?: number;
     aired_from?: string;
@@ -71,7 +73,7 @@ class AnimeApiService extends BaseApiService {
     }
   }
 
-  // Direct database query with optimized filtering
+  // Direct database query with optimized filtering using new indexes
   async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<{ data: AnimeContent[], pagination: PaginationInfo }>> {
     try {
       const {
@@ -87,14 +89,14 @@ class AnimeApiService extends BaseApiService {
         order = 'desc'
       } = options;
 
-      console.log('🎬 AnimeService: Fetching anime with optimized query:', {
+      console.log('🎬 AnimeService: Fetching anime with optimized query using new indexes:', {
         ...options,
         page,
         limit,
         offset: (page - 1) * limit
       });
 
-      // Build optimized query with server-side filtering
+      // Build optimized query leveraging the new content_type column and indexes
       let query = this.supabase
         .from('titles')
         .select(`
@@ -102,7 +104,8 @@ class AnimeApiService extends BaseApiService {
           anime_details!inner(*),
           ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
           title_studios(studios(*))
-        `, { count: 'exact' });
+        `, { count: 'exact' })
+        .eq('content_type', 'anime'); // Use the new indexed content_type column
 
       // Apply anime-specific filters at database level
       if (status) {
@@ -120,29 +123,40 @@ class AnimeApiService extends BaseApiService {
         query = query.eq('title_genres.genres.name', genre);
       }
 
-      // Apply year filter
+      // Apply year filter using the optimized year index
       if (year) {
         query = query.eq('year', parseInt(year));
       }
 
-      // Apply text search
+      // Apply text search using the new full-text search index
       if (search) {
         const searchTerm = search.trim();
         if (searchTerm) {
-          query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+          // Use the new GIN index for full-text search
+          query = query.textSearch('fts', searchTerm, {
+            type: 'websearch',
+            config: 'english'
+          });
         }
       }
 
-      // Apply sorting
-      const sortField = sort_by === 'score' ? 'score' : sort_by;
-      query = query.order(sortField, { ascending: order === 'asc', nullsFirst: false });
+      // Apply sorting using the optimized indexes
+      if (sort_by === 'score') {
+        // Use the new score index for optimal performance
+        query = query.order('score', { ascending: order === 'asc', nullsFirst: false });
+      } else if (sort_by === 'year') {
+        // Use the new year index for optimal performance
+        query = query.order('year', { ascending: order === 'asc', nullsFirst: false });
+      } else {
+        query = query.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+      }
 
       // Apply pagination
       const from = (page - 1) * limit;
       const to = from + limit - 1;
       query = query.range(from, to);
 
-      console.log('🎯 AnimeService: Executing query...');
+      console.log('🎯 AnimeService: Executing optimized query...');
       const { data: response, error, count } = await query;
 
       console.log('📊 AnimeService: Raw query result:', {
@@ -236,12 +250,10 @@ class AnimeApiService extends BaseApiService {
     return this.syncFromExternalAPI('anime', pages);
   }
 
-  // Sync anime images
   async syncAnimeImages(limit = 10): Promise<ServiceResponse<unknown>> {
     return this.syncImages('anime', limit);
   }
 
-  // Get single anime by ID
   async getAnimeById(id: string): Promise<ServiceResponse<AnimeContent | null>> {
     try {
       const { data, error } = await this.supabase
@@ -253,6 +265,7 @@ class AnimeApiService extends BaseApiService {
           title_studios(studios(*))
         `)
         .eq('id', id)
+        .eq('content_type', 'anime') // Use the new content_type column
         .maybeSingle();
 
       if (error) {

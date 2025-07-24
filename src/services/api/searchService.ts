@@ -1,3 +1,4 @@
+
 import { BaseApiService, ServiceResponse } from './baseService';
 import { AnimeContent } from './animeService';
 import { MangaContent } from './mangaService';
@@ -18,6 +19,7 @@ interface DatabaseSearchAnimeResponse {
   favorites?: number;
   year?: number;
   color_theme?: string;
+  content_type?: string;
   anime_details?: {
     episodes?: number;
     aired_from?: string;
@@ -47,6 +49,7 @@ interface DatabaseSearchMangaResponse {
   favorites?: number;
   year?: number;
   color_theme?: string;
+  content_type?: string;
   manga_details?: {
     chapters?: number;
     volumes?: number;
@@ -59,6 +62,7 @@ interface DatabaseSearchMangaResponse {
   title_genres?: Array<{ genres: { name: string } }>;
   title_authors?: Array<{ authors: { name: string } }>;
 }
+
 export interface SearchResult {
   anime: AnimeContent[];
   manga: MangaContent[];
@@ -77,7 +81,7 @@ export interface SearchOptions {
 }
 
 class SearchApiService extends BaseApiService {
-  // Global search across anime and manga
+  // Global search across anime and manga using optimized indexes
   async globalSearch(options: SearchOptions): Promise<ServiceResponse<SearchResult>> {
     try {
       const {
@@ -106,7 +110,7 @@ class SearchApiService extends BaseApiService {
         totalResults: 0
       };
 
-      // Search anime if requested
+      // Search anime if requested using optimized content_type filter
       if (type === 'anime' || type === 'both') {
         let animeQuery = this.supabase
           .from('titles')
@@ -116,7 +120,11 @@ class SearchApiService extends BaseApiService {
             title_genres(genres(*)),
             title_studios(studios(*))
           `)
-          .or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+          .eq('content_type', 'anime') // Use the new indexed content_type column
+          .textSearch('fts', searchTerm, {
+            type: 'websearch',
+            config: 'english'
+          }); // Use the new full-text search index
 
         // Apply filters
         if (genres && genres.length > 0) {
@@ -129,10 +137,16 @@ class SearchApiService extends BaseApiService {
           animeQuery = animeQuery.eq('anime_details.status', status);
         }
 
-        // Apply sorting and limit
-        animeQuery = animeQuery
-          .order(sort_by, { ascending: order === 'asc', nullsFirst: false })
-          .limit(type === 'both' ? Math.floor(limit / 2) : limit);
+        // Apply sorting and limit using optimized indexes
+        if (sort_by === 'score') {
+          animeQuery = animeQuery.order('score', { ascending: order === 'asc', nullsFirst: false });
+        } else if (sort_by === 'year') {
+          animeQuery = animeQuery.order('year', { ascending: order === 'asc', nullsFirst: false });
+        } else {
+          animeQuery = animeQuery.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+        }
+        
+        animeQuery = animeQuery.limit(type === 'both' ? Math.floor(limit / 2) : limit);
 
         const { data: animeData, error: animeError } = await animeQuery;
 
@@ -172,7 +186,7 @@ class SearchApiService extends BaseApiService {
         }
       }
 
-      // Search manga if requested
+      // Search manga if requested using optimized content_type filter
       if (type === 'manga' || type === 'both') {
         let mangaQuery = this.supabase
           .from('titles')
@@ -182,7 +196,11 @@ class SearchApiService extends BaseApiService {
             title_genres(genres(*)),
             title_authors(authors(*))
           `)
-          .or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+          .eq('content_type', 'manga') // Use the new indexed content_type column
+          .textSearch('fts', searchTerm, {
+            type: 'websearch',
+            config: 'english'
+          }); // Use the new full-text search index
 
         // Apply filters
         if (genres && genres.length > 0) {
@@ -195,10 +213,16 @@ class SearchApiService extends BaseApiService {
           mangaQuery = mangaQuery.eq('manga_details.status', status);
         }
 
-        // Apply sorting and limit
-        mangaQuery = mangaQuery
-          .order(sort_by, { ascending: order === 'asc', nullsFirst: false })
-          .limit(type === 'both' ? Math.floor(limit / 2) : limit);
+        // Apply sorting and limit using optimized indexes
+        if (sort_by === 'score') {
+          mangaQuery = mangaQuery.order('score', { ascending: order === 'asc', nullsFirst: false });
+        } else if (sort_by === 'year') {
+          mangaQuery = mangaQuery.order('year', { ascending: order === 'asc', nullsFirst: false });
+        } else {
+          mangaQuery = mangaQuery.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+        }
+        
+        mangaQuery = mangaQuery.limit(type === 'both' ? Math.floor(limit / 2) : limit);
 
         const { data: mangaData, error: mangaError } = await mangaQuery;
 
@@ -245,7 +269,7 @@ class SearchApiService extends BaseApiService {
     }
   }
 
-  // Get search suggestions
+  // Get search suggestions using the new full-text search index
   async getSearchSuggestions(query: string, limit = 5): Promise<ServiceResponse<string[]>> {
     try {
       if (!query.trim() || query.length < 2) {
@@ -257,7 +281,10 @@ class SearchApiService extends BaseApiService {
       const { data, error } = await this.supabase
         .from('titles')
         .select('title, title_english')
-        .or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%`)
+        .textSearch('fts', searchTerm, {
+          type: 'websearch',
+          config: 'english'
+        })
         .limit(limit);
 
       if (error) {
@@ -272,7 +299,7 @@ class SearchApiService extends BaseApiService {
     }
   }
 
-  // Advanced search with multiple filters
+  // Advanced search with multiple filters using optimized indexes
   async advancedSearch(options: {
     query?: string;
     genres?: string[];
@@ -310,12 +337,16 @@ class SearchApiService extends BaseApiService {
           ${content_type === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
           title_genres(genres(*)),
           ${content_type === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))'}
-        `, { count: 'exact' });
+        `, { count: 'exact' })
+        .eq('content_type', content_type); // Use the new indexed content_type column
 
-      // Apply text search
+      // Apply text search using the new full-text search index
       if (query && query.trim()) {
         const searchTerm = query.trim();
-        dbQuery = dbQuery.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+        dbQuery = dbQuery.textSearch('fts', searchTerm, {
+          type: 'websearch',
+          config: 'english'
+        });
       }
 
       // Apply genre filter
@@ -323,7 +354,7 @@ class SearchApiService extends BaseApiService {
         dbQuery = dbQuery.in('title_genres.genres.name', genres);
       }
 
-      // Apply year filter
+      // Apply year filter using optimized year index
       if (year) {
         dbQuery = dbQuery.eq('year', parseInt(year));
       }
@@ -346,8 +377,14 @@ class SearchApiService extends BaseApiService {
         dbQuery = dbQuery.lte('score', score_max);
       }
 
-      // Apply sorting
-      dbQuery = dbQuery.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+      // Apply sorting using optimized indexes
+      if (sort_by === 'score') {
+        dbQuery = dbQuery.order('score', { ascending: order === 'asc', nullsFirst: false });
+      } else if (sort_by === 'year') {
+        dbQuery = dbQuery.order('year', { ascending: order === 'asc', nullsFirst: false });
+      } else {
+        dbQuery = dbQuery.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
+      }
 
       // Apply pagination
       const from = (page - 1) * limit;
