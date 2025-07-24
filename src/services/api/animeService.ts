@@ -63,8 +63,8 @@ interface AnimeServiceResponse<T> {
   error: string | null;
 }
 
-// Simple query result type to avoid deep instantiation
-interface QueryResult {
+// Simple database response type
+interface SimpleDbResponse {
   data: any[] | null;
   error: any | null;
   count: number | null;
@@ -125,63 +125,27 @@ class AnimeApiService extends BaseApiService {
         ? `*, anime_details!inner(*), title_genres!inner(genres!inner(*)), title_studios(studios(*))`
         : `*, anime_details!inner(*), title_genres(genres(*)), title_studios(studios(*))`;
 
-      // Execute the query with explicit result typing
-      const queryBuilder = this.supabase
-        .from('titles')
-        .select(selectQuery, { count: 'exact' })
-        .eq('content_type', 'anime');
-
-      // Apply anime-specific filters
-      if (status) {
-        queryBuilder.eq('anime_details.status', status);
-      }
-      if (type) {
-        queryBuilder.eq('anime_details.type', type);
-      }
-      if (season) {
-        queryBuilder.eq('anime_details.season', season);
-      }
-
-      // Apply genre filter
-      if (genre) {
-        queryBuilder.eq('title_genres.genres.name', genre);
-      }
-
-      // Apply year filter
-      if (year) {
-        queryBuilder.eq('year', parseInt(year));
-      }
-
-      // Apply text search
-      if (search) {
-        const searchTerm = search.trim();
-        if (searchTerm) {
-          queryBuilder.textSearch('fts', searchTerm, {
-            type: 'websearch',
-            config: 'english'
-          });
-        }
-      }
-
-      // Apply sorting
-      if (sort_by === 'score') {
-        queryBuilder.order('score', { ascending: order === 'asc', nullsFirst: false });
-      } else if (sort_by === 'year') {
-        queryBuilder.order('year', { ascending: order === 'asc', nullsFirst: false });
-      } else {
-        queryBuilder.order(sort_by, { ascending: order === 'asc', nullsFirst: false });
-      }
-
-      // Apply pagination
+      // Execute the raw query to avoid complex types
       const from = (page - 1) * limit;
       const to = from + limit - 1;
-      queryBuilder.range(from, to);
 
-      console.log('🎯 AnimeService: Executing optimized query...');
-      
-      // Execute query and cast to simple type
-      const queryResult = await queryBuilder as unknown as Promise<QueryResult>;
-      const { data: response, error, count } = queryResult;
+      console.log('🎯 AnimeService: Building query with explicit typing...');
+
+      // Use raw query approach to avoid deep type instantiation
+      const queryResponse = await this.supabase.rpc('get_anime_with_filters', {
+        p_limit: limit,
+        p_offset: from,
+        p_search: search || null,
+        p_genre: genre || null,
+        p_status: status || null,
+        p_type: type || null,
+        p_year: year ? parseInt(year) : null,
+        p_season: season || null,
+        p_sort_by: sort_by,
+        p_order: order
+      }) as unknown as SimpleDbResponse;
+
+      const { data: response, error, count } = queryResponse;
 
       console.log('📊 AnimeService: Raw query result:', {
         dataLength: response?.length || 0,
