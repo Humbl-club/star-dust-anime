@@ -30,7 +30,7 @@ import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
 import { ContentRatingBadge } from "@/components/ContentRatingBadge";
-import { SearchWithFilters } from "@/components/SearchWithFilters";
+import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { LegalFooter } from "@/components/LegalFooter";
 
 const Anime = () => {
@@ -206,11 +206,11 @@ const Anime = () => {
         {/* Search and Filters */}
         <Card className="anime-card mb-8 glow-card">
           <CardHeader>
-            <SearchWithFilters
+            <UnifiedSearchBar
               contentType="anime"
-              availableGenres={genres}
-              onSearch={handleSearch}
               placeholder="Search anime by title, studio, or description..."
+              showDropdown={true}
+              onSearch={handleSearch}
             />
           </CardHeader>
         </Card>

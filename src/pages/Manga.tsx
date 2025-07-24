@@ -5,14 +5,14 @@ import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { Grid3x3, List } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination } from "@/components/ui/pagination";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { 
-  Search, 
+  Search,
   Filter, 
   BookOpen,
   Star,
@@ -285,12 +285,11 @@ const Manga = () => {
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
+                <UnifiedSearchBar
+                  contentType="manga"
                   placeholder="Search by title, author, or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 glass-input"
+                  showDropdown={true}
+                  onSearch={(query) => setSearchQuery(query)}
                 />
               </div>
 

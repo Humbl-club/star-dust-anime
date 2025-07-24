@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, Loader2, X, Clock, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, Loader2, X, Clock, Sparkles, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 import { useSearchHistory } from '@/hooks/useSearchHistory';
@@ -32,6 +33,7 @@ export const UnifiedSearchBar = ({
   variant = 'default'
 }: UnifiedSearchBarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,9 +77,10 @@ export const UnifiedSearchBar = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     search(value);
+    setSelectedIndex(-1); // Reset selection on new input
     
     if (showDropdown) {
-      setIsOpen(value.length > 0 || searchHistory.length > 0);
+      setIsOpen(value.length >= 0); // Show dropdown immediately for history/popular
     }
   };
   
@@ -95,10 +98,34 @@ export const UnifiedSearchBar = ({
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch(query);
+    const totalResults = results.length + searchHistory.length + popularSearches.length;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev < totalResults - 1 ? prev + 1 : 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : totalResults - 1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && selectedIndex < results.length) {
+        handleResultClick(results[selectedIndex]);
+      } else if (selectedIndex >= results.length && selectedIndex < results.length + searchHistory.length) {
+        const historyIndex = selectedIndex - results.length;
+        const term = searchHistory[historyIndex];
+        search(term);
+        handleSearch(term);
+      } else if (selectedIndex >= results.length + searchHistory.length) {
+        const popularIndex = selectedIndex - results.length - searchHistory.length;
+        const term = popularSearches[popularIndex];
+        search(term);
+        handleSearch(term);
+      } else {
+        handleSearch(query);
+      }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
+      setSelectedIndex(-1);
       inputRef.current?.blur();
     }
   };
@@ -156,26 +183,37 @@ export const UnifiedSearchBar = ({
       </div>
       
       <AnimatePresence>
-        {showDropdown && isOpen && (
+        {showDropdown && isOpen && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute z-[200] w-full mt-2 bg-background border rounded-lg shadow-lg overflow-hidden"
+            style={{
+              position: 'fixed',
+              top: searchRef.current?.getBoundingClientRect().bottom || 0,
+              left: searchRef.current?.getBoundingClientRect().left || 0,
+              width: searchRef.current?.getBoundingClientRect().width || 0,
+              marginTop: '8px',
+              zIndex: 9999
+            }}
+            className="bg-background border rounded-lg shadow-lg overflow-hidden"
           >
             {/* Search Results */}
-            {hasResults && (
+            {hasResults && query.length >= 2 && (
               <div className="p-2">
                 <div className="text-xs font-medium text-muted-foreground px-2 py-1">
                   Search Results
                 </div>
-                {results.slice(0, 5).map((result) => (
+                {results.slice(0, 5).map((result, index) => (
                   <motion.div
                     key={result.id}
                     whileHover={{ backgroundColor: 'hsl(var(--muted))' }}
                     onClick={() => handleResultClick(result)}
-                    className="flex items-center gap-3 p-2 rounded cursor-pointer"
+                    className={cn(
+                      "flex items-center gap-3 p-2 rounded cursor-pointer",
+                      selectedIndex === index && "bg-muted"
+                    )}
                   >
                     {result.image_url && (
                       <img 
@@ -187,7 +225,7 @@ export const UnifiedSearchBar = ({
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{result.title}</div>
                       <div className="text-xs text-muted-foreground">
-                        {result.type} • Score: {result.score || 'N/A'}
+                        {result.anime_details?.type || result.manga_details?.type || 'Unknown'} • Score: {result.score || 'N/A'}
                       </div>
                     </div>
                   </motion.div>
@@ -204,9 +242,17 @@ export const UnifiedSearchBar = ({
                 )}
               </div>
             )}
+
+            {/* Loading State */}
+            {isLoading && query.length >= 2 && (
+              <div className="p-4 text-center">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                <div className="text-sm text-muted-foreground">Searching...</div>
+              </div>
+            )}
             
             {/* Recent Searches */}
-            {!hasResults && searchHistory.length > 0 && (
+            {!hasResults && !isLoading && query.length < 2 && searchHistory.length > 0 && (
               <div className="p-2">
                 <div className="flex items-center justify-between px-2 py-1">
                   <div className="text-xs font-medium text-muted-foreground flex items-center gap-1">
@@ -222,54 +268,67 @@ export const UnifiedSearchBar = ({
                     Clear
                   </Button>
                 </div>
-                {searchHistory.slice(0, 5).map((term, index) => (
-                  <div
-                    key={index}
-                    onClick={() => {
-                      search(term);
-                      handleSearch(term);
-                    }}
-                    className="px-2 py-1.5 text-sm hover:bg-muted rounded cursor-pointer"
-                  >
-                    {term}
-                  </div>
-                ))}
+                {searchHistory.slice(0, 5).map((term, index) => {
+                  const actualIndex = results.length + index;
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        search(term);
+                        handleSearch(term);
+                      }}
+                      className={cn(
+                        "px-2 py-1.5 text-sm hover:bg-muted rounded cursor-pointer",
+                        selectedIndex === actualIndex && "bg-muted"
+                      )}
+                    >
+                      {term}
+                    </div>
+                  );
+                })}
               </div>
             )}
             
             {/* Popular Searches */}
-            {!hasResults && !query && (
+            {!hasResults && !isLoading && !query && (
               <div className="p-2">
                 <div className="text-xs font-medium text-muted-foreground px-2 py-1 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
                   Popular Searches
                 </div>
                 <div className="flex flex-wrap gap-1 p-1">
-                  {popularSearches.map((term) => (
-                    <Badge
-                      key={term}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                      onClick={() => {
-                        search(term);
-                        handleSearch(term);
-                      }}
-                    >
-                      {term}
-                    </Badge>
-                  ))}
+                  {popularSearches.map((term, index) => {
+                    const actualIndex = results.length + searchHistory.length + index;
+                    return (
+                      <Badge
+                        key={term}
+                        variant="secondary"
+                        className={cn(
+                          "cursor-pointer hover:bg-primary hover:text-primary-foreground",
+                          selectedIndex === actualIndex && "bg-primary text-primary-foreground"
+                        )}
+                        onClick={() => {
+                          search(term);
+                          handleSearch(term);
+                        }}
+                      >
+                        {term}
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}
             
             {/* No Results */}
-            {query && !hasResults && !isLoading && (
+            {query && query.length >= 2 && !hasResults && !isLoading && (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 No results found for "{query}"
               </div>
             )}
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

@@ -36,11 +36,10 @@ export const useUnifiedSearch = (options: UnifiedSearchOptions = {}) => {
       // Use cached-content edge function for optimal performance
       const { data, error } = await supabase.functions.invoke('cached-content', {
         body: {
-          type: 'search',
-          query: debouncedQuery,
+          endpoint: 'search',
           contentType: options.contentType || 'anime',
           limit: options.limit || 20,
-          filters: options.filters
+          filters: { query: debouncedQuery, ...options.filters }
         }
       });
       
@@ -51,7 +50,8 @@ export const useUnifiedSearch = (options: UnifiedSearchOptions = {}) => {
         addToHistory(debouncedQuery);
       }
       
-      return data || [];
+      // Return the data array from the response
+      return data?.data || [];
     } catch (error) {
       console.error('Search error:', error);
       toast({
