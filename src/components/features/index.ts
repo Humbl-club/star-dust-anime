@@ -9,3 +9,6 @@ export const AnalyticsCharts = lazy(() => import('./AnalyticsCharts').then(m => 
 export { AnimeCard } from './AnimeCard';
 export { AddToListButton } from './AddToListButton';
 export { AgeVerificationModal } from './AgeVerificationModal';
+export { ListManager } from './ListManager';
+export { ProgressTracker } from './ProgressTracker';
+export { ListStatistics } from './ListStatistics';
