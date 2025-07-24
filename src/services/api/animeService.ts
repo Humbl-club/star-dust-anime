@@ -46,8 +46,8 @@ interface DatabaseAnimeResponse {
   title_studios?: Array<{ studios: { name: string } }>;
 }
 
-// Simplified response type to avoid circular references
-interface OptimizedAnimeResponse {
+// Simple response type without complex generics
+interface AnimeListResponse {
   data: AnimeContent[];
   pagination: PaginationInfo;
 }
@@ -80,7 +80,7 @@ class AnimeApiService extends BaseApiService {
   }
 
   // Direct database query with optimized filtering using new indexes
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<OptimizedAnimeResponse>> {
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<AnimeListResponse>> {
     try {
       const {
         page = 1,
@@ -179,64 +179,72 @@ class AnimeApiService extends BaseApiService {
       }
 
       // Transform data to match expected format
-      const transformedData: AnimeContent[] = (response as DatabaseAnimeResponse[])?.map((item) => {
-        const details = item.anime_details;
-        
-        // Map database status to frontend expectations
-        let mappedStatus = details?.status || 'Unknown';
-        switch (mappedStatus) {
-          case 'RELEASING':
-            mappedStatus = 'Currently Airing';
-            break;
-          case 'FINISHED':
-            mappedStatus = 'Finished Airing';
-            break;
-          case 'NOT_YET_RELEASED':
-            mappedStatus = 'Not Yet Aired';
-            break;
-          case 'CANCELLED':
-            mappedStatus = 'Cancelled';
-            break;
-        }
-        
-        return {
-          id: item.id,
-          anilist_id: item.anilist_id,
-          title: item.title || 'Unknown Title',
-          title_english: item.title_english,
-          title_japanese: item.title_japanese,
-          synopsis: item.synopsis || '',
-          image_url: item.image_url || '',
-          score: item.score,
-          anilist_score: item.anilist_score,
-          rank: item.rank,
-          popularity: item.popularity,
-          favorites: item.favorites || 0,
-          year: item.year,
-          color_theme: item.color_theme,
-          genres: item.title_genres?.map((tg) => tg.genres?.name).filter(Boolean) || [],
-          members: item.popularity || 0,
-          episodes: details?.episodes || 0,
-          aired_from: details?.aired_from,
-          aired_to: details?.aired_to,
-          season: details?.season,
-          status: mappedStatus,
-          type: details?.type || 'TV',
-          trailer_url: details?.trailer_url,
-          next_episode_date: details?.next_episode_date,
-          studios: item.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
-        };
-      }) || [];
+      const animeItems: AnimeContent[] = [];
+      
+      if (response && Array.isArray(response)) {
+        response.forEach((item: any) => {
+          const details = item.anime_details;
+          
+          // Map database status to frontend expectations
+          let mappedStatus = details?.status || 'Unknown';
+          switch (mappedStatus) {
+            case 'RELEASING':
+              mappedStatus = 'Currently Airing';
+              break;
+            case 'FINISHED':
+              mappedStatus = 'Finished Airing';
+              break;
+            case 'NOT_YET_RELEASED':
+              mappedStatus = 'Not Yet Aired';
+              break;
+            case 'CANCELLED':
+              mappedStatus = 'Cancelled';
+              break;
+          }
+          
+          const animeItem: AnimeContent = {
+            id: item.id,
+            anilist_id: item.anilist_id,
+            title: item.title || 'Unknown Title',
+            title_english: item.title_english,
+            title_japanese: item.title_japanese,
+            synopsis: item.synopsis || '',
+            image_url: item.image_url || '',
+            score: item.score,
+            anilist_score: item.anilist_score,
+            rank: item.rank,
+            popularity: item.popularity,
+            favorites: item.favorites || 0,
+            year: item.year,
+            color_theme: item.color_theme,
+            genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+            members: item.popularity || 0,
+            episodes: details?.episodes || 0,
+            aired_from: details?.aired_from,
+            aired_to: details?.aired_to,
+            season: details?.season,
+            status: mappedStatus,
+            type: details?.type || 'TV',
+            trailer_url: details?.trailer_url,
+            next_episode_date: details?.next_episode_date,
+            studios: item.title_studios?.map((ts: any) => ts.studios?.name).filter(Boolean) || [],
+            created_at: item.created_at || new Date().toISOString(),
+            updated_at: item.updated_at || new Date().toISOString()
+          };
+          
+          animeItems.push(animeItem);
+        });
+      }
 
       console.log('🔄 AnimeService: Transformed data:', {
         originalLength: response?.length || 0,
-        transformedLength: transformedData.length,
-        sampleTransformed: transformedData[0]
+        transformedLength: animeItems.length,
+        sampleTransformed: animeItems[0]
       });
 
       // Build pagination info
       const totalPages = count ? Math.ceil(count / limit) : 1;
-      const pagination: PaginationInfo = {
+      const paginationInfo: PaginationInfo = {
         current_page: page,
         per_page: limit,
         total: count || 0,
@@ -245,7 +253,12 @@ class AnimeApiService extends BaseApiService {
         has_prev_page: page > 1
       };
 
-      return this.handleSuccess({ data: transformedData, pagination });
+      const result: AnimeListResponse = {
+        data: animeItems,
+        pagination: paginationInfo
+      };
+
+      return this.handleSuccess(result);
     } catch (err: unknown) {
       return this.handleError(err, 'fetch anime data');
     }
@@ -310,7 +323,9 @@ class AnimeApiService extends BaseApiService {
         type: details?.type || 'TV',
         trailer_url: details?.trailer_url,
         next_episode_date: details?.next_episode_date,
-        studios: animeData.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || []
+        studios: animeData.title_studios?.map((ts) => ts.studios?.name).filter(Boolean) || [],
+        created_at: animeData.created_at || new Date().toISOString(),
+        updated_at: animeData.updated_at || new Date().toISOString()
       };
 
       return this.handleSuccess(transformedAnime);
