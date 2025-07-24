@@ -10,6 +10,8 @@ export interface AnimeContent extends BaseContent {
   trailer_url?: string;
   next_episode_date?: string;
   studios: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AnimeQueryOptions extends BaseQueryOptions {
@@ -32,6 +34,8 @@ interface DatabaseAnimeResponse {
   year?: number;
   color_theme?: string;
   content_type?: string;
+  created_at?: string;
+  updated_at?: string;
   anime_details?: {
     episodes?: number;
     aired_from?: string;
@@ -51,6 +55,16 @@ interface AnimeListResponse {
   data: AnimeContent[];
   pagination: PaginationInfo;
 }
+
+type SimpleServiceResponse<T> = {
+  success: true;
+  data: T;
+  error: null;
+} | {
+  success: false;
+  data: null;
+  error: string;
+};
 
 class AnimeApiService extends BaseApiService {
   // Fetch anime data using edge function
@@ -80,7 +94,7 @@ class AnimeApiService extends BaseApiService {
   }
 
   // Direct database query with optimized filtering using new indexes
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<AnimeListResponse>> {
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<SimpleServiceResponse<AnimeListResponse>> {
     try {
       const {
         page = 1,
@@ -258,9 +272,18 @@ class AnimeApiService extends BaseApiService {
         pagination: paginationInfo
       };
 
-      return this.handleSuccess(result);
+      return {
+        success: true,
+        data: result,
+        error: null
+      };
     } catch (err: unknown) {
-      return this.handleError(err, 'fetch anime data');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      return {
+        success: false,
+        data: null,
+        error: errorMessage
+      };
     }
   }
 
@@ -273,7 +296,7 @@ class AnimeApiService extends BaseApiService {
     return this.syncImages('anime', limit);
   }
 
-  async getAnimeById(id: string): Promise<ServiceResponse<AnimeContent | null>> {
+  async getAnimeById(id: string): Promise<SimpleServiceResponse<AnimeContent | null>> {
     try {
       const { data, error } = await this.supabase
         .from('titles')
@@ -292,7 +315,11 @@ class AnimeApiService extends BaseApiService {
       }
 
       if (!data) {
-        return this.handleSuccess(null);
+        return {
+          success: true,
+          data: null,
+          error: null
+        };
       }
 
       // Transform single anime data
@@ -328,9 +355,18 @@ class AnimeApiService extends BaseApiService {
         updated_at: animeData.updated_at || new Date().toISOString()
       };
 
-      return this.handleSuccess(transformedAnime);
+      return {
+        success: true,
+        data: transformedAnime,
+        error: null
+      };
     } catch (err: unknown) {
-      return this.handleError(err, 'fetch anime details');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      return {
+        success: false,
+        data: null,
+        error: errorMessage
+      };
     }
   }
 }
