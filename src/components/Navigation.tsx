@@ -117,6 +117,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     { icon: TrendingUp, label: "Trending", href: "/trending", active: window.location.pathname === "/trending" },
     { icon: Play, label: "Anime", href: "/anime", active: window.location.pathname === "/anime" },
     { icon: BookOpen, label: "Manga", href: "/manga", active: window.location.pathname === "/manga" },
+    { icon: Heart, label: "My Lists", href: "/my-lists", active: window.location.pathname === "/my-lists", requiresAuth: true },
   ];
 
   return (
@@ -148,39 +149,49 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
           {/* Desktop Navigation - Enhanced */}
           <div className="hidden lg:flex items-center space-x-2">
-            {navItems.map((item) => (
-              <Link key={item.label} to={item.href}>
-                <Button
-                  variant={item.active ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "spring-bounce touch-friendly glass-button",
-                    item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
-                  )}
-                >
-                  <item.icon className="w-4 h-4 mr-2" />
-                  {item.label}
-                </Button>
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              // Skip auth-required items if user is not logged in
+              if (item.requiresAuth && !user) return null;
+              
+              return (
+                <Link key={item.label} to={item.href}>
+                  <Button
+                    variant={item.active ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "spring-bounce touch-friendly glass-button",
+                      item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4 mr-2" />
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Compact Navigation for medium screens */}
           <div className="hidden md:lg:hidden flex items-center space-x-2">
-            {navItems.slice(0, 3).map((item) => (
-              <Link key={item.label} to={item.href}>
-                <Button
-                  variant={item.active ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "spring-bounce touch-friendly glass-button",
-                    item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                </Button>
-              </Link>
-            ))}
+            {navItems.slice(0, user ? 5 : 4).map((item) => {
+              // Skip auth-required items if user is not logged in
+              if (item.requiresAuth && !user) return null;
+              
+              return (
+                <Link key={item.label} to={item.href}>
+                  <Button
+                    variant={item.active ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "spring-bounce touch-friendly glass-button",
+                      item.active && "shadow-glow-primary bg-gradient-primary border-primary/30"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" />
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Search Bar with Real-time Dropdown - Only on large screens and NOT on homepage */}
