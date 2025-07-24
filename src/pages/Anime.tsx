@@ -33,6 +33,7 @@ import { ContentRatingBadge } from "@/components/ContentRatingBadge";
 import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { LegalFooter } from "@/components/LegalFooter";
+import { logger } from "@/utils/logger";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const Anime = () => {
   const pagination = viewMode === 'pagination' ? paginatedQuery.pagination : null;
 
   // Debug logging for anime list fetching
-  console.log('Anime.tsx: Fetching anime list with:', {
+  logger.debug('Anime.tsx: Fetching anime list with:', {
     functionName: 'anime-api (via useContentData)',
     payload: {
       contentType: 'anime',

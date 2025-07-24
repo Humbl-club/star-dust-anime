@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface MangaDetail {
   // Title fields
@@ -57,8 +58,8 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
       setLoading(true);
       setError(null);
 
-      console.log(`🔍 Fetching manga detail for ID: ${mangaId}`);
-      console.log(`🔍 ID type: ${typeof mangaId}, Is numeric: ${/^\d+$/.test(mangaId)}`);
+      logger.debug(`🔍 Fetching manga detail for ID: ${mangaId}`);
+      logger.debug(`🔍 ID type: ${typeof mangaId}, Is numeric: ${/^\d+$/.test(mangaId)}`);
 
       let query = supabase
         .from('titles')
@@ -71,20 +72,20 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
 
       // Try UUID first (most common case)
       if (mangaId.includes('-')) {
-        console.log('🔍 Querying by UUID...');
+        logger.debug('🔍 Querying by UUID...');
         query = query.eq('id', mangaId);
       } else if (/^\d+$/.test(mangaId)) {
-        console.log('🔍 Querying by AniList ID...');
+        logger.debug('🔍 Querying by AniList ID...');
         query = query.eq('anilist_id', parseInt(mangaId));
       } else {
         // Fallback: try as string ID
-        console.log('🔍 Querying by string ID...');
+        logger.debug('🔍 Querying by string ID...');
         query = query.eq('id', mangaId);
       }
 
       const { data, error: queryError } = await query.maybeSingle();
 
-      console.log('🔍 Query result:', { data, queryError });
+      logger.debug('🔍 Query result:', { data, queryError });
 
       if (queryError) {
         console.error('❌ Database query error:', queryError);
@@ -92,7 +93,7 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
       }
 
       if (!data) {
-        console.warn('⚠️ No manga found for ID:', mangaId);
+        logger.debug('⚠️ No manga found for ID:', mangaId);
         setManga(null);
         return;
       }
@@ -133,7 +134,7 @@ export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
         authors: data.title_authors?.map((ta: any) => ta.authors).filter(Boolean) || [],
       };
 
-      console.log('✅ Successfully transformed manga:', transformedManga.title);
+      logger.debug('✅ Successfully transformed manga:', transformedManga.title);
       setManga(transformedManga);
 
     } catch (err: any) {

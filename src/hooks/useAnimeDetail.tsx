@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface AnimeDetail {
   // Title fields
@@ -61,8 +62,8 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       setLoading(true);
       setError(null);
 
-      console.log(`🔍 Fetching anime detail for ID: ${animeId}`);
-      console.log(`🔍 ID type: ${typeof animeId}, Is numeric: ${/^\d+$/.test(animeId)}`);
+      logger.debug(`🔍 Fetching anime detail for ID: ${animeId}`);
+      logger.debug(`🔍 ID type: ${typeof animeId}, Is numeric: ${/^\d+$/.test(animeId)}`);
 
       let query = supabase
         .from('titles')
@@ -75,20 +76,20 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
 
       // Try UUID first (most common case)
       if (animeId.includes('-')) {
-        console.log('🔍 Querying by UUID...');
+        logger.debug('🔍 Querying by UUID...');
         query = query.eq('id', animeId);
       } else if (/^\d+$/.test(animeId)) {
-        console.log('🔍 Querying by AniList ID...');
+        logger.debug('🔍 Querying by AniList ID...');
         query = query.eq('anilist_id', parseInt(animeId));
       } else {
         // Fallback: try as string ID
-        console.log('🔍 Querying by string ID...');
+        logger.debug('🔍 Querying by string ID...');
         query = query.eq('id', animeId);
       }
 
       const { data, error: queryError } = await query.maybeSingle();
 
-      console.log('🔍 Query result:', { data, queryError });
+      logger.debug('🔍 Query result:', { data, queryError });
 
       if (queryError) {
         console.error('❌ Database query error:', queryError);
@@ -96,7 +97,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
       }
 
       if (!data) {
-        console.warn('⚠️ No anime found for ID:', animeId);
+        logger.debug('⚠️ No anime found for ID:', animeId);
         setAnime(null);
         return;
       }
@@ -140,7 +141,7 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
         studios: data.title_studios?.map((ts: any) => ts.studios).filter(Boolean) || [],
       };
 
-      console.log('✅ Successfully transformed anime:', transformedAnime.title);
+      logger.debug('✅ Successfully transformed anime:', transformedAnime.title);
       setAnime(transformedAnime);
 
     } catch (err: any) {

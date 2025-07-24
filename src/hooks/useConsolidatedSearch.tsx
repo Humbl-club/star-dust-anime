@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface SearchResult {
   id: string;
@@ -28,7 +29,7 @@ export const useConsolidatedSearch = () => {
     }
 
     setIsSearching(true);
-    console.log('🔍 Searching for:', searchQuery, 'Type:', contentType);
+    logger.debug('🔍 Searching for:', searchQuery, 'Type:', contentType);
 
     try {
       // Build query based on content type with proper inner joins
@@ -93,7 +94,7 @@ export const useConsolidatedSearch = () => {
 
       const { data: results, error } = await query;
 
-      console.log('🔍 Search results found:', results?.length || 0);
+      logger.debug('🔍 Search results found:', results?.length || 0);
 
       if (error) {
         console.error('❌ Search error:', error);

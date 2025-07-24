@@ -17,6 +17,7 @@ import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
 import { LegalFooter } from "@/components/LegalFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from '@tanstack/react-query';
+import { logger } from "@/utils/logger";
 
 const Index = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ const Index = () => {
   const error = animeError;
 
   // Debug: Log homepage data
-  console.log('🏠 Homepage data check:', {
+  logger.debug('🏠 Homepage data check:', {
     allAnime,
     loading,
     error,
@@ -109,51 +110,51 @@ const Index = () => {
   
   // Database testing function
   const testDatabaseAccess = async () => {
-    console.log('🧪 Starting comprehensive database test...');
+    logger.debug('🧪 Starting comprehensive database test...');
     
     try {
       // Test 1: Simple count
-      console.log('🧪 Test 1: Checking titles count...');
+      logger.debug('🧪 Test 1: Checking titles count...');
       const { count, error: countError } = await supabase
         .from('titles')
         .select('*', { count: 'exact', head: true });
       
-      console.log('📊 Titles count:', count, 'Error:', countError);
+      logger.debug('📊 Titles count:', count, 'Error:', countError);
       
       // Test 2: Get some titles
-      console.log('🧪 Test 2: Getting sample titles...');
+      logger.debug('🧪 Test 2: Getting sample titles...');
       const { data: titles, error: titlesError } = await supabase
         .from('titles')
         .select('*')
         .limit(5);
       
-      console.log('📋 Sample titles:', titles, 'Error:', titlesError);
+      logger.debug('📋 Sample titles:', titles, 'Error:', titlesError);
       
       // Test 3: Get titles with anime details
-      console.log('🧪 Test 3: Getting anime with details...');
+      logger.debug('🧪 Test 3: Getting anime with details...');
       const { data: animeData, error: animeError } = await supabase
         .from('titles')
         .select('*, anime_details!inner(*)')
         .limit(5);
       
-      console.log('🎬 Anime with details:', animeData, 'Error:', animeError);
+      logger.debug('🎬 Anime with details:', animeData, 'Error:', animeError);
       
       // Test 4: Get titles with manga details
-      console.log('🧪 Test 4: Getting manga with details...');
+      logger.debug('🧪 Test 4: Getting manga with details...');
       const { data: mangaData, error: mangaError } = await supabase
         .from('titles')
         .select('*, manga_details!inner(*)')
         .limit(5);
       
-      console.log('📚 Manga with details:', mangaData, 'Error:', mangaError);
+      logger.debug('📚 Manga with details:', mangaData, 'Error:', mangaError);
       
       // Test 5: Clear React Query cache
-      console.log('🧪 Test 5: Clearing React Query cache...');
+      logger.debug('🧪 Test 5: Clearing React Query cache...');
       queryClient.clear();
-      console.log('✅ Cache cleared automatically');
+      logger.debug('✅ Cache cleared automatically');
       
       // Summary
-      console.log('🎯 Database Test Summary:', {
+      logger.debug('🎯 Database Test Summary:', {
         totalTitles: count,
         sampleTitlesCount: titles?.length || 0,
         animeWithDetailsCount: animeData?.length || 0,

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSearchStore } from '@/store';
 import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
+import { logger } from '@/utils/logger';
 
 export const useSearch = () => {
   const {
@@ -77,7 +78,7 @@ export const useSearch = () => {
       await unifiedSearch.getSuggestions(searchQuery);
       setSuggestions(unifiedSearch.suggestions);
     } catch (error) {
-      console.error('Failed to get suggestions:', error);
+      logger.error('Failed to get suggestions:', error);
     }
   }, [unifiedSearch, setSuggestions]);
 

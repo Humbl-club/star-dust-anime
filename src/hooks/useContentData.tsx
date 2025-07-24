@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { animeService, mangaService, AnimeContent, MangaContent } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 export interface PaginationInfo {
   current_page: number;
@@ -98,7 +99,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       order
     };
 
-    console.log('🔍 useContentData: Starting query with options:', {
+    logger.debug('🔍 useContentData: Starting query with options:', {
       contentType,
       useOptimized,
       useEdgeCache,
@@ -112,7 +113,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     try {
       // Use edge cache for home page aggregated data
       if (useEdgeCache && contentType === 'anime' && page === 1 && !search && !genre && !status && !type && !year && !season) {
-        console.log('🏠 useContentData: Using edge cached home data...');
+        logger.debug('🏠 useContentData: Using edge cached home data...');
         
         const { data: cachedData, error } = await supabase.functions.invoke('cached-home-data', {
           body: {
@@ -125,7 +126,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
           console.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
         } else if (cachedData?.success) {
           const endTime = performance.now();
-          console.log(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
+          logger.debug(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
             success: true,
             totalItems: (cachedData.data.trending?.length || 0) + (cachedData.data.recent?.length || 0) + (cachedData.data.topRated?.length || 0)
           });
@@ -159,13 +160,13 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
 
       if (useOptimized) {
         // Use optimized direct database queries
-        console.log(`🚀 useContentData: Calling optimized ${contentType} service...`);
+        logger.debug(`🚀 useContentData: Calling optimized ${contentType} service...`);
         const response = contentType === 'anime'
           ? await animeService.fetchAnimeOptimized(queryOptions)
           : await mangaService.fetchMangaOptimized(queryOptions);
 
         const endTime = performance.now();
-        console.log(`✅ useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+        logger.debug(`✅ useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
           success: response.success,
           dataLength: response.data?.data?.length || 0,
           error: response.error,
@@ -179,13 +180,13 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
         return response.data;
       } else {
         // Use edge function API
-        console.log(`🌐 useContentData: Calling edge function for ${contentType}...`);
+        logger.debug(`🌐 useContentData: Calling edge function for ${contentType}...`);
         const response = contentType === 'anime'
           ? await animeService.fetchAnime(queryOptions)
           : await mangaService.fetchManga(queryOptions);
 
         const endTime = performance.now();
-        console.log(`🌐 useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
+        logger.debug(`🌐 useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
           success: response.success,
           dataLength: response.data?.data?.length || 0,
           error: response.error,
@@ -239,7 +240,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
   // Clear React Query cache function
   const clearCache = () => {
     queryClient.clear();
-    console.log('useContentData: React Query cache cleared');
+    logger.debug('useContentData: React Query cache cleared');
   };
 
   // Sync from external API
@@ -277,7 +278,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
   };
 
   // Log final return data
-  console.log(`📊 useContentData: Final return data for ${contentType}:`, {
+  logger.debug(`📊 useContentData: Final return data for ${contentType}:`, {
     dataLength: queryResult?.data?.length || 0,
     loading,
     error: error?.message,

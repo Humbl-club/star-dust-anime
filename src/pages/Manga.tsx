@@ -26,6 +26,7 @@ import { Navigation } from "@/components/Navigation";
 import { MangaCard } from "@/components/features/MangaCard";
 import { VirtualizedContentGrid } from "@/components/layouts/VirtualizedContentGrid";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 const Manga = () => {
   const navigate = useNavigate();
@@ -90,7 +91,7 @@ const Manga = () => {
   const syncFromExternal = paginatedQuery.syncFromExternal;
 
   // Debug logging for manga list fetching
-  console.log('Manga.tsx: Fetching manga list with:', {
+  logger.debug('Manga.tsx: Fetching manga list with:', {
     functionName: 'anime-api (via useContentData)',
     payload: {
       contentType: 'manga',

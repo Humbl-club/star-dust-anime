@@ -36,6 +36,7 @@ import { useNamePreference } from "@/hooks/useNamePreference";
 import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
 import { FeatureWrapper } from "@/components/common/FeatureWrapper";
+import { logger } from "@/utils/logger";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -82,10 +83,10 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
 
   // Handle real-time search as user types
   const handleInputChange = (value: string) => {
-    console.log('Input changed:', value);
+    logger.debug('Input changed:', value);
     setQuery(value);
     if (value.trim().length > 2) {
-      console.log('Triggering search for:', value.trim());
+      logger.debug('Triggering search for:', value.trim());
       setShowResults(true);
       search(value.trim());
     } else if (value.trim().length === 0) {
@@ -204,7 +205,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                 contentType="all"
                 className="max-w-md"
                 onSearch={(query) => {
-                  console.log('Navigation search:', query);
+                  logger.debug('Navigation search:', query);
                   navigate(`/anime?search=${encodeURIComponent(query)}`);
                 }}
               />
@@ -293,7 +294,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
                   showDropdown={true}
                   contentType="all"
                   onSearch={(query) => {
-                    console.log('Mobile search:', query);
+                    logger.debug('Mobile search:', query);
                     navigate(`/anime?search=${encodeURIComponent(query)}`);
                     setMobileMenuOpen(false);
                   }}
