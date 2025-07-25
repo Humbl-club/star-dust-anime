@@ -37,6 +37,7 @@ import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { LegalFooter } from "@/components/LegalFooter";
 import { logger } from "@/utils/logger";
+import { toast } from "sonner";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -123,6 +124,33 @@ const Anime = () => {
     },
     timestamp: new Date().toISOString()
   });
+
+  // Add comprehensive error handling
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching anime data:', error);
+      toast.error("Error loading anime", {
+        description: error.message || "Failed to load anime. Please try refreshing the page.",
+        duration: 5000
+      });
+    }
+  }, [error]);
+
+  // Calculate if we have data to display
+  const hasData = viewMode === 'infinite' 
+    ? infiniteQuery.data && infiniteQuery.data.length > 0
+    : paginatedQuery.data && paginatedQuery.data.length > 0;
+
+  // Log data state for debugging
+  useEffect(() => {
+    logger.debug('Anime page data state:', {
+      hasData,
+      loading,
+      error,
+      dataLength: viewMode === 'infinite' ? infiniteQuery.data?.length : paginatedQuery.data?.length,
+      viewMode
+    });
+  }, [hasData, loading, error, viewMode]);
 
   // Log any errors
   if (error) {
