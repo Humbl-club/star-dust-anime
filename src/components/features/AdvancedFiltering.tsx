@@ -413,7 +413,7 @@ export function AdvancedFiltering({
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any status</SelectItem>
+                  <SelectItem value="all">Any status</SelectItem>
                   {statuses.map(status => (
                     <SelectItem key={status} value={status}>
                       {status}
@@ -431,7 +431,7 @@ export function AdvancedFiltering({
                   <SelectValue placeholder="Any type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any type</SelectItem>
+                  <SelectItem value="all">Any type</SelectItem>
                   {types.map(type => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -550,7 +550,7 @@ export function AdvancedFiltering({
                     <SelectValue placeholder="Any season" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any season</SelectItem>
+                    <SelectItem value="all">Any season</SelectItem>
                     <SelectItem value="Spring">Spring</SelectItem>
                     <SelectItem value="Summer">Summer</SelectItem>
                     <SelectItem value="Fall">Fall</SelectItem>
