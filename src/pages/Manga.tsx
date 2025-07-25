@@ -10,6 +10,7 @@ import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pagination } from "@/components/ui/pagination";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { 
@@ -17,7 +18,11 @@ import {
   Filter, 
   BookOpen,
   Star,
-  Calendar
+  Calendar,
+  RefreshCw,
+  AlertCircle,
+  X,
+  Loader2
 } from "lucide-react";
 import { genres, mangaStatuses, type Manga } from "@/data/animeData";
 import { useContentData } from "@/hooks/useContentData";
@@ -27,11 +32,11 @@ import { MangaCard } from "@/components/features/MangaCard";
 import { VirtualizedContentGrid } from "@/components/layouts/VirtualizedContentGrid";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import { toast } from "sonner";
 
 const Manga = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { toast } = useToast();
   
   // State management
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,6 +111,33 @@ const Manga = () => {
     timestamp: new Date().toISOString()
   });
 
+  // Add comprehensive error handling
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching manga data:', error);
+      toast.error("Error loading manga", {
+        description: error.message || "Failed to load manga. Please try refreshing the page.",
+        duration: 5000
+      });
+    }
+  }, [error]);
+
+  // Calculate if we have data to display
+  const hasData = viewMode === 'infinite' 
+    ? infiniteQuery.data && infiniteQuery.data.length > 0
+    : paginatedQuery.data && paginatedQuery.data.length > 0;
+
+  // Log data state for debugging
+  useEffect(() => {
+    logger.debug('Manga page data state:', {
+      hasData,
+      loading,
+      error,
+      dataLength: viewMode === 'infinite' ? infiniteQuery.data?.length : paginatedQuery.data?.length,
+      viewMode
+    });
+  }, [hasData, loading, error, viewMode]);
+
   // Log any errors
   if (error) {
     console.error('Manga.tsx: Error fetching manga list:', {
@@ -156,20 +188,23 @@ const Manga = () => {
     try {
       await syncFromExternal(3); // Sync 3 pages like the original logic
       
-      toast({
-        title: "Manga Sync Complete!",
+      toast.success("Manga Sync Complete!", {
         description: "Successfully synced manga data from external sources.",
       });
     } catch (error: any) {
       console.error('Manga sync failed:', error);
-      toast({
-        title: "Sync Failed",
+      toast.error("Sync Failed", {
         description: error.message || "Failed to sync manga data. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  // Sync function placeholder (to be replaced with actual sync implementation)
+  const syncFromExternalManga = async (page: number) => {
+    // This would typically sync from AniList or other sources
+    throw new Error("Sync functionality not implemented yet");
   };
 
   return (
@@ -358,24 +393,96 @@ const Manga = () => {
             </>
           )
         ) : (
-          <Card className="anime-card text-center py-12 glow-card">
-            <CardContent>
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center glow-primary">
-                  <Search className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2 text-gradient-primary">No manga found</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Try adjusting your search criteria or clear the filters.
-                  </p>
-                  <Button variant="hero" onClick={clearFilters}>
-                    Clear All Filters
-                  </Button>
-                </div>
+          <>
+            {/* Empty State */}
+            {!loading && !hasData && !error && (
+              <div className="container mx-auto py-8">
+                <Card className="p-8 text-center max-w-2xl mx-auto">
+                  <CardContent className="space-y-4">
+                    <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                      <BookOpen className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-bold">No Manga Found</h3>
+                    <p className="text-muted-foreground text-lg">
+                      {query 
+                        ? `No results found for "${query}". Try adjusting your filters or search terms.`
+                        : filters.genre || filters.status || filters.type
+                          ? "No manga matches your current filters. Try adjusting them."
+                          : "No manga available at the moment. The database might be syncing."}
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      {(filters.genre || filters.status || filters.type || query) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setFilters({
+                              contentType: 'manga',
+                              sort_by: 'popularity',
+                              order: 'desc'
+                            });
+                            setQuery('');
+                            setSearchParams({});
+                          }}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Clear Filters
+                        </Button>
+                      )}
+                      <Button
+                        onClick={async () => {
+                          setIsSyncing(true);
+                          try {
+                            await syncFromExternalManga(1);
+                            toast.success("Sync started", {
+                              description: "Fetching latest manga data...",
+                            });
+                          } catch (error) {
+                            toast.error("Sync failed", {
+                              description: "Could not sync data. Please try again.",
+                            });
+                          } finally {
+                            setIsSyncing(false);
+                          }
+                        }}
+                        disabled={isSyncing}
+                      >
+                        {isSyncing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Sync from AniList
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+              <div className="container mx-auto py-8">
+                <Alert variant="destructive" className="max-w-2xl mx-auto">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="ml-2">
+                    <strong>Error loading manga:</strong> {error.message || 'An unexpected error occurred'}
+                    <Button
+                      variant="link"
+                      className="ml-4 p-0 h-auto"
+                      onClick={() => window.location.reload()}
+                    >
+                      Try refreshing the page
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
