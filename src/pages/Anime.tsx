@@ -18,7 +18,10 @@ import {
   Grid3x3,
   List,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  X,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContentData } from "@/hooks/useContentData";
@@ -46,6 +49,7 @@ const Anime = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
   const [availableStudios, setAvailableStudios] = useState<string[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
   
   // Use search store for state management
   const { query, filters, setFilters, setQuery } = useSearchStore();
@@ -187,6 +191,12 @@ const Anime = () => {
   const handleAddToList = (animeId: string) => {
     // Navigate to anime detail page where AddToListButton handles the functionality
     navigate(`/anime/${animeId}`);
+  };
+
+  // Sync function placeholder (to be replaced with actual sync implementation)
+  const syncFromExternal = async (page: number) => {
+    // This would typically sync from AniList or other sources
+    throw new Error("Sync functionality not implemented yet");
   };
 
   // Update URL params when filters change
@@ -405,24 +415,96 @@ const Anime = () => {
             </>
           )
         ) : (
-          <Card className="anime-card text-center py-12 glow-card">
-            <CardContent>
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center glow-primary">
-                  <Search className="w-8 h-8 text-primary-foreground" />
+          <>
+            {/* Empty State */}
+            {!loading && !hasData && !error && (
+          <div className="container mx-auto py-8">
+            <Card className="p-8 text-center max-w-2xl mx-auto">
+              <CardContent className="space-y-4">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-10 h-10 text-primary" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2 text-gradient-primary">No anime found</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Try adjusting your search criteria or clear the filters.
-                  </p>
-                  <Button variant="hero" onClick={() => setFilters({ contentType: 'anime' })}>
-                    Clear All Filters
+                <h3 className="text-2xl font-bold">No Anime Found</h3>
+                <p className="text-muted-foreground text-lg">
+                  {query 
+                    ? `No results found for "${query}". Try adjusting your filters or search terms.`
+                    : filters.genre || filters.status || filters.type
+                      ? "No anime matches your current filters. Try adjusting them."
+                      : "No anime available at the moment. The database might be syncing."}
+                </p>
+                <div className="flex gap-3 justify-center">
+                  {(filters.genre || filters.status || filters.type || query) && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFilters({
+                          contentType: 'anime',
+                          sort_by: 'score',
+                          order: 'desc'
+                        });
+                        setQuery('');
+                        setSearchParams({});
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Clear Filters
+                    </Button>
+                  )}
+                  <Button
+                    onClick={async () => {
+                      setIsSyncing(true);
+                      try {
+                        await syncFromExternal(1);
+                        toast.success("Sync started", {
+                          description: "Fetching latest anime data...",
+                        });
+                      } catch (error) {
+                        toast.error("Sync failed", {
+                          description: "Could not sync data. Please try again.",
+                        });
+                      } finally {
+                        setIsSyncing(false);
+                      }
+                    }}
+                    disabled={isSyncing}
+                  >
+                    {isSyncing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Sync from AniList
+                      </>
+                    )}
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+          <div className="container mx-auto py-8">
+            <Alert variant="destructive" className="max-w-2xl mx-auto">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <strong>Error loading anime:</strong> {error.message || 'An unexpected error occurred'}
+                <Button
+                  variant="link"
+                  className="ml-4 p-0 h-auto"
+                  onClick={() => window.location.reload()}
+                >
+                  Try refreshing the page
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+            )}
+          </>
         )}
         </PullToRefresh>
       </div>
