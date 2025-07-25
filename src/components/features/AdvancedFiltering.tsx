@@ -120,7 +120,9 @@ export function AdvancedFiltering({
 
   // Update filter function with enhanced logic
   const updateFilter = (key: string, value: any) => {
-    setFilters({ [key]: value });
+    // Convert 'all' to undefined so it doesn't filter
+    const filterValue = value === 'all' ? undefined : value;
+    setFilters({ [key]: filterValue });
   };
 
   // Enhanced genre handling - multi-select
