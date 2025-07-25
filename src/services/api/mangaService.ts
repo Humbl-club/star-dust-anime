@@ -101,8 +101,9 @@ class MangaApiService extends BaseApiService {
           manga_details!inner(*),
           ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
           title_authors(authors(*))
-        `, { count: 'exact' })
-        .eq('content_type', 'manga'); // Use the new indexed content_type column
+        `, { count: 'exact' }) as any;
+      
+      query = query.eq('content_type', 'manga'); // Use the new indexed content_type column
 
       // Apply manga-specific filters at database level
       if (status) {
@@ -249,15 +250,16 @@ class MangaApiService extends BaseApiService {
 
   async getMangaById(id: string): Promise<ServiceResponse<MangaContent | null>> {
     try {
-      const { data, error } = await this.supabase
+      const query = this.supabase
         .from('titles')
         .select(`
           *,
           manga_details(*),
           title_genres(genres(*)),
           title_authors(authors(*))
-        `)
-        .eq('id', id)
+        `) as any;
+      
+      const { data, error } = await query.eq('id', id)
         .eq('content_type', 'manga') // Use the new content_type column
         .maybeSingle();
 

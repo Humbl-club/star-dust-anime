@@ -125,8 +125,9 @@ class SearchApiService extends BaseApiService {
             anime_details!inner(*),
             title_genres(genres(*)),
             title_studios(studios(*))
-          `)
-          .eq('content_type', 'anime') // Use the new indexed content_type column
+          `) as any;
+        
+        animeQuery = animeQuery.eq('content_type', 'anime') // Use the new indexed content_type column
           .textSearch('fts', searchTerm, {
             type: 'websearch',
             config: 'english'
@@ -203,8 +204,9 @@ class SearchApiService extends BaseApiService {
             manga_details!inner(*),
             title_genres(genres(*)),
             title_authors(authors(*))
-          `)
-          .eq('content_type', 'manga') // Use the new indexed content_type column
+          `) as any;
+        
+        mangaQuery = mangaQuery.eq('content_type', 'manga') // Use the new indexed content_type column
           .textSearch('fts', searchTerm, {
             type: 'websearch',
             config: 'english'
@@ -347,8 +349,9 @@ class SearchApiService extends BaseApiService {
           ${content_type === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
           title_genres(genres(*)),
           ${content_type === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))'}
-        `, { count: 'exact' })
-        .eq('content_type', content_type); // Use the new indexed content_type column
+        `, { count: 'exact' }) as any;
+      
+      dbQuery = dbQuery.eq('content_type', content_type); // Use the new indexed content_type column
 
       // Apply text search using the new full-text search index
       if (query && query.trim()) {
