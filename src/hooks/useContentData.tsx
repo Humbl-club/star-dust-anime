@@ -223,15 +223,23 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     data: queryResult,
     isLoading: loading,
     error,
-    refetch: queryRefetch
+    refetch: queryRefetch,
+    isRefetching
   } = useQuery({
     queryKey,
     queryFn,
     enabled: autoFetch,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: (failureCount, error) => {
+      // Only retry on network errors, not on empty results
+      if (error?.message?.includes('empty')) return false;
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    meta: {
+      errorMessage: `Failed to load ${contentType}. Please check your connection and try again.`
+    }
   });
 
   // Refetch function
