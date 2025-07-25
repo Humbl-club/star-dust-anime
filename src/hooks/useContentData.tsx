@@ -83,34 +83,34 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     useEdgeCache ? 'edge-cache' : 'normal'
   ];
 
-  // Query function that uses either optimized DB calls or edge function
   const queryFn = async () => {
-    // Clean options to remove undefined values
+    const startTime = performance.now();
+    
+    // Clean and validate options (declared outside try block for error logging)
     const queryOptions = {
-      page,
-      limit,
-      ...(search && { search }),
-      ...(genre && { genre }),
-      ...(status && { status }),
-      ...(type && { type }),
-      ...(year && { year }),
-      ...(season && { season }),
-      sort_by,
-      order
+      page: Math.max(1, page),
+      limit: Math.min(100, Math.max(1, limit)),
+      ...(search && search.trim() && { search: search.trim() }),
+      ...(genre && genre !== 'all' && { genre }),
+      ...(status && status !== 'all' && { status }),
+      ...(type && type !== 'all' && { type }),
+      ...(year && year !== 'all' && { year }),
+      ...(season && season !== 'all' && { season }),
+      sort_by: sort_by || 'score',
+      order: order || 'desc'
     };
 
-    logger.debug('🔍 useContentData: Starting query with options:', {
-      contentType,
-      useOptimized,
-      useEdgeCache,
-      functionName: useEdgeCache ? 'edge-cache' : (useOptimized ? 'direct-db-query' : 'anime-api'),
-      queryOptions,
-      timestamp: new Date().toISOString()
-    });
-
-    const startTime = performance.now();
-
     try {
+
+      logger.debug(`🔍 useContentData: Fetching ${contentType} with:`, {
+        queryOptions,
+        useOptimized,
+        useEdgeCache,
+        queryKey
+      });
+
+      let response;
+
       // Use edge cache for home page aggregated data
       if (useEdgeCache && contentType === 'anime' && page === 1 && !search && !genre && !status && !type && !year && !season) {
         logger.debug('🏠 useContentData: Using edge cached home data...');
@@ -123,7 +123,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
         });
         
         if (error) {
-          console.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
+          logger.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
         } else if (cachedData?.success) {
           const endTime = performance.now();
           logger.debug(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
@@ -159,60 +159,62 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
       }
 
       if (useOptimized) {
-        // Use optimized direct database queries
+        // Use optimized direct database queries via service
         logger.debug(`🚀 useContentData: Calling optimized ${contentType} service...`);
-        const response = contentType === 'anime'
+        response = contentType === 'anime'
           ? await animeService.fetchAnimeOptimized(queryOptions)
           : await mangaService.fetchMangaOptimized(queryOptions);
 
-        const endTime = performance.now();
-        logger.debug(`✅ useContentData: Optimized ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
-          success: response.success,
-          dataLength: response.data?.data?.length || 0,
-          error: response.error,
-          pagination: response.data?.pagination,
-          rawResponse: response
-        });
-
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch data');
         }
-        return response.data;
       } else {
         // Use edge function API
         logger.debug(`🌐 useContentData: Calling edge function for ${contentType}...`);
-        const response = contentType === 'anime'
+        response = contentType === 'anime'
           ? await animeService.fetchAnime(queryOptions)
           : await mangaService.fetchManga(queryOptions);
-
-        const endTime = performance.now();
-        logger.debug(`🌐 useContentData: Edge function ${contentType} response (${Math.round(endTime - startTime)}ms):`, {
-          success: response.success,
-          dataLength: response.data?.data?.length || 0,
-          error: response.error,
-          pagination: response.data?.pagination,
-          rawResponse: response
-        });
 
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch data');
         }
-        return {
-          data: response.data.data,
-          pagination: response.data.pagination
-        };
       }
+
+      const endTime = performance.now();
+      const duration = Math.round(endTime - startTime);
+
+      logger.debug(`✅ useContentData completed in ${duration}ms:`, {
+        contentType,
+        itemsReturned: response.data?.data?.length || 0,
+        hasNextPage: response.data?.pagination?.has_next_page
+      });
+
+      // Ensure we always return the expected structure
+      return {
+        data: response.data?.data || [],
+        pagination: response.data?.pagination || {
+          current_page: page,
+          per_page: limit,
+          total: 0,
+          total_pages: 0,
+          has_next_page: false,
+          has_prev_page: false
+        }
+      };
+
     } catch (error) {
       const endTime = performance.now();
-      console.error(`❌ useContentData: Error fetching ${contentType} data (${Math.round(endTime - startTime)}ms):`, {
+      const duration = Math.round(endTime - startTime);
+      
+      logger.error(`❌ useContentData error after ${duration}ms:`, {
+        contentType,
         error: error.message,
         stack: error.stack,
-        queryOptions,
-        useOptimized,
-        contentType,
-        fullError: error
+        queryOptions
       });
-      throw error;
+
+      // Re-throw with more context
+      throw new Error(`Failed to load ${contentType}: ${error.message}`);
     }
   };
 
