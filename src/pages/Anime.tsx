@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pagination } from "@/components/ui/pagination";
 import { 
   Filter, 
@@ -15,7 +16,9 @@ import {
   Heart,
   Search,
   Grid3x3,
-  List
+  List,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContentData } from "@/hooks/useContentData";
