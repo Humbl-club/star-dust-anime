@@ -410,7 +410,7 @@ export function AdvancedFiltering({
             {/* Status */}
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value || undefined)}>
+              <Select value={filters.status || 'all'} onValueChange={(value) => updateFilter('status', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any status" />
                 </SelectTrigger>
@@ -428,7 +428,7 @@ export function AdvancedFiltering({
             {/* Type */}
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={filters.type || ''} onValueChange={(value) => updateFilter('type', value || undefined)}>
+              <Select value={filters.type || 'all'} onValueChange={(value) => updateFilter('type', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Any type" />
                 </SelectTrigger>
@@ -547,7 +547,7 @@ export function AdvancedFiltering({
             {contentType === 'anime' && (
               <div className="space-y-2">
                 <Label>Season</Label>
-                <Select value={filters.season || ''} onValueChange={(value) => updateFilter('season', value || undefined)}>
+                <Select value={filters.season || 'all'} onValueChange={(value) => updateFilter('season', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Any season" />
                   </SelectTrigger>
