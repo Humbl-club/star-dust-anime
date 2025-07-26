@@ -1835,10 +1835,13 @@ export type Database = {
           anilist_id: number
           anilist_score: number | null
           color_theme: string | null
+          content_type: string | null
           created_at: string | null
           favorites: number | null
+          fts: unknown | null
           id: string
           image_url: string | null
+          members: number | null
           popularity: number | null
           rank: number | null
           score: number | null
@@ -1853,10 +1856,13 @@ export type Database = {
           anilist_id: number
           anilist_score?: number | null
           color_theme?: string | null
+          content_type?: string | null
           created_at?: string | null
           favorites?: number | null
+          fts?: unknown | null
           id?: string
           image_url?: string | null
+          members?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
@@ -1871,10 +1877,13 @@ export type Database = {
           anilist_id?: number
           anilist_score?: number | null
           color_theme?: string | null
+          content_type?: string | null
           created_at?: string | null
           favorites?: number | null
+          fts?: unknown | null
           id?: string
           image_url?: string | null
+          members?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
