@@ -33,6 +33,7 @@ import { VirtualizedContentGrid } from "@/components/layouts/VirtualizedContentG
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 import { toast } from "sonner";
+import { useDataCheck } from "@/hooks/useDataCheck";
 
 const Manga = () => {
   const navigate = useNavigate();
@@ -44,6 +45,9 @@ const Manga = () => {
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('infinite');
+  
+  // Data check hook to see if database is empty and auto-populate
+  const { isEmpty: isDatabaseEmpty, isChecking } = useDataCheck('manga');
   
   // Get filters from URL params and search store
   const { filters, setFilters, query, setQuery } = useSearchStore();
