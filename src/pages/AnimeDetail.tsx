@@ -16,6 +16,7 @@ import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
 import { DetailInfoGrid } from "@/components/DetailInfoGrid";
+import { SmartTrailerSection } from "@/components/SmartTrailerSection";
 import { OfflineFallback } from "@/components/OfflineFallback";
 import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
@@ -392,6 +393,14 @@ const AnimeDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Smart Trailer Section */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.75s' }}>
+            <SmartTrailerSection
+              animeTitle={anime.title}
+              className="mb-8"
+            />
+          </div>
 
           {/* Legal Streaming Links */}
           <LegalStreamingLinks anime={anime} />
