@@ -2,20 +2,22 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { Resend } from 'https://esm.sh/resend@4.0.0'
 
+// Use environment variables instead of hardcoded values
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const resendApiKey = Deno.env.get('RESEND_API_KEY')!
+const appUrl = Deno.env.get('APP_URL') || 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com'
+
 // Initialize email provider
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
+const resend = new Resend(resendApiKey)
 
 // Initialize Supabase client
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
-)
+})
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,8 +90,8 @@ Deno.serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured')
     }
     
-    // Generate email content
-    const confirmationUrl = `https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com/`
+    // Generate email content using environment variables
+    const confirmationUrl = appUrl
     
     const htmlContent = `
       <!DOCTYPE html>
