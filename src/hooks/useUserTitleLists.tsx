@@ -372,20 +372,12 @@ export const useUserTitleLists = () => {
 
   // Get anime list entry by title ID
   const getAnimeListEntry = (titleId: string): UserAnimeListEntry | undefined => {
-    const entry = titleLists.find(
-      item => item.media_type === 'anime' && 
-              item.title_id === titleId
-    );
-    return entry ? toAnimeEntry(entry) : undefined;
+    return animeList.find(entry => entry.title_id === titleId);
   };
 
   // Get manga list entry by title ID
   const getMangaListEntry = (titleId: string): UserMangaListEntry | undefined => {
-    const entry = titleLists.find(
-      item => item.media_type === 'manga' && 
-              item.title_id === titleId
-    );
-    return entry ? toMangaEntry(entry) : undefined;
+    return mangaList.find(entry => entry.title_id === titleId);
   };
 
   // Get anime by status
