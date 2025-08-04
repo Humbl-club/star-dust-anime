@@ -1,6 +1,6 @@
 
 import React, { lazy, Suspense } from 'react';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -87,33 +87,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Enhanced query client with comprehensive caching strategy - moved outside component
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30 * 60 * 1000, // 30 minutes - longer for better performance
-      gcTime: 2 * 60 * 60 * 1000, // 2 hours - keep in memory longer
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: 'always',
-      networkMode: 'online',
-      // Enable background refetching for fresh data
-      refetchInterval: 5 * 60 * 1000, // Background refresh every 5 minutes
-      refetchIntervalInBackground: false, // Only when tab is active
-    },
-    mutations: {
-      retry: 1,
-      onError: (error) => {
-        console.error('Mutation error:', error);
-      },
-      // Optimistic updates for better UX
-      onMutate: () => {
-        console.log('Mutation started - implementing optimistic update');
-      },
-    },
-  },
-});
+import { queryClient } from '@/lib/queryClient';
 
 // Create persister for React Query
 const persister = createSyncStoragePersister({
