@@ -129,19 +129,28 @@ export function useInfiniteContentData(options: InfiniteContentOptions): Infinit
     retry: 2
   });
 
-  // Flatten all pages into a single array
+  // Flatten all pages into a single array and ensure unique items
   const allItems = data?.pages.flatMap(page => page.data as any[]) || [];
+  
+  // Remove duplicates based on ID to prevent React key warnings
+  const uniqueItems = allItems.reduce((acc, item) => {
+    if (!acc.find(existing => existing.id === item.id)) {
+      acc.push(item);
+    }
+    return acc;
+  }, [] as any[]);
+  
   const totalItems = data?.pages[0]?.total || 0;
 
   return {
-    data: allItems,
+    data: uniqueItems,
     loading: isFetching && !isFetchingNextPage,
     error: error as Error | null,
     hasNextPage: !!hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
     totalItems,
-    currentItems: allItems.length,
+    currentItems: uniqueItems.length,
     refetch
   };
 }
