@@ -21,49 +21,110 @@ import { OfflineFallback } from "@/components/OfflineFallback";
 import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
+import { StreamingLinks } from "@/components/StreamingLinks";
 
-
-// Legal Streaming Links Component
+// Enhanced Legal Streaming Links Component
 const LegalStreamingLinks = ({ anime }: { anime: any }) => {
-  const streamingServices = [
-    { name: 'Crunchyroll', url: `https://www.crunchyroll.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🟠' },
-    { name: 'Funimation', url: `https://www.funimation.com/search/?q=${encodeURIComponent(anime.title)}`, icon: '🟣' },
-    { name: 'Netflix', url: `https://www.netflix.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🔴' },
-    { name: 'Hulu', url: `https://www.hulu.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🟢' },
-    { name: 'Amazon Prime', url: `https://www.amazon.com/s?k=${encodeURIComponent(anime.title)}`, icon: '🔵' }
+  // Check if external_links data exists (from AniList API)
+  const externalLinks = anime.external_links || [];
+  
+  // If we have external links data, use the StreamingLinks component
+  if (externalLinks.length > 0) {
+    return (
+      <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+        <StreamingLinks 
+          externalLinks={externalLinks} 
+          colorTheme={anime.color_theme}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: Create search links for popular streaming platforms
+  const fallbackStreamingLinks = [
+    { 
+      id: 1, 
+      url: `https://www.crunchyroll.com/search?q=${encodeURIComponent(anime.title)}`, 
+      site: 'Crunchyroll', 
+      type: 'STREAMING',
+      color: '#FF6600'
+    },
+    { 
+      id: 2, 
+      url: `https://www.netflix.com/search?q=${encodeURIComponent(anime.title)}`, 
+      site: 'Netflix', 
+      type: 'STREAMING',
+      color: '#E50914'
+    },
+    { 
+      id: 3, 
+      url: `https://www.hulu.com/search?q=${encodeURIComponent(anime.title)}`, 
+      site: 'Hulu', 
+      type: 'STREAMING',
+      color: '#1CE783'
+    },
+    { 
+      id: 4, 
+      url: `https://www.amazon.com/s?k=${encodeURIComponent(anime.title + ' anime')}`, 
+      site: 'Amazon Prime Video', 
+      type: 'STREAMING',
+      color: '#00A8E1'
+    },
+    { 
+      id: 5, 
+      url: `https://www.funimation.com/search/?q=${encodeURIComponent(anime.title)}`, 
+      site: 'Funimation', 
+      type: 'STREAMING',
+      color: '#5B4FFF'
+    }
   ];
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.8s' }}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-          <Play className="w-6 h-6 text-primary" />
-          Watch Legally
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-6">
-          Support the creators by watching on official platforms:
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {streamingServices.map((service) => (
-            <a
-              key={service.name}
-              href={service.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:bg-accent/50 hover:border-primary/30 transition-all duration-200 hover:scale-105 group"
-            >
-              <span className="text-2xl">{service.icon}</span>
-              <div className="flex-1">
-                <span className="text-sm font-medium block">{service.name}</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </a>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg">
+        <CardContent className="p-8">
+          <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <ExternalLink className="w-6 h-6 text-primary" />
+            Search on Streaming Platforms
+          </h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            No direct streaming links available. Search for "{anime.title}" on these platforms:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {fallbackStreamingLinks.map((service, index) => (
+              <Button
+                key={service.id}
+                variant="outline"
+                size="sm"
+                asChild
+                className="h-auto p-3 justify-start hover:scale-[1.02] transition-all duration-200 animate-fade-in"
+                style={{ 
+                  animationDelay: `${0.1 + (index * 0.05)}s`,
+                  borderColor: service.color ? `${service.color}40` : undefined
+                }}
+              >
+                <a href={service.url} target="_blank" rel="noopener noreferrer">
+                  <div className="flex items-center gap-3 w-full">
+                    <span className="text-lg">
+                      {service.site === 'Crunchyroll' && '🟠'}
+                      {service.site === 'Netflix' && '🔴'}
+                      {service.site === 'Hulu' && '🟢'}
+                      {service.site === 'Amazon Prime Video' && '🔵'}
+                      {service.site === 'Funimation' && '🟣'}
+                    </span>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-sm">{service.site}</div>
+                      <div className="text-xs text-muted-foreground">Search Platform</div>
+                    </div>
+                    <ExternalLink className="w-4 h-4 opacity-60" />
+                  </div>
+                </a>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
