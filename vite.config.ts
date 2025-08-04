@@ -139,13 +139,47 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          'query-vendor': ['@tanstack/react-query', '@tanstack/react-query-persist-client'],
-          'supabase': ['@supabase/supabase-js'],
-          'date-utils': ['date-fns'],
-          'animation': ['framer-motion'],
+        manualChunks: (id) => {
+          // Vendor chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'query-vendor';
+            }
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase';
+            }
+            if (id.includes('framer-motion')) {
+              return 'animation';
+            }
+            if (id.includes('date-fns')) {
+              return 'date-utils';
+            }
+            return 'vendor';
+          }
+          
+          // Page chunks - explicit naming for better caching
+          if (id.includes('/pages/')) {
+            const pageName = id.split('/pages/')[1]?.split('.')[0];
+            if (pageName) {
+              return `page-${pageName.toLowerCase()}`;
+            }
+          }
+          
+          // Component chunks
+          if (id.includes('/components/')) {
+            return 'components';
+          }
+          
+          // Hook chunks
+          if (id.includes('/hooks/')) {
+            return 'hooks';
+          }
         },
       },
     },

@@ -18,26 +18,41 @@ import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
-// Lazy load everything else
-const lazyLoad = (path: string) => lazy(() => import(`./pages/${path}`));
+// Explicit lazy imports for better build optimization
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Anime = lazy(() => import('./pages/Anime'));
+const Manga = lazy(() => import('./pages/Manga'));
+const AnimeDetail = lazy(() => import('./pages/AnimeDetail'));
+const MangaDetail = lazy(() => import('./pages/MangaDetail'));
+const Trending = lazy(() => import('./pages/Trending'));
+const MyLists = lazy(() => import('./pages/MyLists'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Gamification = lazy(() => import('./pages/Gamification'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
+const EmailDebug = lazy(() => import('./pages/EmailDebug'));
+const TestDashboard = lazy(() => import('./pages/TestDashboard'));
+const SyncDashboard = lazy(() => import('./pages/SyncDashboard'));
+const PerformanceMonitoring = lazy(() => import('./pages/PerformanceMonitoring'));
 
 const routes = [
-  { path: '/dashboard', component: lazyLoad('Dashboard') },
-  { path: '/anime', component: lazyLoad('Anime') },
-  { path: '/manga', component: lazyLoad('Manga') },
-  { path: '/anime/:id', component: lazyLoad('AnimeDetail') },
-  { path: '/manga/:id', component: lazyLoad('MangaDetail') },
-  { path: '/trending', component: lazyLoad('Trending') },
-  { path: '/my-lists', component: lazyLoad('MyLists') },
-  { path: '/user/:username', component: lazyLoad('UserProfile') },
-  { path: '/analytics', component: lazyLoad('Analytics') },
-  { path: '/gamification', component: lazyLoad('Gamification') },
-  { path: '/admin', component: lazyLoad('admin/AdminDashboard') },
-  { path: '/settings', component: lazyLoad('Settings') },
-  { path: '/email-debug', component: lazyLoad('EmailDebug') },
-  { path: '/test-dashboard', component: lazyLoad('TestDashboard') },
-  { path: '/sync-dashboard', component: lazyLoad('SyncDashboard') },
-  { path: '/performance-monitoring', component: lazyLoad('PerformanceMonitoring') },
+  { path: '/dashboard', component: Dashboard },
+  { path: '/anime', component: Anime },
+  { path: '/manga', component: Manga },
+  { path: '/anime/:id', component: AnimeDetail },
+  { path: '/manga/:id', component: MangaDetail },
+  { path: '/trending', component: Trending },
+  { path: '/my-lists', component: MyLists },
+  { path: '/user/:username', component: UserProfile },
+  { path: '/analytics', component: Analytics },
+  { path: '/gamification', component: Gamification },
+  { path: '/admin', component: AdminDashboard },
+  { path: '/settings', component: Settings },
+  { path: '/email-debug', component: EmailDebug },
+  { path: '/test-dashboard', component: TestDashboard },
+  { path: '/sync-dashboard', component: SyncDashboard },
+  { path: '/performance-monitoring', component: PerformanceMonitoring },
 ];
 
 // Loading component
