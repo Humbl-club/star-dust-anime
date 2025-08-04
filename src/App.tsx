@@ -37,6 +37,7 @@ const EmailDebug = lazy(() => import('./pages/EmailDebug'));
 const TestDashboard = lazy(() => import('./pages/TestDashboard'));
 const SyncDashboard = lazy(() => import('./pages/SyncDashboard'));
 const PerformanceMonitoring = lazy(() => import('./pages/PerformanceMonitoring'));
+const StreamingSearch = lazy(() => import('./pages/StreamingSearch'));
 
 const routes = [
   { path: '/', element: Index, protected: false },
@@ -58,6 +59,7 @@ const routes = [
   { path: '/test-dashboard', element: TestDashboard, protected: true },
   { path: '/sync-dashboard', element: SyncDashboard, protected: true },
   { path: '/performance-monitoring', element: PerformanceMonitoring, protected: true },
+  { path: '/streaming-search', element: StreamingSearch, protected: false },
   { path: '/404', element: NotFound, protected: false },
   { path: '*', element: NotFound, protected: false } // Catch-all
 ];

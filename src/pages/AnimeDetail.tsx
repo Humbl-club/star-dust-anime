@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, Award, Play, Zap, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Award, Play, Zap, ExternalLink, Search } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
 import { CommentsSection } from "@/components/CommentsSection";
@@ -34,6 +34,7 @@ import { RiNetflixFill } from 'react-icons/ri';
 
 // Enhanced Legal Streaming Links Component
 const LegalStreamingLinks = ({ anime }: { anime: any }) => {
+  const navigate = useNavigate();
   // Check if external_links data exists (from AniList API)
   const externalLinks = anime.external_links || [];
   
@@ -125,10 +126,19 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
             Search on Streaming Platforms
           </h3>
           <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-amber-200/20">
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <p className="text-sm text-muted-foreground flex items-center gap-2 mb-3">
               <ExternalLink className="w-4 h-4" />
               No direct streaming links available. Search for "{anime.title}" on these platforms:
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/streaming-search?q=${encodeURIComponent(anime.title)}`)}
+              className="w-full"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Advanced Streaming Platform Search
+            </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {fallbackStreamingLinks.map((service, index) => (
