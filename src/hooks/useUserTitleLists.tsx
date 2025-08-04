@@ -15,7 +15,7 @@ import type {
 import { STATUS_MAPPING } from "@/types/userLists";
 
 export const useUserTitleLists = () => {
-  const [titleLists, setTitleLists] = useState<UserTitleListEntry[]>([]);
+  const [rawTitleLists, setRawTitleLists] = useState<UserTitleListEntry[]>([]);
   const [listStatuses, setListStatuses] = useState<ListStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +137,7 @@ export const useUserTitleLists = () => {
 
       if (error) throw error;
 
-      setTitleLists((data || []) as unknown as UserTitleListEntry[]);
+      setRawTitleLists((data || []) as unknown as UserTitleListEntry[]);
     } catch (err) {
       console.error('Error fetching title lists:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch lists');
@@ -157,14 +157,20 @@ export const useUserTitleLists = () => {
   };
 
   // Get anime entries in legacy format
-  const animeList = titleLists
+  const animeList = rawTitleLists
     .filter(entry => entry.media_type === 'anime')
     .map(toAnimeEntry);
 
   // Get manga entries in legacy format
-  const mangaList = titleLists
+  const mangaList = rawTitleLists
     .filter(entry => entry.media_type === 'manga')
     .map(toMangaEntry);
+
+  // Create the titleLists structure as you requested
+  const titleLists = {
+    anime: animeList,
+    manga: mangaList
+  };
 
   // Add to anime list - now uses title_id directly instead of anime_detail_id
   const addToAnimeList = async (
@@ -372,12 +378,12 @@ export const useUserTitleLists = () => {
 
   // Get anime list entry by title ID
   const getAnimeListEntry = (titleId: string): UserAnimeListEntry | undefined => {
-    return animeList.find(entry => entry.title_id === titleId);
+    return titleLists.anime.find(entry => entry.title_id === titleId);
   };
 
   // Get manga list entry by title ID
   const getMangaListEntry = (titleId: string): UserMangaListEntry | undefined => {
-    return mangaList.find(entry => entry.title_id === titleId);
+    return titleLists.manga.find(entry => entry.title_id === titleId);
   };
 
   // Get anime by status
@@ -398,9 +404,10 @@ export const useUserTitleLists = () => {
   }, [user?.id, listStatuses.length]);
 
   return {
-    // Legacy API compatibility
+    // Legacy API compatibility - keeping titleLists as array for backwards compatibility
     animeList,
     mangaList,
+    titleLists: [...animeList, ...mangaList], // Legacy array format for existing components
     isLoading,
     loading: isLoading, // Backward compatibility
     error,
@@ -417,8 +424,8 @@ export const useUserTitleLists = () => {
     getAnimeByStatus,
     getMangaByStatus,
     
-    // New unified API
-    titleLists,
+    // New structured API
+    titleListsStructured: titleLists, // Object with anime/manga properties
     listStatuses,
     fetchTitleLists
   };
