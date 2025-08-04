@@ -65,11 +65,15 @@ class ProductionMonitor {
     this.queue = [];
     
     try {
-      await supabase.from('performance_metrics').insert(
+      await supabase.from('service_metrics').insert(
         metrics.map(metric => ({
-          ...metric,
-          timestamp: new Date().toISOString(),
-          session_id: this.getSessionId()
+          service_name: 'frontend',
+          metric_type: metric.name,
+          metric_value: metric.value,
+          metadata: {
+            ...metric.tags,
+            session_id: this.getSessionId()
+          }
         }))
       );
     } catch (error) {
