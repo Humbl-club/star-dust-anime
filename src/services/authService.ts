@@ -1,253 +1,147 @@
 import { supabase } from '@/integrations/supabase/client';
-import { validatePassword, validateEmail, sanitizeInput } from '@/utils/authValidation';
-import { AuthResponse } from '@/types/auth';
+import { AppError, errorHandler } from '@/lib/errorHandling';
+import { connectionManager } from '@/lib/supabaseConnection';
+
+const sanitizeInput = (input: string): string => {
+  return input.trim().toLowerCase();
+};
 
 export const authService = {
-  async signUp(email: string, password: string): Promise<AuthResponse> {
+  async signUp(email: string, password: string) {
     try {
-      // Sanitize inputs
-      const sanitizedEmail = sanitizeInput(email.toLowerCase());
-      const sanitizedPassword = sanitizeInput(password);
-
-      // Validate email format
-      const emailValidation = validateEmail(sanitizedEmail);
-      if (!emailValidation.isValid) {
-        return { 
-          error: { 
-            message: emailValidation.errors[0] || 'Invalid email format' 
-          } 
-        };
+      // Input validation
+      if (!email || !password) {
+        throw new AppError('Email and password required', 'VALIDATION_ERROR', 400);
       }
-
-      // Validate password strength
-      const passwordValidation = validatePassword(sanitizedPassword);
-      if (!passwordValidation.isValid) {
-        return { 
-          error: { 
-            message: passwordValidation.errors[0] || 'Password does not meet security requirements' 
-          } 
-        };
+      
+      if (password.length < 6) {
+        throw new AppError('Password must be at least 6 characters', 'WEAK_PASSWORD', 400);
       }
-
-      // More robust redirect URL handling for mobile/iPad
-      const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/`;
       
-      console.log('AuthService: Starting signup process for:', sanitizedEmail);
+      const sanitizedEmail = sanitizeInput(email);
       
-      const { data, error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password: sanitizedPassword,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            signup_source: 'web',
-            user_agent: navigator.userAgent,
-            password_strength_score: passwordValidation.score
-          }
-        }
-      });
-
-      console.log('AuthService: Signup response:', { data, error });
-
-      // Enhanced error handling
-      if (error) {
-        console.error('Signup error:', error);
-        
-        // Provide more user-friendly error messages
-        if (error.message.includes('User already registered')) {
-          return { error: { message: 'An account with this email already exists. Please sign in instead.' } };
-        }
-        if (error.message.includes('Password should be at least')) {
-          return { error: { message: 'Password must be at least 6 characters long.' } };
-        }
-        if (error.message.includes('Unable to validate email address')) {
-          return { error: { message: 'Please enter a valid email address.' } };
-        }
-        
-        return { error: { message: error.message || 'Failed to create account' } };
-      }
-
-      // Always set justSignedUp flag for new users
-      sessionStorage.setItem('justSignedUp', 'true');
-      
-      if (data.user && !data.session) {
-        // User created but needs email confirmation
-        sessionStorage.setItem('pendingEmail', email);
-        
-        // Send verification email immediately after successful signup
-        console.log('AuthService: Sending verification email...');
-        try {
-          const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-auth-emails', {
-            body: {
-              email: sanitizedEmail,
-              user_id: data.user.id,
-              email_action_type: 'signup',
-              token: crypto.randomUUID(),
-              redirect_to: redirectUrl
+      // Execute with retry logic
+      const result = await connectionManager.executeWithRetry(
+        async () => {
+          const { data, error } = await supabase.auth.signUp({
+            email: sanitizedEmail,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+              data: {
+                email_verified: false
+              }
             }
           });
           
-          console.log('AuthService: Email sending response:', { emailResponse, emailError });
+          if (error) throw error;
+          return data;
+        },
+        'Sign up'
+      );
+      
+      return { data: result, error: null };
+    } catch (error) {
+      return errorHandler.handleError(error);
+    }
+  },
+  
+  async signIn(email: string, password: string) {
+    try {
+      const sanitizedEmail = sanitizeInput(email);
+      
+      const result = await connectionManager.executeWithRetry(
+        async () => {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: sanitizedEmail,
+            password
+          });
           
-          if (emailError) {
-            console.error('AuthService: Email sending failed:', emailError);
-            // Retry once if it fails
-            try {
-              const { error: retryError } = await supabase.functions.invoke('send-auth-emails', {
-                body: {
-                  email: sanitizedEmail,
-                  user_id: data.user.id,
-                  email_action_type: 'signup',
-                  token: crypto.randomUUID(),
-                  redirect_to: redirectUrl
-                }
-              });
-              if (retryError) {
-                console.error('AuthService: Email retry also failed:', retryError);
-              }
-            } catch (retryException) {
-              console.error('AuthService: Exception during email retry:', retryException);
+          if (error) {
+            if (error.message.includes('Invalid login credentials')) {
+              throw new AppError('Invalid email or password', 'INVALID_CREDENTIALS', 401);
             }
+            throw error;
           }
-        } catch (emailTriggerError) {
-          console.error('AuthService: Exception during email sending:', emailTriggerError);
-        }
-        
-        return { 
-          error: null,
-          needsConfirmation: true,
-          message: 'Please check your email to confirm your account'
-        };
-      }
-
-      // User created and confirmed (confirmations disabled)
-      return { error: null, data };
-    } catch (err) {
-      console.error('Signup exception:', err);
-      return { error: { message: 'An unexpected error occurred during signup' } };
+          
+          return data;
+        },
+        'Sign in'
+      );
+      
+      return { data: result, error: null };
+    } catch (error) {
+      return errorHandler.handleError(error);
     }
   },
-
-  async signIn(email: string, password: string): Promise<{ error: any }> {
+  
+  async signOut() {
     try {
-      // Sanitize inputs
-      const sanitizedEmail = sanitizeInput(email.toLowerCase());
-      const sanitizedPassword = sanitizeInput(password);
-
-      // Basic validation
-      if (!sanitizedEmail || !sanitizedPassword) {
-        return { error: { message: 'Email and password are required' } };
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password: sanitizedPassword,
-      });
-
-      if (error) {
-        // Provide more user-friendly error messages
-        if (error.message.includes('Invalid login credentials')) {
-          return { error: { message: 'Invalid email or password. Please try again.' } };
-        }
-        if (error.message.includes('Email not confirmed')) {
-          return { error: { message: 'Please check your email and confirm your account before signing in.' } };
-        }
-        if (error.message.includes('Too many requests')) {
-          return { error: { message: 'Too many sign-in attempts. Please wait a moment and try again.' } };
-        }
-
-        return { error: { message: error.message || 'Failed to sign in' } };
-      }
-
+      await connectionManager.executeWithRetry(
+        async () => {
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+        },
+        'Sign out'
+      );
+      
       return { error: null };
-    } catch (err) {
-      console.error('Signin exception:', err);
-      return { error: { message: 'An unexpected error occurred during sign in' } };
+    } catch (error) {
+      return errorHandler.handleError(error);
     }
   },
-
-  async signInWithGoogle(): Promise<{ error: any }> {
+  
+  async signInWithGoogle() {
     try {
-      // Better mobile redirect handling
-      const baseUrl = window.location.origin;
-      const redirectUrl = `${baseUrl}/dashboard`;
+      const result = await connectionManager.executeWithRetry(
+        async () => {
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/dashboard`,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
+            }
+          });
+          
+          if (error) throw error;
+          return data;
+        },
+        'Google sign in'
+      );
       
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          // Mobile-friendly options for iPad/Safari
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('Google signin error:', error);
-      }
-      
-      return { error };
-    } catch (err) {
-      console.error('Google signin exception:', err);
-      return { error: { message: 'Failed to sign in with Google' } };
+      return { data: result, error: null };
+    } catch (error) {
+      return errorHandler.handleError(error);
     }
   },
-
-  async signOut(): Promise<{ error: any }> {
+  
+  async resendConfirmation(email: string) {
     try {
-      console.log('AuthService: Starting sign out process...');
-      
-      // Clear local storage
-      localStorage.removeItem('justSignedUp');
-      localStorage.removeItem('pendingEmail');
-      sessionStorage.removeItem('justSignedUp');
-      sessionStorage.removeItem('pendingEmail');
-      
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('AuthService: Sign out error:', error);
-        return { error };
+      if (!email) {
+        throw new AppError('Email is required', 'VALIDATION_ERROR', 400);
       }
       
-      console.log('AuthService: Sign out successful');
-      return { error: null };
-    } catch (err) {
-      console.error('AuthService: Sign out exception:', err);
-      return { error: { message: 'An unexpected error occurred during sign out' } };
-    }
-  },
-
-  async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
-    try {
-      // Use Supabase's built-in resend functionality
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-
-      if (error) {
-        console.error('Resend verification error:', error);
-        return { 
-          error: { message: error.message || 'Failed to resend confirmation email' },
-          message: 'Failed to resend email'
-        };
-      }
-
-      return { 
-        error: null,
-        message: 'Confirmation email sent! Please check your inbox.'
-      };
-    } catch (error: any) {
-      console.error('Unexpected error during resend confirmation:', error);
-      return { 
-        error: { message: 'An unexpected error occurred. Please try again.' },
-        message: 'Unexpected error'
-      };
+      const sanitizedEmail = sanitizeInput(email);
+      
+      const result = await connectionManager.executeWithRetry(
+        async () => {
+          const { data, error } = await supabase.auth.resend({
+            type: 'signup',
+            email: sanitizedEmail
+          });
+          
+          if (error) throw error;
+          return data;
+        },
+        'Resend confirmation'
+      );
+      
+      return { data: result, error: null };
+    } catch (error) {
+      return errorHandler.handleError(error);
     }
   }
 };
