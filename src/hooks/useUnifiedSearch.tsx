@@ -15,6 +15,8 @@ export interface UnifiedSearchOptions {
     type?: string;
     sort_by?: string;
     order?: 'asc' | 'desc';
+    streaming_platform?: string;
+    streaming_platforms?: string[];
   };
 }
 

@@ -7,8 +7,10 @@ export const AnalyticsCharts = lazy(() => import('./AnalyticsCharts').then(m => 
 
 // Light components - direct import
 export { AnimeCard } from './AnimeCard';
+export { MangaCard } from './MangaCard';
 export { AddToListButton } from './AddToListButton';
 export { AgeVerificationModal } from './AgeVerificationModal';
 export { ListManager } from './ListManager';
 export { ProgressTracker } from './ProgressTracker';
 export { ListStatistics } from './ListStatistics';
+export { StreamingPlatformFilter } from './StreamingPlatformFilter';

@@ -38,7 +38,7 @@ serve(async (req: Request) => {
       case 'homepage':
         return await handleHomepageData()
       case 'search':
-        return await handleSearchResults(query || filters?.query, contentType, limit)
+        return await handleSearchResults(query || filters?.query, contentType, limit, filters)
       default:
         return await handleGenericContent(contentType, limit, sort_by, filters)
     }
@@ -249,8 +249,8 @@ async function handleHomepageData() {
   )
 }
 
-async function handleSearchResults(query: string, contentType: 'anime' | 'manga' | 'all', limit: number) {
-  console.log(`🔍 Search request: "${query}" for contentType: ${contentType}, limit: ${limit}`)
+async function handleSearchResults(query: string, contentType: 'anime' | 'manga' | 'all', limit: number, filters?: any) {
+  console.log(`🔍 Search request: "${query}" for contentType: ${contentType}, limit: ${limit}, filters:`, filters)
   
   if (!query || query.length < 2) {
     console.log('⚠️ Query too short or empty')
@@ -260,7 +260,7 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
     )
   }
 
-  const cacheKey = CACHE_KEYS.SEARCH(query, contentType, limit)
+  const cacheKey = `${CACHE_KEYS.SEARCH(query, contentType, limit)}:${JSON.stringify(filters || {})}`
   
   const cached = await getCacheWithStats(cacheKey)
   if (cached) {
@@ -275,28 +275,33 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
 
   if (contentType === 'all') {
     // Search both anime and manga
+    let animeQuery = supabase
+      .from('titles')
+      .select(`
+        *,
+        anime_details!inner(*),
+        title_genres(genres(name))
+      `)
+      .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+    
+    let mangaQuery = supabase
+      .from('titles')
+      .select(`
+        *,
+        manga_details!inner(*),
+        title_genres(genres(name))
+      `)
+      .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+    
+    // Apply streaming platform filter if specified
+    if (filters?.streaming_platform) {
+      animeQuery = animeQuery.contains('external_links', [{ site: filters.streaming_platform }])
+      mangaQuery = mangaQuery.contains('external_links', [{ site: filters.streaming_platform }])
+    }
+    
     const [animeResult, mangaResult] = await Promise.all([
-      supabase
-        .from('titles')
-        .select(`
-          *,
-          anime_details!inner(*),
-          title_genres(genres(name))
-        `)
-        .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
-        .order('popularity', { ascending: false })
-        .limit(Math.ceil(limit / 2)),
-      
-      supabase
-        .from('titles')
-        .select(`
-          *,
-          manga_details!inner(*),
-          title_genres(genres(name))
-        `)
-        .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
-        .order('popularity', { ascending: false })
-        .limit(Math.ceil(limit / 2))
+      animeQuery.order('popularity', { ascending: false }).limit(Math.ceil(limit / 2)),
+      mangaQuery.order('popularity', { ascending: false }).limit(Math.ceil(limit / 2))
     ])
 
     if (animeResult.error || mangaResult.error) {
@@ -314,7 +319,7 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
     }
   } else {
     // Search single content type
-    const result = await supabase
+    let searchQuery = supabase
       .from('titles')
       .select(`
         *,
@@ -322,6 +327,13 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
         title_genres(genres(name))
       `)
       .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+    
+    // Apply streaming platform filter if specified
+    if (filters?.streaming_platform) {
+      searchQuery = searchQuery.contains('external_links', [{ site: filters.streaming_platform }])
+    }
+    
+    const result = await searchQuery
       .order('popularity', { ascending: false })
       .limit(limit)
 

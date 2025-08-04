@@ -21,6 +21,8 @@ export interface SearchFilters {
   episodes_max?: number;
   chapters_min?: number;
   chapters_max?: number;
+  streaming_platform?: string;
+  streaming_platforms?: string[];
 }
 
 export interface SearchResult {

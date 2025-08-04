@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Filter, X, Save, Upload, Trash2, MoreVertical, RotateCcw } from 'lucide-react';
 import { useSearchStore, useUIStore } from '@/store';
 import { useFilterPresets } from '@/hooks/useFilterPresets';
+import { StreamingPlatformFilter } from '@/components/features/StreamingPlatformFilter';
 import { toast } from 'sonner';
 
 interface AdvancedFilteringProps {
@@ -73,6 +74,7 @@ export function AdvancedFiltering({
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedStudios, setSelectedStudios] = useState<string[]>([]);
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [selectedStreamingPlatforms, setSelectedStreamingPlatforms] = useState<string[]>([]);
   
   // Use stores instead of props
   const { query, filters, setFilters } = useSearchStore();
@@ -93,6 +95,7 @@ export function AdvancedFiltering({
       setSelectedGenres(presetFilters.genres || []);
       setSelectedStudios(presetFilters.studios || []);
       setSelectedAuthors(presetFilters.authors || []);
+      setSelectedStreamingPlatforms(presetFilters.streaming_platforms || []);
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to load preset:', error);
@@ -111,6 +114,7 @@ export function AdvancedFiltering({
       genres: selectedGenres,
       studios: selectedStudios,
       authors: selectedAuthors,
+      streaming_platforms: selectedStreamingPlatforms,
     };
     
     savePreset(presetName, filtersToSave);
@@ -164,6 +168,7 @@ export function AdvancedFiltering({
     setSelectedGenres([]);
     setSelectedStudios([]);
     setSelectedAuthors([]);
+    setSelectedStreamingPlatforms([]);
   };
 
   // Calculate active filters count with enhanced logic
@@ -173,6 +178,7 @@ export function AdvancedFiltering({
     if (selectedGenres.length > 0) count++;
     if (selectedStudios.length > 0) count++;
     if (selectedAuthors.length > 0) count++;
+    if (selectedStreamingPlatforms.length > 0) count++;
     if (filters.status) count++;
     if (filters.type) count++;
     if (filters.year) count++;
@@ -561,6 +567,15 @@ export function AdvancedFiltering({
                 </Select>
               </div>
             )}
+
+            {/* Streaming Platforms */}
+            <StreamingPlatformFilter
+              selectedPlatforms={selectedStreamingPlatforms}
+              onPlatformChange={(platforms) => {
+                setSelectedStreamingPlatforms(platforms);
+                setFilters({ streaming_platforms: platforms });
+              }}
+            />
 
             <Separator />
 
