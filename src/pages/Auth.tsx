@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sparkles, Crown, CheckCircle, AlertCircle, Mail, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import EnhancedEmailInput from "@/components/auth/EnhancedEmailInput";
 import EnhancedPasswordInput from "@/components/auth/EnhancedPasswordInput";
@@ -30,6 +31,11 @@ const Auth = () => {
   const [lastSignupEmail, setLastSignupEmail] = useState("");
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  
+  // Forgot password states
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const { watch, setValue, getValues } = useForm<FormData>({
     defaultValues: {
@@ -202,6 +208,30 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast.success('Password reset email sent! Check your inbox.');
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send reset email');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -290,129 +320,98 @@ const Auth = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card p-4 border border-primary/20 glow-card mb-4"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-gradient-primary">Automatic Username Assignment</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    You'll receive a random anime character username automatically!
-                  </p>
-                </motion.div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <EnhancedEmailInput
-                    value={watchedValues.email}
-                    onChange={(value) => setValue("email", value)}
-                    placeholder="your@email.com"
-                    className="glass-input"
-                  />
-                  <AnimatePresence>
-                    {checkingEmail && watchedValues.email && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      </motion.div>
-                    )}
-                    {!checkingEmail && watchedValues.email && emailValidation.isValid && !emailExists && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      </motion.div>
-                    )}
-                    {!checkingEmail && watchedValues.email && emailValidation.isValid && emailExists && isSignUp && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        <AlertCircle className="w-4 h-4 text-red-500" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                
-                {/* Email exists error message */}
-                <AnimatePresence>
-                  {!checkingEmail && emailExists && isSignUp && emailValidation.isValid && (
-                    <motion.div
+            {!showForgotPassword ? (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {isSignUp && (
+                    <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-sm text-red-500 mt-1 flex items-center gap-2"
+                      className="glass-card p-4 border border-primary/20 glow-card mb-4"
                     >
-                      <AlertCircle className="w-3 h-3" />
-                      This email already has an account. Try signing in instead.
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-gradient-primary">Automatic Username Assignment</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        You'll receive a random anime character username automatically!
+                      </p>
                     </motion.div>
                   )}
-                </AnimatePresence>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <EnhancedPasswordInput
-                    value={watchedValues.password}
-                    onChange={(value) => setValue("password", value)}
-                    placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
-                    showStrength={isSignUp}
-                    showChecklist={isSignUp}
-                    confirmPassword={isSignUp ? watchedValues.confirmPassword : undefined}
-                    className="glass-input"
-                  />
-                  <AnimatePresence>
-                    {watchedValues.password && passwordValidation.isValid && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0 }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                      >
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              <AnimatePresence>
-                {isSignUp && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-2"
-                  >
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
                     <div className="relative">
-                      <EnhancedPasswordInput
-                        value={watchedValues.confirmPassword}
-                        onChange={(value) => setValue("confirmPassword", value)}
-                        placeholder="Confirm your password"
-                        showStrength={false}
-                        showChecklist={false}
+                      <EnhancedEmailInput
+                        value={watchedValues.email}
+                        onChange={(value) => setValue("email", value)}
+                        placeholder="your@email.com"
                         className="glass-input"
                       />
                       <AnimatePresence>
-                        {watchedValues.confirmPassword && passwordsMatch && (
+                        {checkingEmail && watchedValues.email && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                          >
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          </motion.div>
+                        )}
+                        {!checkingEmail && watchedValues.email && emailValidation.isValid && !emailExists && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                          >
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          </motion.div>
+                        )}
+                        {!checkingEmail && watchedValues.email && emailValidation.isValid && emailExists && isSignUp && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                          >
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    
+                    {/* Email exists error message */}
+                    <AnimatePresence>
+                      {!checkingEmail && emailExists && isSignUp && emailValidation.isValid && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-sm text-red-500 mt-1 flex items-center gap-2"
+                        >
+                          <AlertCircle className="w-3 h-3" />
+                          This email already has an account. Try signing in instead.
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <EnhancedPasswordInput
+                        value={watchedValues.password}
+                        onChange={(value) => setValue("password", value)}
+                        placeholder={isSignUp ? "Create a secure password" : "Enter your password"}
+                        showStrength={isSignUp}
+                        showChecklist={isSignUp}
+                        confirmPassword={isSignUp ? watchedValues.confirmPassword : undefined}
+                        className="glass-input"
+                      />
+                      <AnimatePresence>
+                        {watchedValues.password && passwordValidation.isValid && (
                           <motion.div
                             initial={{ opacity: 0, scale: 0 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -424,41 +423,131 @@ const Auth = () => {
                         )}
                       </AnimatePresence>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
 
-              <motion.div
-                animate={{
-                  opacity: isFormValid ? 1 : 0.5,
-                  scale: isFormValid ? 1 : 0.98,
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                <Button
-                  type="submit"
-                  variant={isFormValid ? "hero" : "secondary"}
-                  className="w-full transition-all duration-300"
-                  disabled={isSubmitting || !isFormValid}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
-                      {isSignUp ? "Creating Account..." : "Signing In..."}
+                  <AnimatePresence>
+                    {isSignUp && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2"
+                      >
+                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <div className="relative">
+                          <EnhancedPasswordInput
+                            value={watchedValues.confirmPassword}
+                            onChange={(value) => setValue("confirmPassword", value)}
+                            placeholder="Confirm your password"
+                            showStrength={false}
+                            showChecklist={false}
+                            className="glass-input"
+                          />
+                          <AnimatePresence>
+                            {watchedValues.confirmPassword && passwordsMatch && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0 }}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                              >
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Remember me and Forgot password for sign-in */}
+                  {!isSignUp && (
+                    <div className="flex items-center justify-between mb-6">
+                      <label className="flex items-center">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">Remember me</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
                     </div>
-                  ) : (
-                    <motion.span
-                      key={isFormValid ? "valid" : "invalid"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {isSignUp ? "Create Account" : "Sign In"}
-                    </motion.span>
                   )}
-                </Button>
+
+                  <motion.div
+                    animate={{
+                      opacity: isFormValid ? 1 : 0.5,
+                      scale: isFormValid ? 1 : 0.98,
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      type="submit"
+                      variant={isFormValid ? "hero" : "secondary"}
+                      className="w-full transition-all duration-300"
+                      disabled={isSubmitting || !isFormValid}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                          {isSignUp ? "Creating Account..." : "Signing In..."}
+                        </div>
+                      ) : (
+                        <motion.span
+                          key={isFormValid ? "valid" : "invalid"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {isSignUp ? "Create Account" : "Sign In"}
+                        </motion.span>
+                      )}
+                    </Button>
+                  </motion.div>
+                </form>
+              </>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-center">Reset Your Password</h3>
+                <p className="text-sm text-muted-foreground text-center">
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="glass-input"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleForgotPassword}
+                    disabled={isResetting}
+                    className="flex-1"
+                  >
+                    {isResetting ? 'Sending...' : 'Send Reset Email'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="flex-1"
+                  >
+                    Back to Sign In
+                  </Button>
+                </div>
               </motion.div>
-            </form>
+            )}
 
             <AnimatePresence>
               {showResendConfirmation && lastSignupEmail && (
