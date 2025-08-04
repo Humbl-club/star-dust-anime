@@ -124,11 +124,6 @@ class AnimeApiService extends BaseApiService {
     }));
   }
 
-  // Alias for backwards compatibility
-  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<AnimeListResponse>> {
-    return this.fetchAnime(options);
-  }
-
   async getAnimeById(id: string): Promise<ServiceResponse<AnimeContent | null>> {
     return this.invokeEdgeFunction<AnimeContent | null>('anime-detail-single', {
       id
@@ -142,6 +137,11 @@ class AnimeApiService extends BaseApiService {
 
   async syncAnimeImages(limit = 10): Promise<ServiceResponse<unknown>> {
     return this.syncImages('anime', limit);
+  }
+
+  // Alias for backwards compatibility
+  async fetchAnimeOptimized(options: AnimeQueryOptions): Promise<ServiceResponse<AnimeListResponse>> {
+    return this.fetchAnime(options);
   }
 }
 

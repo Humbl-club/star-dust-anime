@@ -118,11 +118,6 @@ class MangaApiService extends BaseApiService {
     }));
   }
 
-  // Alias for backwards compatibility
-  async fetchMangaOptimized(options: MangaQueryOptions): Promise<ServiceResponse<MangaListResponse>> {
-    return this.fetchManga(options);
-  }
-
   async getMangaById(id: string): Promise<ServiceResponse<MangaContent | null>> {
     return this.invokeEdgeFunction<MangaContent | null>('manga-detail-single', {
       id
@@ -136,6 +131,11 @@ class MangaApiService extends BaseApiService {
 
   async syncMangaImages(limit = 10): Promise<ServiceResponse<unknown>> {
     return this.syncImages('manga', limit);
+  }
+
+  // Alias for backwards compatibility
+  async fetchMangaOptimized(options: MangaQueryOptions): Promise<ServiceResponse<MangaListResponse>> {
+    return this.fetchManga(options);
   }
 }
 
