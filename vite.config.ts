@@ -10,6 +10,21 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    watch: {
+      ignored: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.git/**',
+        '**/coverage/**',
+        '**/tests/**/*.spec.ts',
+        '**/tests/**/*.test.ts',
+        '**/supabase/migrations/**',
+        '**/.cache/**',
+        '**/tmp/**',
+        '**/temp/**'
+      ]
+    }
   },
   plugins: [
     react(),
