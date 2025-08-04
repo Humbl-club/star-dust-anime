@@ -370,20 +370,20 @@ export const useUserTitleLists = () => {
     }
   };
 
-  // Get anime list entry by anilist ID
-  const getAnimeListEntry = (anilistId: string | number): UserAnimeListEntry | undefined => {
+  // Get anime list entry by title ID
+  const getAnimeListEntry = (titleId: string): UserAnimeListEntry | undefined => {
     const entry = titleLists.find(
       item => item.media_type === 'anime' && 
-              item.title?.anilist_id === Number(anilistId)
+              item.title_id === titleId
     );
     return entry ? toAnimeEntry(entry) : undefined;
   };
 
-  // Get manga list entry by anilist ID
-  const getMangaListEntry = (anilistId: string | number): UserMangaListEntry | undefined => {
+  // Get manga list entry by title ID
+  const getMangaListEntry = (titleId: string): UserMangaListEntry | undefined => {
     const entry = titleLists.find(
       item => item.media_type === 'manga' && 
-              item.title?.anilist_id === Number(anilistId)
+              item.title_id === titleId
     );
     return entry ? toMangaEntry(entry) : undefined;
   };
