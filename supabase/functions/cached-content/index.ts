@@ -250,7 +250,10 @@ async function handleHomepageData() {
 }
 
 async function handleSearchResults(query: string, contentType: 'anime' | 'manga' | 'all', limit: number) {
+  console.log(`🔍 Search request: "${query}" for contentType: ${contentType}, limit: ${limit}`)
+  
   if (!query || query.length < 2) {
+    console.log('⚠️ Query too short or empty')
     return new Response(
       JSON.stringify({ data: [], cached: false }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

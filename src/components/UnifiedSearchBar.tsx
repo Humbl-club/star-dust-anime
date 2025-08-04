@@ -136,7 +136,9 @@ export const UnifiedSearchBar = ({
     if (onSelect) {
       onSelect(result);
     } else {
-      const path = result.type === 'manga' ? `/manga/${result.id}` : `/anime/${result.id}`;
+      // Determine the content type from the result
+      const contentType = result.type || (result.manga_details ? 'manga' : 'anime');
+      const path = contentType === 'manga' ? `/manga/${result.id}` : `/anime/${result.id}`;
       navigate(path);
     }
   };
@@ -225,7 +227,7 @@ export const UnifiedSearchBar = ({
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{result.title}</div>
                       <div className="text-xs text-muted-foreground">
-                        {result.anime_details?.type || result.manga_details?.type || 'Unknown'} • Score: {result.score || 'N/A'}
+                        {result.type === 'manga' ? '📚 Manga' : '🎬 Anime'} • Score: {result.score || 'N/A'}
                       </div>
                     </div>
                   </motion.div>
