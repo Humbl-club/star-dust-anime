@@ -34,7 +34,7 @@ async function runProductionChecks(): Promise<ProductionChecks> {
   
   // 2. Edge functions
   try {
-    const functions = ['anime-api', 'cached-home-data', 'ultra-fast-sync'];
+    const functions = ['anime-api', 'manga-api', 'ultra-fast-sync'];
     let functionsWorking = 0;
     
     for (const fn of functions) {
@@ -92,7 +92,7 @@ async function runProductionChecks(): Promise<ProductionChecks> {
       supabase.from('manga_details').select('*').limit(50)
     ]);
     const duration = performance.now() - startTime;
-    checks.performance = duration < 3000; // Should complete in under 3 seconds
+    checks.performance = duration < 2000; // Should complete in under 2 seconds
     console.log(`${checks.performance ? '✅' : '⚠️'} Performance: ${checks.performance ? 'PASS' : 'SLOW'} (${duration.toFixed(0)}ms)`);
   } catch (e) {
     console.log('❌ Performance: FAIL -', e);
