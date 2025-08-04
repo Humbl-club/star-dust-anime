@@ -93,28 +93,33 @@ const queryClient = new QueryClient({
   },
 });
 
-// Create persister for React Query
+// Create persister for React Query with better error handling
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
   throttleTime: 1000,
 });
 
-// Enable query persistence
-persistQueryClient({
-  queryClient,
-  persister,
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  hydrateOptions: {},
-  dehydrateOptions: {
-    shouldDehydrateQuery: (query) => {
-      // Don't persist user-specific data
-      const queryKey = query.queryKey;
-      return !queryKey.some(key => 
-        typeof key === 'string' && (key.includes('user') || key.includes('auth'))
-      );
+// Enable query persistence with better error handling
+try {
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    dehydrateOptions: {
+      shouldDehydrateQuery: (query) => {
+        // Don't persist user-specific data or failed queries
+        const queryKey = query.queryKey;
+        const hasError = query.state.error;
+        const isUserSpecific = queryKey.some(key => 
+          typeof key === 'string' && (key.includes('user') || key.includes('auth'))
+        );
+        return !hasError && !isUserSpecific;
+      },
     },
-  },
-});
+  });
+} catch (error) {
+  console.warn('Failed to setup query persistence:', error);
+}
 
 const App = () => {
   // Add service worker hook

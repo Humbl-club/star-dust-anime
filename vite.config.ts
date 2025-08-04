@@ -22,6 +22,9 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Increase cache limit and exclude large files
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        globIgnores: ['**/stats.html', '**/node_modules/**/*'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/axtpbgsjbmhbuqomarcr\.supabase\.co\/functions\/v1\/.*/i,
@@ -126,7 +129,8 @@ export default defineConfig(({ mode }) => ({
         ]
       }
     }),
-    visualizer({
+    // Only generate stats in development
+    mode === 'development' && visualizer({
       open: false,
       filename: 'dist/stats.html',
     }),
@@ -142,48 +146,80 @@ export default defineConfig(({ mode }) => ({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React ecosystem
+            if (id.includes('react') && !id.includes('query')) {
               return 'react-vendor';
             }
-            if (id.includes('@radix-ui')) {
+            // UI libraries
+            if (id.includes('@radix-ui') || id.includes('lucide-react') || id.includes('cmdk')) {
               return 'ui-vendor';
             }
-            if (id.includes('@tanstack/react-query')) {
+            // Query libraries  
+            if (id.includes('@tanstack/react-query') || id.includes('query')) {
               return 'query-vendor';
             }
-            if (id.includes('@supabase/supabase-js')) {
-              return 'supabase';
+            // Supabase
+            if (id.includes('@supabase') || id.includes('supabase')) {
+              return 'supabase-vendor';
             }
-            if (id.includes('framer-motion')) {
-              return 'animation';
+            // Animation
+            if (id.includes('framer-motion') || id.includes('lottie')) {
+              return 'animation-vendor';
             }
+            // Date utilities
             if (id.includes('date-fns')) {
-              return 'date-utils';
+              return 'date-vendor';
             }
+            // Chart libraries
+            if (id.includes('recharts') || id.includes('chart')) {
+              return 'chart-vendor';
+            }
+            // Apollo/GraphQL
+            if (id.includes('@apollo') || id.includes('graphql')) {
+              return 'graphql-vendor';
+            }
+            // Large utility libraries
+            if (id.includes('lodash') || id.includes('fuse.js') || id.includes('validator')) {
+              return 'utils-vendor';
+            }
+            // Everything else goes to vendor
             return 'vendor';
           }
           
-          // Page chunks - explicit naming for better caching
+          // Page chunks
           if (id.includes('/pages/')) {
-            const pageName = id.split('/pages/')[1]?.split('.')[0];
-            if (pageName) {
-              return `page-${pageName.toLowerCase()}`;
-            }
+            if (id.includes('admin/')) return 'admin-pages';
+            return 'pages';
           }
           
-          // Component chunks
+          // Feature components
+          if (id.includes('/components/features/')) {
+            return 'feature-components';
+          }
+          
+          // UI components
+          if (id.includes('/components/ui/')) {
+            return 'ui-components';
+          }
+          
+          // Other components
           if (id.includes('/components/')) {
             return 'components';
           }
           
-          // Hook chunks
+          // Hooks
           if (id.includes('/hooks/')) {
             return 'hooks';
+          }
+          
+          // Services
+          if (id.includes('/services/')) {
+            return 'services';
           }
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000, // Increase limit to 2MB
     sourcemap: false,
   },
 }));
