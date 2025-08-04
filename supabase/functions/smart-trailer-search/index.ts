@@ -13,21 +13,23 @@ interface TrailerResult {
   thumbnail: string;
   channelTitle: string;
   publishedAt: string;
-  type: 'official' | 'review' | 'explanation';
+  viewCount?: string;
+  duration?: string;
+  type: 'official' | 'review' | 'analysis';
   youtuber?: string;
 }
 
 const POPULAR_ANIME_YOUTUBERS = [
   'Gigguk',
   'The Anime Man',
-  'Trash Taste',
-  'AnimeMan',
   'Mother\'s Basement',
-  'PrettyMuchIt',
   'Glass Reflection',
   'Super Eyepatch Wolf',
   'Scamboli Reviews',
-  'Replay Value'
+  'Replay Value',
+  'Trash Taste',
+  'AnimeMan',
+  'PrettyMuchIt'
 ];
 
 serve(async (req) => {
@@ -64,7 +66,7 @@ serve(async (req) => {
       
       console.log(`🎬 Searching official: ${query}`);
       
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=3&key=${youtubeApiKey}&order=relevance`;
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=3&key=${youtubeApiKey}&order=relevance&videoDuration=medium`;
       
       const response = await fetch(searchUrl);
       if (!response.ok) continue;
@@ -85,19 +87,40 @@ serve(async (req) => {
           channel.includes('official') ||
           channel.includes('anime') ||
           channel.includes('studio')
-        );
-        
-        if (isOfficial) {
-          results.push({
-            videoId: item.id.videoId,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url,
-            channelTitle: item.snippet.channelTitle,
-            publishedAt: item.snippet.publishedAt,
-            type: 'official'
-          });
-          console.log(`✅ Found official trailer: ${item.snippet.title}`);
+         );
+         
+         if (isOfficial) {
+           // Get additional video details including view count
+           const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${item.id.videoId}&key=${youtubeApiKey}`;
+           let viewCount = undefined;
+           let duration = undefined;
+           
+           try {
+             const detailsResponse = await fetch(videoDetailsUrl);
+             if (detailsResponse.ok) {
+               const detailsData = await detailsResponse.json();
+               const videoDetails = detailsData.items?.[0];
+               if (videoDetails) {
+                 viewCount = videoDetails.statistics?.viewCount;
+                 duration = videoDetails.contentDetails?.duration;
+               }
+             }
+           } catch (error) {
+             console.log(`⚠️ Could not fetch video details for ${item.id.videoId}`);
+           }
+           
+           results.push({
+             videoId: item.id.videoId,
+             title: item.snippet.title,
+             description: item.snippet.description,
+             thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url,
+             channelTitle: item.snippet.channelTitle,
+             publishedAt: item.snippet.publishedAt,
+             viewCount,
+             duration,
+             type: 'official'
+           });
+           console.log(`✅ Found official trailer: ${item.snippet.title}`);
         }
       }
     }
@@ -145,7 +168,26 @@ serve(async (req) => {
             const alreadyExists = results.some(r => r.videoId === item.id.videoId);
             
             if (isRelevant && !alreadyExists) {
-              const type = title.includes('review') ? 'review' : 'explanation';
+              const type = title.includes('review') ? 'review' : 'analysis';
+              
+              // Get additional video details including view count
+              const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${item.id.videoId}&key=${youtubeApiKey}`;
+              let viewCount = undefined;
+              let duration = undefined;
+              
+              try {
+                const detailsResponse = await fetch(videoDetailsUrl);
+                if (detailsResponse.ok) {
+                  const detailsData = await detailsResponse.json();
+                  const videoDetails = detailsData.items?.[0];
+                  if (videoDetails) {
+                    viewCount = videoDetails.statistics?.viewCount;
+                    duration = videoDetails.contentDetails?.duration;
+                  }
+                }
+              } catch (error) {
+                console.log(`⚠️ Could not fetch video details for ${item.id.videoId}`);
+              }
               
               results.push({
                 videoId: item.id.videoId,
@@ -154,6 +196,8 @@ serve(async (req) => {
                 thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url,
                 channelTitle: item.snippet.channelTitle,
                 publishedAt: item.snippet.publishedAt,
+                viewCount,
+                duration,
                 type,
                 youtuber
               });
@@ -189,7 +233,7 @@ serve(async (req) => {
               thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url,
               channelTitle: item.snippet.channelTitle,
               publishedAt: item.snippet.publishedAt,
-              type: 'explanation'
+              type: 'analysis'
             });
           }
         }
@@ -199,7 +243,7 @@ serve(async (req) => {
     console.log(`📊 Final results: ${results.length} videos found`);
     console.log(`   Official trailers: ${results.filter(r => r.type === 'official').length}`);
     console.log(`   Reviews: ${results.filter(r => r.type === 'review').length}`);
-    console.log(`   Explanations: ${results.filter(r => r.type === 'explanation').length}`);
+    console.log(`   Analysis: ${results.filter(r => r.type === 'analysis').length}`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -209,7 +253,7 @@ serve(async (req) => {
       breakdown: {
         official: results.filter(r => r.type === 'official').length,
         review: results.filter(r => r.type === 'review').length,
-        explanation: results.filter(r => r.type === 'explanation').length
+        analysis: results.filter(r => r.type === 'analysis').length
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
