@@ -5,7 +5,7 @@ export class SupabaseConnectionManager {
   private retryCount = 0;
   private maxRetries = 3;
   private retryDelay = 1000;
-  private healthCheckInterval: NodeJS.Timeout | null = null;
+  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
   
   async executeWithRetry<T>(
     operation: () => Promise<T>,
