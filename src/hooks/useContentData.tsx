@@ -86,98 +86,86 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
   const queryFn = async () => {
     const startTime = performance.now();
     
-    // Clean and validate options (declared outside try block for error logging)
-    const queryOptions = {
-      page: Math.max(1, page),
-      limit: Math.min(100, Math.max(1, limit)),
-      ...(search && search.trim() && { search: search.trim() }),
-      ...(genre && genre !== 'all' && { genre }),
-      ...(status && status !== 'all' && { status }),
-      ...(type && type !== 'all' && { type }),
-      ...(year && year !== 'all' && { year }),
-      ...(season && season !== 'all' && { season }),
-      sort_by: sort_by || 'score',
-      order: order || 'desc'
-    };
-
     try {
-
-      logger.debug(`🔍 useContentData: Fetching ${contentType} with:`, {
-        queryOptions,
-        useOptimized,
-        useEdgeCache,
-        queryKey
+      logger.debug(`🔍 useContentData: Direct Supabase query for ${contentType}:`, {
+        page, limit, search, genre, status, type, year, season, sort_by, order
       });
 
-      let response;
+      // Build the base query with proper select statement
+      const baseSelect = `
+        *,
+        ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+        title_genres(genres(name)),
+        ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
+      `;
 
-      // Use edge cache for home page aggregated data
-      if (useEdgeCache && contentType === 'anime' && page === 1 && !search && !genre && !status && !type && !year && !season) {
-        logger.debug('🏠 useContentData: Using edge cached home data...');
-        
-        const { data: cachedData, error } = await supabase.functions.invoke('cached-home-data', {
-          body: {
-            contentType: contentType,
-            sections: ['trending', 'recent', 'topRated']
-          }
-        });
-        
-        if (error) {
-          logger.warn('⚠️ useContentData: Edge cache failed, falling back to direct query:', error);
-        } else if (cachedData?.success) {
-          const endTime = performance.now();
-          logger.debug(`✅ useContentData: Edge cached response (${Math.round(endTime - startTime)}ms):`, {
-            success: true,
-            totalItems: (cachedData.data.trending?.length || 0) + (cachedData.data.recent?.length || 0) + (cachedData.data.topRated?.length || 0)
-          });
-          
-          // Aggregate all sections into a single data array
-          const allData = [
-            ...(cachedData.data.trending || []),
-            ...(cachedData.data.recent || []),
-            ...(cachedData.data.topRated || [])
-          ];
-          
-          // Remove duplicates based on id
-          const uniqueData = Array.from(
-            new Map(allData.map(item => [item.id, item])).values()
-          );
-          
-          // Transform edge cache data to match expected format
-          return {
-            data: uniqueData.slice(0, limit),
-            pagination: {
-              current_page: 1,
-              per_page: uniqueData.length,
-              total: uniqueData.length,
-              total_pages: 1,
-              has_next_page: false,
-              has_prev_page: false
-            }
-          };
-        }
+      const genreSelect = `
+        *,
+        ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+        title_genres!inner(genres!inner(name)),
+        ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
+      `;
+
+      let query = supabase
+        .from('titles')
+        .select(genre && genre !== 'all' ? genreSelect : baseSelect);
+
+      // Apply genre filter using inner join
+      if (genre && genre !== 'all') {
+        query = query.eq('title_genres.genres.name', genre);
       }
 
-      if (useOptimized) {
-        // Use optimized direct database queries via service
-        logger.debug(`🚀 useContentData: Calling optimized ${contentType} service...`);
-        response = contentType === 'anime'
-          ? await animeService.fetchAnimeOptimized(queryOptions)
-          : await mangaService.fetchMangaOptimized(queryOptions);
+      // Apply year filter
+      if (year && year !== 'all') {
+        query = query.eq('year', parseInt(year));
+      }
 
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch data');
-        }
+      // Apply status filter
+      if (status && status !== 'all') {
+        const statusColumn = contentType === 'anime' ? 'anime_details.status' : 'manga_details.status';
+        query = query.eq(statusColumn, status);
+      }
+
+      // Apply type filter
+      if (type && type !== 'all') {
+        const typeColumn = contentType === 'anime' ? 'anime_details.type' : 'manga_details.type';
+        query = query.eq(typeColumn, type);
+      }
+
+      // Apply season filter (anime only)
+      if (contentType === 'anime' && season && season !== 'all') {
+        query = query.eq('anime_details.season', season);
+      }
+
+      // Apply search filter across multiple fields
+      if (search && search.trim()) {
+        const searchTerm = search.trim();
+        query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting with proper null handling
+      const sortColumn = sort_by || 'score';
+      const sortOrder = order || 'desc';
+      
+      if (sortColumn === 'score') {
+        query = query.order(sortColumn, { 
+          ascending: sortOrder === 'asc', 
+          nullsFirst: false 
+        });
       } else {
-        // Use edge function API
-        logger.debug(`🌐 useContentData: Calling edge function for ${contentType}...`);
-        response = contentType === 'anime'
-          ? await animeService.fetchAnime(queryOptions)
-          : await mangaService.fetchManga(queryOptions);
+        query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
+      }
 
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch data');
-        }
+      // Apply pagination
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        logger.error('❌ useContentData Supabase error:', error);
+        throw error;
       }
 
       const endTime = performance.now();
@@ -185,20 +173,23 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
 
       logger.debug(`✅ useContentData completed in ${duration}ms:`, {
         contentType,
-        itemsReturned: response.data?.data?.length || 0,
-        hasNextPage: response.data?.pagination?.has_next_page
+        itemsReturned: data?.length || 0,
+        totalCount: count
       });
 
-      // Ensure we always return the expected structure
+      // Calculate pagination info
+      const totalCount = count || data?.length || 0;
+      const totalPages = Math.ceil(totalCount / limit);
+
       return {
-        data: response.data?.data || [],
-        pagination: response.data?.pagination || {
+        data: (data || []) as unknown as (AnimeContent | MangaContent)[],
+        pagination: {
           current_page: page,
           per_page: limit,
-          total: 0,
-          total_pages: 0,
-          has_next_page: false,
-          has_prev_page: false
+          total: totalCount,
+          total_pages: totalPages,
+          has_next_page: page < totalPages,
+          has_prev_page: page > 1
         }
       };
 
@@ -210,10 +201,9 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
         contentType,
         error: error.message,
         stack: error.stack,
-        queryOptions
+        filters: { search, genre, status, type, year, season }
       });
 
-      // Re-throw with more context
       throw new Error(`Failed to load ${contentType}: ${error.message}`);
     }
   };
