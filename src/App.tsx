@@ -17,6 +17,7 @@ import { GraphQLProvider } from "@/providers/GraphQLProvider";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 // Lazy load routes
@@ -40,6 +41,7 @@ const PerformanceMonitoring = lazy(() => import('./pages/PerformanceMonitoring')
 const routes = [
   { path: '/', element: Index, protected: false },
   { path: '/auth', element: Auth, protected: false },
+  { path: '/auth/reset-password', element: ResetPassword, protected: false },
   { path: '/dashboard', element: Dashboard, protected: true },
   { path: '/anime', element: Anime, protected: false },
   { path: '/anime/:id', element: AnimeDetail, protected: false },
