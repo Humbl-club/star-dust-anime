@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,69 +21,10 @@ import {
   Loader2
 } from "lucide-react";
 
-const TrendingCard = ({ item, rank, contentType }: { item: any; rank: number; contentType: 'anime' | 'manga' }) => {
-  const { getDisplayName } = useNamePreference();
-  
-  return (
-    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          {/* Ranking Badge */}
-          <div className="relative flex-shrink-0">
-            <img 
-              src={item.image_url} 
-              alt={getDisplayName(item)}
-              className="w-16 h-20 object-cover rounded-lg"
-            />
-            <div className="absolute -top-2 -left-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
-              #{rank}
-            </div>
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-              {getDisplayName(item)}
-            </h3>
-            
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-              <Badge variant="secondary" className="text-xs">
-                {contentType === 'anime' ? <Play className="w-3 h-3 mr-1" /> : <BookOpen className="w-3 h-3 mr-1" />}
-                {item.type}
-              </Badge>
-              {item.score && (
-                <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-400" />
-                  <span>{item.score}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-1 text-orange-500">
-                <Flame className="w-3 h-3" />
-                <span className="font-medium">Trending</span>
-              </div>
-            </div>
-            
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-              {item.synopsis}
-            </p>
-            
-            <div className="flex flex-wrap gap-1">
-              {item.genres?.slice(0, 2).map((genre: any) => (
-                <Badge key={genre.name || genre} variant="outline" className="text-xs">
-                  {genre.name || genre}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 const Trending = () => {
-  const [activeTab, setActiveTab] = useState<'anime' | 'manga'>('anime');
-  const [timePeriod, setTimePeriod] = useState<'today' | 'week' | 'month'>('week');
-  const { stats, formatCount } = useStats();
+  const navigate = useNavigate();
+  const [contentType, setContentType] = useState<'anime' | 'manga'>('anime');
+  const { getDisplayName } = useNamePreference();
 
   // Use the new optimized hook for trending anime
   const { data: trendingAnime, loading: animeLoading } = useSimpleNewApiData({
@@ -101,7 +43,27 @@ const Trending = () => {
   });
 
   const isLoading = animeLoading || mangaLoading;
-  const currentData = activeTab === 'anime' ? trendingAnime : trendingManga;
+  const data = contentType === 'anime' ? trendingAnime : trendingManga;
+
+  const handleItemClick = (item: any) => {
+    // Determine content type and navigate
+    const type = item.anime_details ? 'anime' : 'manga';
+    navigate(`/${type}/${item.id}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+        <Navigation />
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
+            <p className="text-lg">Loading trending content...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
@@ -129,128 +91,54 @@ const Trending = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'anime' | 'manga')} className="w-full md:w-auto">
-            <TabsList className="grid w-full grid-cols-2 md:w-auto">
-              <TabsTrigger value="anime" className="flex items-center gap-2">
-                <Play className="w-4 h-4" />
-                Anime
-              </TabsTrigger>
-              <TabsTrigger value="manga" className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                Manga
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <div className="container mx-auto py-8">
+        {/* Content type toggle */}
+        <Tabs value={contentType} onValueChange={(v) => setContentType(v as 'anime' | 'manga')}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="anime">Trending Anime</TabsTrigger>
+            <TabsTrigger value="manga">Trending Manga</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-          <Select value={timePeriod} onValueChange={(value: any) => setTimePeriod(value)}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="z-dropdown">
-              <SelectItem value="today">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Today
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-6">
+          {data?.map((item) => (
+            <div
+              key={item.id}
+              className="cursor-pointer group"
+              onClick={() => handleItemClick(item)}
+            >
+              <div className="relative overflow-hidden rounded-lg">
+                <img
+                  src={item.image_url || '/placeholder.jpg'}
+                  alt={getDisplayName(item)}
+                  className="w-full aspect-[3/4] object-cover group-hover:scale-110 transition-transform"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 p-4">
+                    <p className="text-white font-semibold">{getDisplayName(item)}</p>
+                    {item.score && (
+                      <p className="text-white/80 text-sm">★ {item.score}</p>
+                    )}
+                  </div>
                 </div>
-              </SelectItem>
-              <SelectItem value="week">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  This Week
-                </div>
-              </SelectItem>
-              <SelectItem value="month">
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4" />
-                  This Month
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              </div>
+              <p className="mt-2 text-sm font-medium line-clamp-2">{getDisplayName(item)}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-              <p>Loading trending {activeTab}...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        {!isLoading && currentData && (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
-                <Flame className="w-6 h-6 text-orange-500" />
-                Top 20 Trending {activeTab === 'anime' ? 'Anime' : 'Manga'}
-                <Badge variant="secondary" className="ml-2">
-                  {timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)}
-                </Badge>
-              </h2>
-            </div>
-
-            <div className="grid gap-4">
-              {currentData.slice(0, 20).map((item: any, index: number) => (
-                <TrendingCard
-                  key={item.id}
-                  item={item}
-                  rank={index + 1}
-                  contentType={activeTab}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Empty State */}
-        {!isLoading && (!currentData || currentData.length === 0) && (
+        {!isLoading && (!data || data.length === 0) && (
           <Card className="text-center p-12">
             <CardContent className="space-y-4">
               <TrendingUp className="w-16 h-16 mx-auto text-muted-foreground" />
               <h3 className="text-xl font-semibold">No Trending Content</h3>
               <p className="text-muted-foreground">
-                No trending {activeTab} found for this time period.
+                No trending {contentType} found at the moment.
               </p>
             </CardContent>
           </Card>
         )}
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <Card className="text-center p-6">
-            <CardContent className="space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.animeCount)}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Play className="w-3 h-3" />
-                Total Anime
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="text-center p-6">
-            <CardContent className="space-y-2">
-              <div className="text-3xl font-bold text-gradient-secondary">{formatCount(stats.mangaCount)}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <BookOpen className="w-3 h-3" />
-                Total Manga
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="text-center p-6">
-            <CardContent className="space-y-2">
-              <div className="text-3xl font-bold text-gradient-primary">{formatCount(stats.userCount)}</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-                <Users className="w-3 h-3" />
-                Active Users
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
