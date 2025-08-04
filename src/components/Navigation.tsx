@@ -37,6 +37,7 @@ import { useUIStore } from "@/store";
 import { Switch } from "@/components/ui/switch";
 import { FeatureWrapper } from "@/components/common/FeatureWrapper";
 import { logger } from "@/utils/logger";
+import { env } from "@/config/environment";
 
 interface NavigationProps {
   onSearch?: (query: string) => void;
@@ -139,8 +140,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold group-hover:opacity-80 transition-opacity">
-                <span className="text-accent">Ani</span>
-                <span className="text-gradient-primary">thing</span>
+                {env.get('app.name')}
               </span>
               <span className="text-xs text-muted-foreground font-medium tracking-wide">
                 Discover Everything
