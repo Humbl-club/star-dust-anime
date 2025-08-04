@@ -45,3 +45,6 @@ verify_jwt = false
 
 [functions.cache-utils]
 verify_jwt = false
+
+[functions.check-streaming-availability]
+verify_jwt = false

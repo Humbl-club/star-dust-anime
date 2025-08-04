@@ -22,6 +22,7 @@ import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
 import { StreamingLinks } from "@/components/StreamingLinks";
+import { StreamingAvailability } from "@/components/StreamingAvailability";
 import { 
   SiCrunchyroll, 
   SiNetflix, 
@@ -515,8 +516,19 @@ const AnimeDetail = () => {
           )}
 
 
-          {/* Legal Streaming Links */}
-          <LegalStreamingLinks anime={anime} />
+          {/* Enhanced Streaming Availability */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            <StreamingAvailability 
+              titleId={anime.id}
+              titleName={getDisplayName(anime)}
+              region="US"
+            />
+          </div>
+
+          {/* Fallback: Legal Streaming Links */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.85s' }}>
+            <LegalStreamingLinks anime={anime} />
+          </div>
 
           {/* Score Validation Component */}
           <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>

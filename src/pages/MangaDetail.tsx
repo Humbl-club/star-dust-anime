@@ -20,6 +20,7 @@ import { OfflineFallback } from "@/components/OfflineFallback";
 import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
+import { StreamingAvailability } from "@/components/StreamingAvailability";
 
 
 // Legal Reading Links Component
@@ -369,8 +370,19 @@ const MangaDetail = () => {
             </Card>
           )}
 
-          {/* Legal Reading Links */}
-          <LegalReadingLinks manga={manga} />
+          {/* Enhanced Reading Availability */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.75s' }}>
+            <StreamingAvailability 
+              titleId={manga.id}
+              titleName={getDisplayName(manga)}
+              region="US"
+            />
+          </div>
+
+          {/* Fallback: Legal Reading Links */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            <LegalReadingLinks manga={manga} />
+          </div>
 
           {/* Score Validation Component */}
           <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
