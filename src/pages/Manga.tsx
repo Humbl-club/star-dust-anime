@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useInfiniteContentData } from "@/hooks/useInfiniteContentData";
+import { useNamePreference } from "@/hooks/useNamePreference";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { Grid3x3, List } from "lucide-react";
 import { Helmet } from "react-helmet-async";
@@ -36,6 +37,7 @@ import { toast } from "sonner";
 
 const Manga = () => {
   const navigate = useNavigate();
+  const { getDisplayName } = useNamePreference();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // State management
@@ -348,7 +350,7 @@ const Manga = () => {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 mb-8">
                     {filteredManga.map((manga) => (
-                      <MangaCard key={manga.id} manga={manga} />
+                      <MangaCard key={manga.id} manga={manga} getDisplayName={getDisplayName} />
                     ))}
                   </div>
                 )}
@@ -373,7 +375,7 @@ const Manga = () => {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                     {filteredManga.map((manga) => (
-                      <MangaCard key={manga.id} manga={manga} />
+                      <MangaCard key={manga.id} manga={manga} getDisplayName={getDisplayName} />
                     ))}
                   </div>
                 )}

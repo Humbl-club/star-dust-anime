@@ -10,10 +10,12 @@ export const useNamePreference = () => {
     setNamePreference(show ? 'english' : 'romaji');
   };
 
-  const getDisplayName = (anime: { title: string; title_english?: string | null }) => {
-    if (showEnglish && anime.title_english) {
+  const getDisplayName = (anime: { title: string; title_english?: string | null; title_japanese?: string | null }) => {
+    // Always prioritize English name if available
+    if (anime.title_english && anime.title_english.trim()) {
       return anime.title_english;
     }
+    // Fallback to romaji title
     return anime.title;
   };
 

@@ -22,10 +22,11 @@ import {
   BookOpen,
   X,
   Loader2
-} from "lucide-react";
+ } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useContentData } from "@/hooks/useContentData";
 import { useInfiniteContentData } from "@/hooks/useInfiniteContentData";
+import { useNamePreference } from "@/hooks/useNamePreference";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { useAgeVerification } from "@/hooks/useAgeVerification";
 import { useSearchStore } from "@/store";
@@ -44,6 +45,7 @@ import { toast } from "sonner";
 
 const Anime = () => {
   const navigate = useNavigate();
+  const { getDisplayName } = useNamePreference();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filteredAnime, setFilteredAnime] = useState<Anime[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -349,6 +351,7 @@ const Anime = () => {
                   <AnimeCard 
                     key={anime.id} 
                     anime={anime} 
+                    getDisplayName={getDisplayName}
                     onClick={() => handleAnimeClick(anime)}
                   />
                 ))}
@@ -379,6 +382,7 @@ const Anime = () => {
                   <AnimeCard 
                     key={anime.id} 
                     anime={anime} 
+                    getDisplayName={getDisplayName}
                     onClick={() => handleAnimeClick(anime)}
                   />
                 ))}

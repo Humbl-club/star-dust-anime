@@ -1,5 +1,6 @@
 import { Loader2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useNamePreference } from "@/hooks/useNamePreference";
 
 interface SearchResult {
   id: string;
@@ -26,6 +27,7 @@ export const SearchResults = ({
   onResultClick,
   onBackdropClick
 }: SearchResultsProps) => {
+  const { getDisplayName } = useNamePreference();
   return (
     <>
       {/* Backdrop overlay */}
@@ -64,11 +66,11 @@ export const SearchResults = ({
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-sm line-clamp-1 text-foreground group-hover:text-primary transition-colors">
-                    {anime.title}
+                    {getDisplayName(anime)}
                   </h4>
                   {anime.title_english && anime.title_english !== anime.title && (
                     <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                      {anime.title_english}
+                      Original: {anime.title}
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-2">

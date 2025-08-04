@@ -36,7 +36,7 @@ interface UserPreferencesState {
 }
 
 const defaultState = {
-  namePreference: 'romaji' as NamePreference,
+  namePreference: 'english' as NamePreference, // Changed from 'romaji' to 'english'
   theme: 'system' as Theme,
   showAdultContent: false,
   language: 'en',

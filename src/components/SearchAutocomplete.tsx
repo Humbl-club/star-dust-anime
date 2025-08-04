@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchSuggestions } from '@/hooks/useOptimizedSearch';
+import { useNamePreference } from '@/hooks/useNamePreference';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ export function SearchAutocomplete({
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 200);
   const navigate = useNavigate();
+  const { getDisplayName } = useNamePreference();
   
   const { data: suggestions = [], isLoading } = useSearchSuggestions(debouncedQuery);
 
@@ -89,7 +91,7 @@ export function SearchAutocomplete({
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">
-                              {item.title_english || item.title}
+                              {getDisplayName(item)}
                             </p>
                             {item.year && (
                               <p className="text-sm text-muted-foreground">
