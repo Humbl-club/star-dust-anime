@@ -29,20 +29,22 @@ class EnvironmentManager {
   }
   
   private loadConfig(): EnvironmentConfig {
+    const isProduction = this.isProduction();
+    
     return {
       supabase: {
         url: "https://axtpbgsjbmhbuqomarcr.supabase.co",
         anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF4dHBiZ3NqYm1oYnVxb21hcmNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1MDk0NzksImV4cCI6MjA2MzA4NTQ3OX0.ySdY2C6kZQhKKNfFVaLeLIzGEw00cJy2iJRFhxixqDo",
       },
       api: {
-        baseUrl: '/api',
+        baseUrl: isProduction ? '/api' : '/api',
         timeout: 30000,
       },
       features: {
         analytics: true,
         gamification: true,
         offlineMode: true,
-        pushNotifications: false,
+        pushNotifications: isProduction, // Enable push notifications in production
       },
       app: {
         name: 'AnimeHub',
@@ -101,6 +103,29 @@ class EnvironmentManager {
   
   getBaseUrl(): string {
     return this.config.app.url;
+  }
+  
+  // Production-specific configurations
+  getProductionConfig() {
+    return {
+      enableAnalytics: this.config.features.analytics,
+      enableCaching: true,
+      enablePushNotifications: this.config.features.pushNotifications,
+      enableServiceWorker: true,
+      apiTimeout: this.config.api.timeout,
+      logLevel: this.isProduction() ? 'error' : 'debug'
+    };
+  }
+  
+  // Development-specific configurations  
+  getDevelopmentConfig() {
+    return {
+      enableDevTools: true,
+      enableDebugMode: true,
+      enableMockData: false,
+      logLevel: 'debug',
+      enableHotReload: true
+    };
   }
 }
 
