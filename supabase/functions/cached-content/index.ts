@@ -24,7 +24,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { endpoint, contentType, limit = 24, sort_by = 'popularity', filters = {} } = await req.json()
+    const { endpoint, contentType, limit = 24, sort_by = 'popularity', filters = {}, query } = await req.json()
     
     console.log(`📡 Cache request: ${endpoint} for ${contentType}`)
 
@@ -38,7 +38,7 @@ serve(async (req: Request) => {
       case 'homepage':
         return await handleHomepageData()
       case 'search':
-        return await handleSearchResults(filters.query, contentType, limit)
+        return await handleSearchResults(query || filters?.query, contentType, limit)
       default:
         return await handleGenericContent(contentType, limit, sort_by, filters)
     }
@@ -249,7 +249,7 @@ async function handleHomepageData() {
   )
 }
 
-async function handleSearchResults(query: string, contentType: 'anime' | 'manga', limit: number) {
+async function handleSearchResults(query: string, contentType: 'anime' | 'manga' | 'all', limit: number) {
   if (!query || query.length < 2) {
     return new Response(
       JSON.stringify({ data: [], cached: false }),
@@ -267,23 +267,73 @@ async function handleSearchResults(query: string, contentType: 'anime' | 'manga'
     )
   }
 
-  const { data, error } = await supabase
-    .from('titles')
-    .select(`
-      *,
-      ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
-      title_genres(genres(name))
-    `)
-    .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
-    .order('popularity', { ascending: false })
-    .limit(limit)
+  let data: any[] = []
+  let error: any = null
+
+  if (contentType === 'all') {
+    // Search both anime and manga
+    const [animeResult, mangaResult] = await Promise.all([
+      supabase
+        .from('titles')
+        .select(`
+          *,
+          anime_details!inner(*),
+          title_genres(genres(name))
+        `)
+        .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+        .order('popularity', { ascending: false })
+        .limit(Math.ceil(limit / 2)),
+      
+      supabase
+        .from('titles')
+        .select(`
+          *,
+          manga_details!inner(*),
+          title_genres(genres(name))
+        `)
+        .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+        .order('popularity', { ascending: false })
+        .limit(Math.ceil(limit / 2))
+    ])
+
+    if (animeResult.error || mangaResult.error) {
+      error = animeResult.error || mangaResult.error
+    } else {
+      // Combine and sort results by popularity
+      const combinedData = [
+        ...((animeResult.data || []).map(item => ({ ...item, type: 'anime' }))),
+        ...((mangaResult.data || []).map(item => ({ ...item, type: 'manga' })))
+      ]
+      
+      data = combinedData
+        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, limit)
+    }
+  } else {
+    // Search single content type
+    const result = await supabase
+      .from('titles')
+      .select(`
+        *,
+        ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+        title_genres(genres(name))
+      `)
+      .or(`title.ilike.%${query}%,title_english.ilike.%${query}%,title_japanese.ilike.%${query}%`)
+      .order('popularity', { ascending: false })
+      .limit(limit)
+
+    data = result.data || []
+    error = result.error
+  }
 
   if (error) throw error
 
-  const transformedData = data?.map(item => ({
+  const transformedData = data.map(item => ({
     ...item,
-    genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || []
-  })) || []
+    genres: item.title_genres?.map((tg: any) => tg.genres?.name).filter(Boolean) || [],
+    // Add type for mixed results if not already present
+    type: item.type || (item.anime_details ? 'anime' : 'manga')
+  }))
 
   // Cache search results for 3 minutes
   await setCacheWithStats(cacheKey, transformedData, CACHE_TTL.SEARCH)
