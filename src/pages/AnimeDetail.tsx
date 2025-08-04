@@ -263,22 +263,32 @@ const AnimeDetail = () => {
       seoComponent={<AnimeMetaTags anime={anime} />}
     >
       <div className="grid lg:grid-cols-5 gap-8">
-        <DetailImageCard
-          imageUrl={anime.image_url}
-          title={getDisplayName(anime)}
-          score={anime.score}
-          anilistScore={enhancedAnime?.anilist_score}
-          rank={anime.rank}
-          trailer={enhancedAnime?.trailer}
-          item={animeForList}
-          contentType="anime"
-          shareData={{
-            title: `${getDisplayName(anime)} - AniVault`,
-            text: `Check out ${getDisplayName(anime)} on AniVault!`,
-            url: window.location.href,
-            image: enhancedAnime?.image_url || anime.image_url
-          }}
-        />
+        <div className="space-y-6">
+          <DetailImageCard
+            imageUrl={anime.image_url}
+            title={getDisplayName(anime)}
+            score={anime.score}
+            anilistScore={enhancedAnime?.anilist_score}
+            rank={anime.rank}
+            trailer={enhancedAnime?.trailer}
+            item={animeForList}
+            contentType="anime"
+            shareData={{
+              title: `${getDisplayName(anime)} - AniVault`,
+              text: `Check out ${getDisplayName(anime)} on AniVault!`,
+              url: window.location.href,
+              image: enhancedAnime?.image_url || anime.image_url
+            }}
+          />
+          
+          {/* Smart Trailer Section underneath the image */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <SmartTrailerSection
+              animeTitle={anime.title}
+              className="w-full"
+            />
+          </div>
+        </div>
 
         {/* Anime Details */}
         <div className="lg:col-span-3 space-y-8">
@@ -394,13 +404,6 @@ const AnimeDetail = () => {
             </Card>
           )}
 
-          {/* Smart Trailer Section */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.75s' }}>
-            <SmartTrailerSection
-              animeTitle={anime.title}
-              className="mb-8"
-            />
-          </div>
 
           {/* Legal Streaming Links */}
           <LegalStreamingLinks anime={anime} />
