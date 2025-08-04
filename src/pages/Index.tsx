@@ -13,7 +13,7 @@ import { useStats } from "@/hooks/useStats";
 import { useAuth } from "@/hooks/useAuth";
 import { type Anime } from "@/data/animeData";
 import { TrendingUp, Clock, Star, ChevronRight, Loader2 } from "lucide-react";
-import { EmailVerificationPopup } from "@/components/EmailVerificationPopup";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { LegalFooter } from "@/components/LegalFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from '@tanstack/react-query';
@@ -422,8 +422,8 @@ const Index = () => {
 
       <LegalFooter />
 
-      {/* Coordinated Email Verification Popup */}
-      <EmailVerificationPopup triggerShow={triggerEmailPopup} />
+      {/* Email Verification Banner */}
+      <EmailVerificationBanner />
       
     </div>
   );
