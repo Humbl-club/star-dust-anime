@@ -72,26 +72,31 @@ export const AddToListButton = ({
   
   const [loading, setLoading] = useState(false);
 
-  // Use anilist_id for lookup since that's what we store in the normalized schema
-  const anilistId = (item as any).anilist_id || item.id;
+  // Use the actual title ID from the item
+  const titleId = item.id; // This should be the title table ID
+  
+  // Get list entry by title ID
   const listEntry = type === "anime" 
-    ? getAnimeListEntry(anilistId) 
-    : getMangaListEntry(anilistId);
+    ? getAnimeListEntry(titleId) 
+    : getMangaListEntry(titleId);
 
   const handleAddToList = async (status: UserAnimeListEntry['status'] | UserMangaListEntry['status']) => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Please sign in to add to your list");
+      return;
+    }
     
     setLoading(true);
     try {
-      // For the normalized schema, we need to find the detail ID first
-      // This is a simplified approach - in production you'd want to fetch detail IDs properly
-      const detailId = `detail_${anilistId}`;
-      
       if (type === "anime") {
-        await addToAnimeList(detailId, status as UserAnimeListEntry['status']);
+        await addToAnimeList(titleId, status as UserAnimeListEntry['status']);
       } else {
-        await addToMangaList(detailId, status as UserMangaListEntry['status']);
+        await addToMangaList(titleId, status as UserMangaListEntry['status']);
       }
+      toast.success(`Added to ${status} list!`);
+    } catch (error) {
+      console.error('Error adding to list:', error);
+      toast.error("Failed to add to list");
     } finally {
       setLoading(false);
     }
