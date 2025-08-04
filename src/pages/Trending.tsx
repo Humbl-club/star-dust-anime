@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
 import { useSimpleNewApiData } from "@/hooks/useSimpleNewApiData";
-import { useNamePreference } from "@/hooks/useNamePreference";
 import { Loader2 } from "lucide-react";
 
 const Trending = () => {
   const navigate = useNavigate();
   const [contentType, setContentType] = useState<'anime' | 'manga'>('anime');
-  const { getDisplayName } = useNamePreference();
 
   // Use the new optimized hook for trending anime
   const { data: trendingAnime, loading: animeLoading } = useSimpleNewApiData({
@@ -38,7 +36,7 @@ const Trending = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+      <div className="min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center py-32">
           <div className="text-center">
@@ -51,13 +49,13 @@ const Trending = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/5">
+    <div className="min-h-screen">
       <Navigation />
       
       <div className="container mx-auto py-8">
         {/* Content type toggle */}
         <Tabs value={contentType} onValueChange={(v) => setContentType(v as 'anime' | 'manga')}>
-          <TabsList className="mb-6">
+          <TabsList>
             <TabsTrigger value="anime">Trending Anime</TabsTrigger>
             <TabsTrigger value="manga">Trending Manga</TabsTrigger>
           </TabsList>
@@ -73,32 +71,24 @@ const Trending = () => {
               <div className="relative overflow-hidden rounded-lg">
                 <img
                   src={item.image_url || '/placeholder.jpg'}
-                  alt={getDisplayName(item)}
+                  alt={item.title}
                   className="w-full aspect-[3/4] object-cover group-hover:scale-110 transition-transform"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute bottom-0 p-4">
-                    <p className="text-white font-semibold">{getDisplayName(item)}</p>
+                    <p className="text-white font-semibold">{item.title}</p>
                     {item.score && (
                       <p className="text-white/80 text-sm">★ {item.score}</p>
                     )}
                   </div>
                 </div>
               </div>
-              <p className="mt-2 text-sm font-medium line-clamp-2">{getDisplayName(item)}</p>
+              <p className="mt-2 text-sm font-medium line-clamp-2">{item.title}</p>
             </div>
           ))}
         </div>
-
-        {/* Empty State */}
-        {!isLoading && (!data || data.length === 0) && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No trending {contentType} found at the moment.</p>
-          </div>
-        )}
       </div>
     </div>
   );
 };
-
 export default Trending;
