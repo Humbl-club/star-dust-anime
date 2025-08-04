@@ -49,7 +49,7 @@ export const StreamingLinks = ({ externalLinks, colorTheme }: StreamingLinksProp
       'YouTube': '📺',
       'Instagram': '📷',
       'TikTok': '🎵',
-      'MyAnimeList': '📊',
+      
       'AniDB': '📚',
       'Anime News Network': '📰',
     };

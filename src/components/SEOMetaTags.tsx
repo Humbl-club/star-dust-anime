@@ -15,7 +15,7 @@ interface SEOMetaTagsProps {
 
 export const SEOMetaTags = ({
   title = "AniVault - Your Ultimate Anime & Manga Companion",
-  description = "Discover, track, and share your favorite anime and manga. Join the ultimate AniVault community with comprehensive data from MAL and AniList.",
+  description = "Discover, track, and share your favorite anime and manga. Join the ultimate AniVault community.",
   image = "/placeholder.svg",
   url,
   type = "website",
@@ -116,7 +116,7 @@ export const SearchMetaTags = ({ query, type }: { query: string; type: 'anime' |
   return (
     <SEOMetaTags
       title={`Search results for "${query}" - ${type === 'anime' ? 'Anime' : 'Manga'} - AniVault`}
-      description={`Discover ${type} related to "${query}". Browse our comprehensive database with data from MAL and AniList.`}
+      description={`Discover ${type} related to "${query}". Browse our comprehensive database.`}
       url={deepLinkingService.generateSearchLink(query, type)}
       noIndex={true} // Don't index search result pages
     />

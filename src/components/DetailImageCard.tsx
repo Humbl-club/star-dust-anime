@@ -113,10 +113,6 @@ export const DetailImageCard = ({
             </div>
           )}
           
-          <Button variant="outline" className="w-full border-secondary/30 hover:bg-secondary/10">
-            <ExternalLink className="w-4 h-4 mr-2" />
-            View on MyAnimeList
-          </Button>
         </div>
       </div>
     </div>

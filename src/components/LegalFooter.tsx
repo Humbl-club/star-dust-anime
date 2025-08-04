@@ -54,22 +54,6 @@ export const LegalFooter = () => {
                 API Attributions
               </Link>
               <a 
-                href="https://myanimelist.net" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
-              >
-                MyAnimeList
-              </a>
-              <a 
-                href="https://anilist.co" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
-              >
-                AniList
-              </a>
-              <a 
                 href="https://jikan.moe" 
                 target="_blank" 
                 rel="noopener noreferrer"
