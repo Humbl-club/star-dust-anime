@@ -3,11 +3,11 @@ import React, { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -17,8 +17,9 @@ import { GraphQLProvider } from "@/providers/GraphQLProvider";
 import { Loader2 } from 'lucide-react';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
 
-// Explicit lazy imports for production build compatibility
+// Lazy load routes
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Anime = lazy(() => import('./pages/Anime'));
 const Manga = lazy(() => import('./pages/Manga'));
@@ -37,25 +38,29 @@ const SyncDashboard = lazy(() => import('./pages/SyncDashboard'));
 const PerformanceMonitoring = lazy(() => import('./pages/PerformanceMonitoring'));
 
 const routes = [
-  { path: '/dashboard', component: Dashboard },
-  { path: '/anime', component: Anime },
-  { path: '/manga', component: Manga },
-  { path: '/anime/:id', component: AnimeDetail },
-  { path: '/manga/:id', component: MangaDetail },
-  { path: '/trending', component: Trending },
-  { path: '/my-lists', component: MyLists },
-  { path: '/user/:username', component: UserProfile },
-  { path: '/analytics', component: Analytics },
-  { path: '/gamification', component: Gamification },
-  { path: '/admin', component: AdminDashboard },
-  { path: '/settings', component: Settings },
-  { path: '/email-debug', component: EmailDebug },
-  { path: '/test-dashboard', component: TestDashboard },
-  { path: '/sync-dashboard', component: SyncDashboard },
-  { path: '/performance-monitoring', component: PerformanceMonitoring },
+  { path: '/', element: Index, protected: false },
+  { path: '/auth', element: Auth, protected: false },
+  { path: '/dashboard', element: Dashboard, protected: true },
+  { path: '/anime', element: Anime, protected: false },
+  { path: '/anime/:id', element: AnimeDetail, protected: false },
+  { path: '/manga', element: Manga, protected: false },
+  { path: '/manga/:id', element: MangaDetail, protected: false },
+  { path: '/trending', element: Trending, protected: false },
+  { path: '/my-lists', element: MyLists, protected: true },
+  { path: '/user/:username', element: UserProfile, protected: false },
+  { path: '/analytics', element: Analytics, protected: true },
+  { path: '/gamification', element: Gamification, protected: true },
+  { path: '/admin', element: AdminDashboard, protected: true },
+  { path: '/settings', element: Settings, protected: true },
+  { path: '/email-debug', element: EmailDebug, protected: true },
+  { path: '/test-dashboard', element: TestDashboard, protected: true },
+  { path: '/sync-dashboard', element: SyncDashboard, protected: true },
+  { path: '/performance-monitoring', element: PerformanceMonitoring, protected: true },
+  { path: '/404', element: NotFound, protected: false },
+  { path: '*', element: NotFound, protected: false } // Catch-all
 ];
 
-// Loading component
+// PageLoader component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
@@ -64,6 +69,23 @@ const PageLoader = () => (
     </div>
   </div>
 );
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  
+  if (loading) {
+    return <PageLoader />;
+  }
+  
+  if (!user) {
+    // Save attempted location for redirect after login
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 // Enhanced query client with comprehensive caching strategy - moved outside component
 const queryClient = new QueryClient({
@@ -140,16 +162,20 @@ const App = () => {
                     <ConnectionStatus />
                     <InstallPrompt />
                     <Routes>
-                      <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
-                      <Route path="/auth" element={<Auth />} />
-                      {routes.map(({ path, component: Component }) => (
+                      {routes.map(({ path, element: Component, protected: isProtected }) => (
                         <Route
                           key={path}
                           path={path}
                           element={
                             <ErrorBoundary>
                               <Suspense fallback={<PageLoader />}>
-                                <Component />
+                                {isProtected ? (
+                                  <ProtectedRoute>
+                                    <Component />
+                                  </ProtectedRoute>
+                                ) : (
+                                  <Component />
+                                )}
                               </Suspense>
                             </ErrorBoundary>
                           }
@@ -159,7 +185,6 @@ const App = () => {
                   </AuthProvider>
                 </ErrorBoundary>
               </BrowserRouter>
-              <ConnectionStatus />
             </TooltipProvider>
           </ErrorBoundary>
         </GraphQLProvider>
