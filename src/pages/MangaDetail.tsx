@@ -2,10 +2,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, FileText, Book, BookOpen } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, Book, BookOpen, ExternalLink } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { AddToListButton } from "@/components/features/AddToListButton";
 import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
@@ -22,6 +22,49 @@ import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
 
 
+// Legal Reading Links Component
+const LegalReadingLinks = ({ manga }: { manga: any }) => {
+  const readingServices = [
+    { name: 'VIZ Media', url: `https://www.viz.com/search?search=${encodeURIComponent(manga.title)}`, icon: '📚' },
+    { name: 'Manga Plus', url: `https://mangaplus.shueisha.co.jp/search?q=${encodeURIComponent(manga.title)}`, icon: '📖' },
+    { name: 'ComiXology', url: `https://www.comixology.com/search?search=${encodeURIComponent(manga.title)}`, icon: '📱' },
+    { name: 'Crunchyroll Manga', url: `https://www.crunchyroll.com/comics/search?q=${encodeURIComponent(manga.title)}`, icon: '📜' },
+    { name: 'BookWalker', url: `https://global.bookwalker.jp/search/?word=${encodeURIComponent(manga.title)}`, icon: '📕' }
+  ];
+
+  return (
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in mb-8" style={{ animationDelay: '0.8s' }}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+          <BookOpen className="w-6 h-6 text-primary" />
+          Read Legally
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-6">
+          Support the creators by reading on official platforms:
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {readingServices.map((service) => (
+            <a
+              key={service.name}
+              href={service.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:bg-accent/50 hover:border-primary/30 transition-all duration-200 hover:scale-105 group"
+            >
+              <span className="text-2xl">{service.icon}</span>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">{service.name}</span>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </a>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const MangaDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -325,6 +368,9 @@ const MangaDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Legal Reading Links */}
+          <LegalReadingLinks manga={manga} />
 
           {/* Score Validation Component */}
           <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
