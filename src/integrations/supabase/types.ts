@@ -135,6 +135,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "anime_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anime_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       api_attributions: {
@@ -1323,6 +1337,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "manga_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manga_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_logs: {
@@ -1625,6 +1653,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "score_validations_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "score_validations_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       security_audit_log: {
@@ -1714,6 +1756,45 @@ export type Database = {
           metric_type?: string
           metric_value?: number
           service_name?: string
+        }
+        Relationships: []
+      }
+      streaming_availability_cache: {
+        Row: {
+          available: boolean
+          created_at: string
+          data_source: string
+          expires_at: string
+          id: string
+          last_checked: string
+          platforms: Json
+          region: string
+          title_id: string
+          title_name: string
+        }
+        Insert: {
+          available?: boolean
+          created_at?: string
+          data_source: string
+          expires_at: string
+          id?: string
+          last_checked?: string
+          platforms?: Json
+          region?: string
+          title_id: string
+          title_name: string
+        }
+        Update: {
+          available?: boolean
+          created_at?: string
+          data_source?: string
+          expires_at?: string
+          id?: string
+          last_checked?: string
+          platforms?: Json
+          region?: string
+          title_id?: string
+          title_name?: string
         }
         Relationships: []
       }
@@ -1860,6 +1941,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "title_authors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_authors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       title_comments: {
@@ -1923,6 +2018,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "title_comments_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_comments_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       title_genres: {
@@ -1981,6 +2090,20 @@ export type Database = {
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "title_genres_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
         ]
       }
       title_studios: {
@@ -2037,6 +2160,20 @@ export type Database = {
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
             referencedColumns: ["id"]
           },
         ]
@@ -2443,6 +2580,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_title_lists_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_lists_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_title_lists_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2517,6 +2668,20 @@ export type Database = {
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_progress_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_progress_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
             referencedColumns: ["id"]
           },
         ]
@@ -2730,6 +2895,66 @@ export type Database = {
         }
         Relationships: []
       }
+      v_trending_anime: {
+        Row: {
+          aired_from: string | null
+          aired_to: string | null
+          airing_priority: number | null
+          anilist_id: number | null
+          anilist_score: number | null
+          color_theme: string | null
+          created_at: string | null
+          episodes: number | null
+          id: string | null
+          image_url: string | null
+          next_episode_date: string | null
+          next_episode_number: number | null
+          popularity: number | null
+          rank: number | null
+          score: number | null
+          season: string | null
+          status: string | null
+          synopsis: string | null
+          title: string | null
+          title_english: string | null
+          title_japanese: string | null
+          trailer_url: string | null
+          trending_score: number | null
+          type: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Relationships: []
+      }
+      v_trending_manga: {
+        Row: {
+          anilist_id: number | null
+          anilist_score: number | null
+          chapters: number | null
+          color_theme: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          next_chapter_date: string | null
+          next_chapter_number: number | null
+          popularity: number | null
+          published_from: string | null
+          published_to: string | null
+          rank: number | null
+          score: number | null
+          status: string | null
+          synopsis: string | null
+          title: string | null
+          title_english: string | null
+          title_japanese: string | null
+          trending_score: number | null
+          type: string | null
+          updated_at: string | null
+          volumes: number | null
+          year: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_to_dead_letter_queue: {
@@ -2787,6 +3012,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_streaming_cache: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
