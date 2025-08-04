@@ -22,9 +22,6 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Increase cache limit and exclude large files
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
-        globIgnores: ['**/stats.html', '**/node_modules/**/*'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/axtpbgsjbmhbuqomarcr\.supabase\.co\/functions\/v1\/.*/i,
@@ -129,8 +126,7 @@ export default defineConfig(({ mode }) => ({
         ]
       }
     }),
-    // Only generate stats in development
-    mode === 'development' && visualizer({
+    visualizer({
       open: false,
       filename: 'dist/stats.html',
     }),
@@ -143,83 +139,17 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') && !id.includes('query')) {
-              return 'react-vendor';
-            }
-            // UI libraries
-            if (id.includes('@radix-ui') || id.includes('lucide-react') || id.includes('cmdk')) {
-              return 'ui-vendor';
-            }
-            // Query libraries  
-            if (id.includes('@tanstack/react-query') || id.includes('query')) {
-              return 'query-vendor';
-            }
-            // Supabase
-            if (id.includes('@supabase') || id.includes('supabase')) {
-              return 'supabase-vendor';
-            }
-            // Animation
-            if (id.includes('framer-motion') || id.includes('lottie')) {
-              return 'animation-vendor';
-            }
-            // Date utilities
-            if (id.includes('date-fns')) {
-              return 'date-vendor';
-            }
-            // Chart libraries
-            if (id.includes('recharts') || id.includes('chart')) {
-              return 'chart-vendor';
-            }
-            // Apollo/GraphQL
-            if (id.includes('@apollo') || id.includes('graphql')) {
-              return 'graphql-vendor';
-            }
-            // Large utility libraries
-            if (id.includes('lodash') || id.includes('fuse.js') || id.includes('validator')) {
-              return 'utils-vendor';
-            }
-            // Everything else goes to vendor
-            return 'vendor';
-          }
-          
-          // Page chunks
-          if (id.includes('/pages/')) {
-            if (id.includes('admin/')) return 'admin-pages';
-            return 'pages';
-          }
-          
-          // Feature components
-          if (id.includes('/components/features/')) {
-            return 'feature-components';
-          }
-          
-          // UI components
-          if (id.includes('/components/ui/')) {
-            return 'ui-components';
-          }
-          
-          // Other components
-          if (id.includes('/components/')) {
-            return 'components';
-          }
-          
-          // Hooks
-          if (id.includes('/hooks/')) {
-            return 'hooks';
-          }
-          
-          // Services
-          if (id.includes('/services/')) {
-            return 'services';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
+          'query-vendor': ['@tanstack/react-query', '@tanstack/react-query-persist-client'],
+          'supabase': ['@supabase/supabase-js'],
+          'date-utils': ['date-fns'],
+          'animation': ['framer-motion'],
         },
       },
     },
-    chunkSizeWarningLimit: 2000, // Increase limit to 2MB
+    chunkSizeWarningLimit: 1000,
     sourcemap: false,
   },
 }));

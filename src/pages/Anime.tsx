@@ -41,7 +41,6 @@ import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { LegalFooter } from "@/components/LegalFooter";
 import { logger } from "@/utils/logger";
 import { toast } from "sonner";
-import { useDataCheck } from "@/hooks/useDataCheck";
 
 const Anime = () => {
   const navigate = useNavigate();
@@ -51,9 +50,6 @@ const Anime = () => {
   const [viewMode, setViewMode] = useState<'pagination' | 'infinite'>('pagination');
   const [availableStudios, setAvailableStudios] = useState<string[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  
-  // Data check hook to see if database is empty and auto-populate
-  const { isEmpty: isDatabaseEmpty, isChecking } = useDataCheck('anime');
   
   // Use search store for state management
   const { query, filters, setFilters, setQuery } = useSearchStore();

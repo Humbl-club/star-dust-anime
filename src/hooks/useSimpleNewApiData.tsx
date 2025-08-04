@@ -87,18 +87,16 @@ export function useSimpleNewApiData(params: UseSimpleNewApiDataParams): UseSimpl
   const { data, isLoading, error, refetch } = useQuery({
     queryKey,
     queryFn: async () => {
-      // Build select string based on content type to avoid TypeScript inference issues
-      const detailsSelect = contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)';
-      const genreSelect = genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))';
-      const relationSelect = contentType === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))';
-      
-      const selectString = `*, ${detailsSelect}, ${genreSelect}, ${relationSelect}`;
-      
-      // Use type assertion to avoid infinite TypeScript recursion
+      // Use the new content_type column for efficient filtering
       let query = supabase
         .from('titles')
-        .select(selectString as any)
-        .eq('content_type', contentType);
+        .select(`
+          *,
+          ${contentType}_details!inner(*),
+          ${genre ? 'title_genres!inner(genres!inner(*))' : 'title_genres(genres(*))'},
+          ${contentType === 'anime' ? 'title_studios(studios(*))' : 'title_authors(authors(*))'}
+        `)
+        .eq('content_type', contentType); // Use the new indexed content_type column
 
       // Apply text search using the new full-text search index
       if (search) {
