@@ -111,6 +111,13 @@ export type Database = {
             foreignKeyName: "anime_details_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: true
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anime_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -220,6 +227,13 @@ export type Database = {
           username?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "claimed_usernames_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_user_statistics"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "claimed_usernames_user_id_fkey"
             columns: ["user_id"]
@@ -1271,6 +1285,13 @@ export type Database = {
             foreignKeyName: "manga_details_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: true
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manga_details_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: true
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -1552,6 +1573,13 @@ export type Database = {
             foreignKeyName: "score_validations_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "score_validations_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -1766,6 +1794,13 @@ export type Database = {
             foreignKeyName: "title_authors_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_authors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -1802,6 +1837,13 @@ export type Database = {
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_comments_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
             referencedColumns: ["id"]
           },
           {
@@ -1845,6 +1887,13 @@ export type Database = {
             foreignKeyName: "title_genres_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -1876,6 +1925,13 @@ export type Database = {
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
             referencedColumns: ["id"]
           },
           {
@@ -2067,6 +2123,13 @@ export type Database = {
             foreignKeyName: "user_loot_boxes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "mv_user_statistics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_loot_boxes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2254,8 +2317,22 @@ export type Database = {
             foreignKeyName: "user_title_lists_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_lists_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
             referencedRelation: "titles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_lists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_user_statistics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_title_lists_user_id_fkey"
@@ -2303,6 +2380,13 @@ export type Database = {
             foreignKeyName: "user_title_progress_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_title_progress_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
             referencedRelation: "titles"
             referencedColumns: ["id"]
           },
@@ -2337,6 +2421,13 @@ export type Database = {
           username?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "username_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_user_statistics"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "username_history_user_id_fkey"
             columns: ["user_id"]
@@ -2404,6 +2495,45 @@ export type Database = {
           schedule: string | null
           successful_tests: number | null
           total_tests: number | null
+        }
+        Relationships: []
+      }
+      mv_trending_content: {
+        Row: {
+          anilist_id: number | null
+          anilist_score: number | null
+          color_theme: string | null
+          content_type: string | null
+          created_at: string | null
+          genres: string[] | null
+          id: string | null
+          image_url: string | null
+          list_count: number | null
+          popularity: number | null
+          progress_count: number | null
+          rank: number | null
+          status: string | null
+          synopsis: string | null
+          title: string | null
+          title_english: string | null
+          title_japanese: string | null
+          trending_score: number | null
+          updated_at: string | null
+          verified_content_type: string | null
+          year: number | null
+        }
+        Relationships: []
+      }
+      mv_user_statistics: {
+        Row: {
+          anime_count: number | null
+          full_name: string | null
+          last_activity: string | null
+          manga_count: number | null
+          mean_score: number | null
+          scored_entries: number | null
+          total_entries: number | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -2830,6 +2960,10 @@ export type Database = {
       process_auth_webhook: {
         Args: { event_type: string; user_data: Json }
         Returns: Json
+      }
+      refresh_trending_content: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       resend_verification_email: {
         Args: { user_id_param: string }
