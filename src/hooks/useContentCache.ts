@@ -47,7 +47,7 @@ export function useContentCache<T>(
     queryKey: key,
     queryFn: fetcher,
     staleTime,
-    gcTime: cacheTime, // Updated from cacheTime to gcTime for latest React Query
+    gcTime: cacheTime,
     refetchOnMount,
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {

@@ -65,17 +65,11 @@ class ProductionMonitor {
     this.queue = [];
     
     try {
-      // Use service_metrics table that already exists
-      await supabase.from('service_metrics').insert(
+      await supabase.from('performance_metrics').insert(
         metrics.map(metric => ({
-          service_name: 'frontend',
-          metric_type: metric.name,
-          metric_value: metric.value,
-          metadata: {
-            ...metric.tags,
-            session_id: this.getSessionId(),
-            timestamp: new Date().toISOString()
-          }
+          ...metric,
+          timestamp: new Date().toISOString(),
+          session_id: this.getSessionId()
         }))
       );
     } catch (error) {
