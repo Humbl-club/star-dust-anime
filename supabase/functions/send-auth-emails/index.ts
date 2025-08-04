@@ -1,23 +1,15 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
-import { Resend } from 'https://esm.sh/resend@4.0.0'
+import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'npm:resend@4.0.0'
 
 // Use environment variables instead of hardcoded values
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const resendApiKey = Deno.env.get('RESEND_API_KEY')!
-const appUrl = Deno.env.get('APP_URL') || 'https://7fc28aed-a663-4753-8877-1ca39b8ccf8c.lovableproject.com'
+const appUrl = Deno.env.get('APP_URL') || 'https://yourdomain.com'
 
-// Initialize email provider
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 const resend = new Resend(resendApiKey)
-
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
