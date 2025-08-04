@@ -224,36 +224,10 @@ export const authService = {
 
   async resendConfirmation(email: string): Promise<{ error: any; message?: string }> {
     try {
-      // Sanitize email input
-      const sanitizedEmail = sanitizeInput(email.toLowerCase());
-      
-      // Validate email format
-      const emailValidation = validateEmail(sanitizedEmail);
-      if (!emailValidation.isValid) {
-        return { 
-          error: { message: emailValidation.errors[0] || 'Please enter a valid email address' },
-          message: 'Invalid email format'
-        };
-      }
-
-      console.log('Resending confirmation to:', sanitizedEmail);
-      
-      // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return { 
-          error: { message: 'User not authenticated' },
-          message: 'Authentication required'
-        };
-      }
-      
-      // Call the edge function directly
-      const { data, error } = await supabase.functions.invoke('send-auth-emails', {
-        body: {
-          email: sanitizedEmail,
-          user_id: user.id,
-          email_action_type: 'resend_confirmation'
-        }
+      // Use Supabase's built-in resend functionality
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
       });
 
       if (error) {
