@@ -15,19 +15,19 @@ export interface PaginationInfo {
 
 export interface UseContentDataOptions {
   contentType: 'anime' | 'manga';
+  filters?: {
+    search?: string;
+    genre?: string;
+    status?: string;
+    type?: string;
+    year?: string;
+    season?: string;
+    sort_by?: string;
+    order?: 'asc' | 'desc';
+  };
   page?: number;
   limit?: number;
-  search?: string;
-  genre?: string;
-  status?: string;
-  type?: string;
-  year?: string;
-  season?: string;
-  sort_by?: string;
-  order?: 'asc' | 'desc';
   autoFetch?: boolean;
-  useOptimized?: boolean; // Toggle between edge function vs direct DB
-  useEdgeCache?: boolean; // Use edge function for aggregated home data
 }
 
 export interface UseContentDataReturn<T> {
@@ -50,8 +50,13 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
   const queryClient = useQueryClient();
   const {
     contentType,
+    filters = {},
     page = 1,
     limit = 20,
+    autoFetch = true
+  } = options;
+
+  const {
     search,
     genre,
     status,
@@ -59,11 +64,8 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     year,
     season,
     sort_by = 'score',
-    order = 'desc',
-    autoFetch = true,
-    useOptimized = true,
-    useEdgeCache = false
-  } = options;
+    order = 'desc'
+  } = filters;
 
   // Create query key for caching
   const queryKey = [
@@ -78,9 +80,7 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     year, 
     season, 
     sort_by, 
-    order,
-    useOptimized ? 'optimized' : 'api',
-    useEdgeCache ? 'edge-cache' : 'normal'
+    order
   ];
 
   const queryFn = async () => {

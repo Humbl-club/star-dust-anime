@@ -69,12 +69,13 @@ const Manga = () => {
     contentType: 'manga',
     page: currentPage,
     limit: 24,
-    search: query || undefined,
-    genre: filters.genre !== 'all' ? filters.genre : undefined,
-    status: filters.status !== 'all' ? filters.status : undefined,
-    sort_by: filters.sort_by || 'popularity',
-    order: 'desc',
-    useOptimized: true
+    filters: {
+      search: query || undefined,
+      genre: filters.genre !== 'all' ? filters.genre : undefined,
+      status: filters.status !== 'all' ? filters.status : undefined,
+      sort_by: filters.sort_by || 'popularity',
+      order: 'desc'
+    }
   });
 
   const infiniteQuery = useInfiniteContentData({

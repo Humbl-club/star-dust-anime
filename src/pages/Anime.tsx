@@ -79,15 +79,16 @@ const Anime = () => {
     contentType: 'anime',
     page: currentPage,
     limit: 24,
-    search: query,
-    genre: filters.genre,
-    status: filters.status,
-    type: filters.type,
-    year: filters.year,
-    season: filters.season,
-    sort_by: filters.sort_by || 'score',
-    order: filters.order || 'desc',
-    useOptimized: true
+    filters: {
+      search: query,
+      genre: filters.genre,
+      status: filters.status,
+      type: filters.type,
+      year: filters.year,
+      season: filters.season,
+      sort_by: filters.sort_by || 'score',
+      order: filters.order || 'desc'
+    }
   });
 
   const infiniteQuery = useInfiniteContentData({

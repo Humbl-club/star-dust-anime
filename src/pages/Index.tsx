@@ -39,10 +39,10 @@ const Index = () => {
     contentType: 'anime',
     page: 1,
     limit: 36, // Increased for better homepage sections
-    sort_by: 'score',
-    order: 'desc',
-    useOptimized: true,
-    useEdgeCache: true // Use new edge function for aggregated home data
+    filters: {
+      sort_by: 'score',
+      order: 'desc'
+    }
   });
 
   // Create homepage sections from cached edge data using useMemo for performance
