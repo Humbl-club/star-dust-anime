@@ -68,6 +68,67 @@ export interface BaseContent {
 export abstract class BaseApiService {
   protected supabase = supabase;
 
+  protected async handleSupabaseRequest<T>(
+    request: () => Promise<{ data: T | null; error: any }>
+  ): Promise<ServiceResponse<T>> {
+    try {
+      const { data, error } = await request();
+      
+      if (error) {
+        // Handle specific Supabase errors
+        if (error.code === 'PGRST301') {
+          // Edge function not found
+          return {
+            success: false,
+            data: null,
+            error: 'Service temporarily unavailable. Please try again later.'
+          };
+        }
+        
+        throw error;
+      }
+      
+      if (!data) {
+        return {
+          success: false,
+          data: null,
+          error: 'No data received from server'
+        };
+      }
+      
+      return {
+        success: true,
+        data,
+        error: null
+      };
+    } catch (error) {
+      console.error('API request failed:', error);
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+  // Unified method for edge function calls
+  protected async invokeEdgeFunction<T>(
+    functionName: string,
+    payload: any
+  ): Promise<ServiceResponse<T>> {
+    return this.handleSupabaseRequest(async () => {
+      const response = await this.supabase.functions.invoke(functionName, {
+        body: payload
+      });
+      
+      // Edge functions return data wrapped in response
+      return {
+        data: response.data as T,
+        error: response.error
+      };
+    });
+  }
+
   protected handleError(error: Error | unknown, operation: string): ServiceResponse<null> {
     console.error(`Error in ${operation}:`, error);
     toast.error(`Failed to ${operation.toLowerCase()}`);
