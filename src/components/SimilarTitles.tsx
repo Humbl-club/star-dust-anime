@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
-import { AnimeCard } from './features/AnimeCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useNamePreference } from '@/hooks/useNamePreference';
 
@@ -21,6 +21,7 @@ interface SimilarTitle {
 }
 
 export const SimilarTitles = ({ titleId, contentType, currentTitle }: SimilarTitlesProps) => {
+  const navigate = useNavigate();
   const [similarTitles, setSimilarTitles] = useState<SimilarTitle[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,15 +30,37 @@ export const SimilarTitles = ({ titleId, contentType, currentTitle }: SimilarTit
   const fetchSimilarTitles = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_related_titles', {
-        title_id_param: titleId,
-        content_type: contentType,
-        limit_param: 12
-      });
+      // First get the current title's genres
+      const { data: currentData } = await supabase
+        .from('titles')
+        .select(`
+          *,
+          title_genres(genres(id, name))
+        `)
+        .eq('id', titleId)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (!currentData) return;
 
-      setSimilarTitles(data || []);
+      const genreIds = currentData.title_genres?.map((tg: any) => tg.genres.id) || [];
+
+      if (genreIds.length === 0) return;
+
+      // Find similar titles based on genres and content type
+      const { data: similar } = await supabase
+        .from('titles')
+        .select(`
+          *,
+          ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+          title_genres!inner(genres!inner(id))
+        `)
+        .neq('id', titleId)
+        .in('title_genres.genres.id', genreIds)
+        .gte('score', 6)
+        .order('score', { ascending: false })
+        .limit(12);
+
+      setSimilarTitles(similar || []);
     } catch (error) {
       console.error('Error fetching similar titles:', error);
     } finally {
@@ -59,6 +82,11 @@ export const SimilarTitles = ({ titleId, contentType, currentTitle }: SimilarTit
     setCurrentIndex((prev) => 
       prev === 0 ? Math.max(0, similarTitles.length - 4) : prev - 4
     );
+  };
+
+  const handleTitleClick = (item: SimilarTitle) => {
+    // Navigate to the correct detail page
+    navigate(`/${contentType}/${item.id}`);
   };
 
   if (loading) {
@@ -127,31 +155,21 @@ export const SimilarTitles = ({ titleId, contentType, currentTitle }: SimilarTit
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {visibleTitles.map((title, index) => (
-            <div key={title.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              <AnimeCard
-                anime={{
-                  id: title.id,
-                  title: title.title,
-                  image_url: title.image_url,
-                  score: title.score,
-                  anilist_id: title.anilist_id,
-                  genres: [],
-                  studios: [],
-                  synopsis: '',
-                  episodes: 0,
-                  status: '',
-                  type: 'TV',
-                  year: null,
-                  mal_id: title.anilist_id,
-                  title_english: '',
-                  title_japanese: '',
-                  scored_by: 0,
-                  rank: null,
-                  popularity: null,
-                  members: null,
-                  favorites: null
-                }}
+            <div
+              key={title.id}
+              className="cursor-pointer hover:scale-105 transition-transform animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+              onClick={() => handleTitleClick(title)}
+            >
+              <img
+                src={title.image_url || '/placeholder.jpg'}
+                alt={title.title}
+                className="rounded-lg w-full aspect-[3/4] object-cover"
               />
+              <p className="mt-2 text-sm font-medium line-clamp-2">{getDisplayName(title)}</p>
+              {title.score && (
+                <p className="text-xs text-muted-foreground">★ {title.score}</p>
+              )}
             </div>
           ))}
         </div>
