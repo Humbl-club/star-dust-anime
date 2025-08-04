@@ -742,6 +742,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_logs_archive_2025_09: {
+        Row: {
+          details: Json | null
+          error_message: string | null
+          executed_at: string
+          id: string
+          job_name: string
+          status: string
+        }
+        Insert: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name: string
+          status: string
+        }
+        Update: {
+          details?: Json | null
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          job_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       cron_job_logs_archive_default: {
         Row: {
           details: Json | null
@@ -1279,6 +1306,36 @@ export type Database = {
           title?: string
           total_subscriptions?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          session_id: string
+          tags: Json | null
+          timestamp: string
+          value: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          session_id: string
+          tags?: Json | null
+          timestamp?: string
+          value: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          session_id?: string
+          tags?: Json | null
+          timestamp?: string
+          value?: number
         }
         Relationships: []
       }
