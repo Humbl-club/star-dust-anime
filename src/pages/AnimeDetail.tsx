@@ -22,6 +22,15 @@ import { usePWA } from "@/hooks/usePWA";
 import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
 import { StreamingLinks } from "@/components/StreamingLinks";
+import { 
+  SiCrunchyroll, 
+  SiNetflix, 
+  SiAmazonprime,
+  SiFunimation,
+  SiApple
+} from 'react-icons/si';
+import { FaTv, FaPlay } from 'react-icons/fa';
+import { RiNetflixFill } from 'react-icons/ri';
 
 // Enhanced Legal Streaming Links Component
 const LegalStreamingLinks = ({ anime }: { anime: any }) => {
@@ -40,7 +49,28 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
     );
   }
 
-  // Fallback: Create search links for popular streaming platforms
+  // Enhanced fallback: Create search links for popular streaming platforms
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'Crunchyroll':
+        return <SiCrunchyroll className="w-5 h-5" style={{ color: '#FF6600' }} />;
+      case 'Netflix':
+        return <SiNetflix className="w-5 h-5" style={{ color: '#E50914' }} />;
+      case 'Hulu':
+        return <FaTv className="w-5 h-5" style={{ color: '#1CE783' }} />;
+      case 'Amazon Prime Video':
+        return <SiAmazonprime className="w-5 h-5" style={{ color: '#00A8E1' }} />;
+      case 'Funimation':
+        return <SiFunimation className="w-5 h-5" style={{ color: '#5B4FFF' }} />;
+      case 'Apple TV':
+        return <SiApple className="w-5 h-5" style={{ color: '#555555' }} />;
+      case 'Disney Plus':
+        return <FaTv className="w-5 h-5" style={{ color: '#113CCF' }} />;
+      default:
+        return <FaTv className="w-5 h-5 text-muted-foreground" />;
+    }
+  };
+
   const fallbackStreamingLinks = [
     { 
       id: 1, 
@@ -76,6 +106,13 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
       site: 'Funimation', 
       type: 'STREAMING',
       color: '#5B4FFF'
+    },
+    { 
+      id: 6, 
+      url: `https://tv.apple.com/search?term=${encodeURIComponent(anime.title)}`, 
+      site: 'Apple TV', 
+      type: 'STREAMING',
+      color: '#555555'
     }
   ];
 
@@ -84,12 +121,15 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg">
         <CardContent className="p-8">
           <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <ExternalLink className="w-6 h-6 text-primary" />
+            <FaPlay className="w-6 h-6 text-primary" />
             Search on Streaming Platforms
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            No direct streaming links available. Search for "{anime.title}" on these platforms:
-          </p>
+          <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-amber-200/20">
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <ExternalLink className="w-4 h-4" />
+              No direct streaming links available. Search for "{anime.title}" on these platforms:
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {fallbackStreamingLinks.map((service, index) => (
               <Button
@@ -97,7 +137,7 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
                 variant="outline"
                 size="sm"
                 asChild
-                className="h-auto p-3 justify-start hover:scale-[1.02] transition-all duration-200 animate-fade-in"
+                className="h-auto p-4 justify-start hover:scale-[1.02] transition-all duration-200 animate-fade-in group"
                 style={{ 
                   animationDelay: `${0.1 + (index * 0.05)}s`,
                   borderColor: service.color ? `${service.color}40` : undefined
@@ -105,22 +145,21 @@ const LegalStreamingLinks = ({ anime }: { anime: any }) => {
               >
                 <a href={service.url} target="_blank" rel="noopener noreferrer">
                   <div className="flex items-center gap-3 w-full">
-                    <span className="text-lg">
-                      {service.site === 'Crunchyroll' && '🟠'}
-                      {service.site === 'Netflix' && '🔴'}
-                      {service.site === 'Hulu' && '🟢'}
-                      {service.site === 'Amazon Prime Video' && '🔵'}
-                      {service.site === 'Funimation' && '🟣'}
-                    </span>
+                    {getPlatformIcon(service.site)}
                     <div className="flex-1 text-left">
                       <div className="font-medium text-sm">{service.site}</div>
                       <div className="text-xs text-muted-foreground">Search Platform</div>
                     </div>
-                    <ExternalLink className="w-4 h-4 opacity-60" />
+                    <ExternalLink className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </a>
               </Button>
             ))}
+          </div>
+          <div className="mt-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Support the creators by watching on official platforms
+            </p>
           </div>
         </CardContent>
       </Card>

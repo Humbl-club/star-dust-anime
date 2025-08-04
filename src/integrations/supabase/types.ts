@@ -1950,6 +1950,7 @@ export type Database = {
           color_theme: string | null
           content_type: string | null
           created_at: string | null
+          external_links: Json | null
           favorites: number | null
           fts: unknown | null
           id: string
@@ -1971,6 +1972,7 @@ export type Database = {
           color_theme?: string | null
           content_type?: string | null
           created_at?: string | null
+          external_links?: Json | null
           favorites?: number | null
           fts?: unknown | null
           id?: string
@@ -1992,6 +1994,7 @@ export type Database = {
           color_theme?: string | null
           content_type?: string | null
           created_at?: string | null
+          external_links?: Json | null
           favorites?: number | null
           fts?: unknown | null
           id?: string

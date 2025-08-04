@@ -22,6 +22,16 @@ interface AnimeDetail {
   num_users_voted?: number;
   created_at: string;
   updated_at: string;
+  external_links?: Array<{
+    id: number;
+    url: string;
+    site: string;
+    siteId?: number;
+    type: string;
+    language?: string;
+    color?: string;
+    icon?: string;
+  }>;
   // Anime detail fields
   episodes?: number;
   aired_from?: string;
@@ -121,6 +131,16 @@ export const useAnimeDetail = (animeId: string): UseAnimeDetailResult => {
         num_users_voted: 0, // Will be calculated separately if needed
         created_at: data.created_at,
         updated_at: data.updated_at,
+        external_links: Array.isArray(data.external_links) ? data.external_links as Array<{
+          id: number;
+          url: string;
+          site: string;
+          siteId?: number;
+          type: string;
+          language?: string;
+          color?: string;
+          icon?: string;
+        }> : [],
         
         // Anime detail fields (from anime_details join)
         episodes: data.anime_details?.episodes,
