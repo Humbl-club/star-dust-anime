@@ -13,5 +13,26 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'x-application-name': 'anime-manga-platform'
+    }
+  },
+  // Add retry logic
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
+
+// Add connection health check
+export const checkSupabaseHealth = async () => {
+  try {
+    const { data, error } = await supabase.from('titles').select('count').limit(1);
+    return { healthy: !error, error };
+  } catch (e) {
+    return { healthy: false, error: e };
+  }
+};
