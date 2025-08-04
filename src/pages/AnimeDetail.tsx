@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Clock, Award, Play, Zap } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Calendar, Clock, Award, Play, Zap, ExternalLink } from "lucide-react";
 import { useNamePreference } from "@/hooks/useNamePreference";
 import { ScoreValidationComponent } from "@/components/ScoreValidationComponent";
 import { CommentsSection } from "@/components/CommentsSection";
@@ -22,6 +22,49 @@ import { offlineStorage } from "@/lib/cache/offlineStorage";
 import { SimilarTitles } from "@/components/SimilarTitles";
 
 
+// Legal Streaming Links Component
+const LegalStreamingLinks = ({ anime }: { anime: any }) => {
+  const streamingServices = [
+    { name: 'Crunchyroll', url: `https://www.crunchyroll.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🟠' },
+    { name: 'Funimation', url: `https://www.funimation.com/search/?q=${encodeURIComponent(anime.title)}`, icon: '🟣' },
+    { name: 'Netflix', url: `https://www.netflix.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🔴' },
+    { name: 'Hulu', url: `https://www.hulu.com/search?q=${encodeURIComponent(anime.title)}`, icon: '🟢' },
+    { name: 'Amazon Prime', url: `https://www.amazon.com/s?k=${encodeURIComponent(anime.title)}`, icon: '🔵' }
+  ];
+
+  return (
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.8s' }}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+          <Play className="w-6 h-6 text-primary" />
+          Watch Legally
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-6">
+          Support the creators by watching on official platforms:
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {streamingServices.map((service) => (
+            <a
+              key={service.name}
+              href={service.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:bg-accent/50 hover:border-primary/30 transition-all duration-200 hover:scale-105 group"
+            >
+              <span className="text-2xl">{service.icon}</span>
+              <div className="flex-1">
+                <span className="text-sm font-medium block">{service.name}</span>
+              </div>
+              <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </a>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const AnimeDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -349,6 +392,9 @@ const AnimeDetail = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Legal Streaming Links */}
+          <LegalStreamingLinks anime={anime} />
 
           {/* Score Validation Component */}
           <div id="score-validation" className="mb-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
