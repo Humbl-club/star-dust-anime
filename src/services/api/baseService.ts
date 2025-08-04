@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import { connectionManager } from '@/lib/supabaseConnection';
+import { AppError } from '@/lib/errorHandling';
 import { toast } from 'sonner';
 
 // Common interfaces
@@ -72,28 +74,53 @@ export abstract class BaseApiService {
     request: () => Promise<{ data: T | null; error: any }>
   ): Promise<ServiceResponse<T>> {
     try {
-      const { data, error } = await request();
+      // Use connection manager for retry logic
+      const result = await connectionManager.executeWithRetry(
+        request,
+        'API Request'
+      );
+      
+      const { data, error } = result;
       
       if (error) {
-        // Handle specific Supabase errors
+        // Map Supabase errors to app errors
         if (error.code === 'PGRST301') {
-          // Edge function not found
-          return {
-            success: false,
-            data: null,
-            error: 'Service temporarily unavailable. Please try again later.'
-          };
+          throw new AppError(
+            'Service temporarily unavailable',
+            'SERVICE_UNAVAILABLE',
+            503
+          );
         }
         
-        throw error;
+        if (error.code === '42501') {
+          throw new AppError(
+            'Insufficient permissions',
+            'FORBIDDEN',
+            403
+          );
+        }
+        
+        if (error.code === 'PGRST116') {
+          throw new AppError(
+            'No data found',
+            'NOT_FOUND',
+            404
+          );
+        }
+        
+        if (error.code === '23505') {
+          throw new AppError(
+            'Duplicate entry',
+            'CONFLICT',
+            409
+          );
+        }
+        
+        throw new AppError(error.message, 'API_ERROR', 400);
       }
       
       if (!data) {
-        return {
-          success: false,
-          data: null,
-          error: 'No data received from server'
-        };
+        throw new AppError('No data received', 'NO_DATA', 204);
       }
       
       return {
@@ -102,11 +129,19 @@ export abstract class BaseApiService {
         error: null
       };
     } catch (error) {
+      if (error instanceof AppError) {
+        return {
+          success: false,
+          data: null,
+          error: error.message
+        };
+      }
+      
       console.error('API request failed:', error);
       return {
         success: false,
         data: null,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: 'An unexpected error occurred'
       };
     }
   }
@@ -118,7 +153,11 @@ export abstract class BaseApiService {
   ): Promise<ServiceResponse<T>> {
     return this.handleSupabaseRequest(async () => {
       const response = await this.supabase.functions.invoke(functionName, {
-        body: payload
+        body: payload,
+        headers: {
+          'x-request-id': crypto.randomUUID(),
+          'x-client-info': `BaseApiService/${functionName}`
+        }
       });
       
       // Edge functions return data wrapped in response
