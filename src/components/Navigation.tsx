@@ -22,7 +22,7 @@ import {
   X,
   Palette,
   Languages,
-  Tv
+  Monitor
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,7 +120,7 @@ export const Navigation = ({ onSearch }: NavigationProps) => {
     { icon: TrendingUp, label: "Trending", href: "/trending", active: window.location.pathname === "/trending" },
     { icon: Play, label: "Anime", href: "/anime", active: window.location.pathname === "/anime" },
     { icon: BookOpen, label: "Manga", href: "/manga", active: window.location.pathname === "/manga" },
-    { icon: Tv, label: "Streaming", href: "/streaming-search", active: window.location.pathname === "/streaming-search" },
+    { icon: Monitor, label: "Streaming", href: "/streaming-search", active: window.location.pathname === "/streaming-search" },
     { icon: Heart, label: "My Lists", href: "/my-lists", active: window.location.pathname === "/my-lists", requiresAuth: true },
   ];
 
