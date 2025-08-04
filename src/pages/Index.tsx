@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { PersonalizedDashboard } from "@/components/PersonalizedDashboard";
+import { TrendingContentSection } from "@/components/TrendingContentSection";
 
 import { AnimeCard } from "@/components/features/AnimeCard";
 import { Button } from "@/components/ui/button";
@@ -355,32 +356,33 @@ const Index = () => {
         </section>
       )}
 
-      {/* Main Content Sections */}
+      {/* New Trending System */}
+      {searchResults.length === 0 && !isSearching && (
+        <div className="container mx-auto px-4">
+          <TrendingContentSection 
+            contentType="anime" 
+            title="🔥 Trending Anime" 
+            limit={24}
+          />
+          <TrendingContentSection 
+            contentType="manga" 
+            title="📚 Trending Manga" 
+            limit={18}
+          />
+        </div>
+      )}
+
+      {/* Fallback: Original sections if new trending fails */}
       {searchResults.length === 0 && !isSearching && (trendingAnime.length > 0 || recentlyAdded.length > 0) && (
-        <>
+        <div className="container mx-auto px-4 mt-8">
           <AnimeSection
-            title="Hot Right Now"
-            subtitle="Currently airing anime with highest popularity (AniList-based)"
-            icon={TrendingUp}
-            animeList={trendingAnime}
-            className="bg-muted/10"
-          />
-
-          <AnimeSection
-            title="Recently Added"
-            subtitle="Latest additions to our catalog"
-            icon={Clock}
-            animeList={recentlyAdded}
-          />
-
-          <AnimeSection
-            title="Top Rated"
+            title="Fallback: Top Rated"
             subtitle="Highest average scores (MAL + AniList combined)"
             icon={Star}
             animeList={topRated}
             className="bg-muted/10"
           />
-        </>
+        </div>
       )}
 
       {/* Stats Footer */}
