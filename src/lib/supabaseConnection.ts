@@ -55,12 +55,4 @@ export class SupabaseConnectionManager {
   }
 }
 
-// Export singleton instance
 export const connectionManager = new SupabaseConnectionManager();
-
-// Cleanup on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    connectionManager.stopHealthMonitoring();
-  });
-}
