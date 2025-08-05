@@ -50,6 +50,23 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
     order: 'desc'
   });
 
+  // Add status normalization function
+  const normalizeStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'Currently Airing': 'AIRING',
+      'RELEASING': 'AIRING',
+      'Not yet aired': 'UPCOMING',
+      'NOT_YET_RELEASED': 'UPCOMING',
+      'Finished Airing': 'COMPLETED',
+      'FINISHED': 'COMPLETED',
+      'Publishing': 'ONGOING',
+      'Finished': 'COMPLETED',
+      'On Hiatus': 'HIATUS'
+    };
+    
+    return statusMap[status] || status;
+  };
+
   // Group content by season and status
   const groupedContent = React.useMemo(() => {
     if (!trendingData) return {};
@@ -61,22 +78,18 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
     };
 
     trendingData.forEach((item: any) => {
-      if (contentType === 'anime' && item.anime_details) {
-        const status = item.anime_details.status;
-        if (status === 'Currently Airing' || status === 'RELEASING') {
-          groups.currentSeason.push(item);
-        } else if (status === 'Not yet aired' || status === 'NOT_YET_RELEASED') {
-          groups.upcoming.push(item);
-        } else if (status === 'Finished Airing' || status === 'FINISHED') {
-          groups.recentlyCompleted.push(item);
-        }
-      } else if (contentType === 'manga' && item.manga_details) {
-        const status = item.manga_details.status;
-        if (status === 'Publishing' || status === 'RELEASING') {
-          groups.currentSeason.push(item);
-        } else if (status === 'Finished' || status === 'FINISHED') {
-          groups.recentlyCompleted.push(item);
-        }
+      const status = normalizeStatus(
+        contentType === 'anime' 
+          ? item.anime_details?.status || item.status 
+          : item.manga_details?.status || item.status
+      );
+      
+      if (['AIRING', 'ONGOING'].includes(status)) {
+        groups.currentSeason.push(item);
+      } else if (['UPCOMING'].includes(status)) {
+        groups.upcoming.push(item);
+      } else if (['COMPLETED'].includes(status)) {
+        groups.recentlyCompleted.push(item);
       }
     });
 
