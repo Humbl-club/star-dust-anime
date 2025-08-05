@@ -109,14 +109,13 @@ async function processKitsuGenres(kitsuData: any, titleId: string) {
             .maybeSingle()
 
           if (!existingGenre) {
-            // Create new genre
+            // Create new genre with proper fields
             const { data: newGenre } = await supabase
               .from('genres')
               .insert({
                 name: genre.attributes.name,
                 slug: genre.attributes.slug,
-                description: genre.attributes.description,
-                category: 'genre' // Kitsu genres are general genres
+                type: 'both' // Kitsu genres work for both anime and manga
               })
               .select()
               .single()
@@ -130,9 +129,7 @@ async function processKitsuGenres(kitsuData: any, titleId: string) {
               .from('title_genres')
               .upsert({
                 title_id: titleId,
-                genre_id: existingGenre.id,
-                relevance_score: 0.9, // High relevance from Kitsu
-                source: 'kitsu'
+                genre_id: existingGenre.id
               }, { onConflict: 'title_id,genre_id' })
           }
         } catch (error) {
@@ -187,15 +184,8 @@ async function processKitsuCategories(kitsuData: any, titleId: string) {
           }
 
           if (existingTag) {
-            // Create title-tag relationship
-            await supabase
-              .from('title_content_tags')
-              .upsert({
-                title_id: titleId,
-                tag_id: existingTag.id,
-                rank: category.attributes.childCount || 0, // Use childCount as rank
-                source: 'kitsu'
-              }, { onConflict: 'title_id,tag_id' })
+            // Skip tag relationships for now - we don't have title_content_tags table
+            console.log(`Tag processed: ${category.attributes.title} (table relationship pending)`)
           }
         } catch (error) {
           console.error(`Error processing Kitsu category:`, error)
@@ -243,8 +233,7 @@ async function processKitsuProductions(kitsuData: any, titleId: string, contentT
               .from('studios')
               .insert({
                 name: producer.attributes.name,
-                slug: producer.attributes.slug,
-                is_animation_studio: true
+                slug: producer.attributes.slug
               })
               .select()
               .single()
@@ -258,15 +247,13 @@ async function processKitsuProductions(kitsuData: any, titleId: string, contentT
               p.relationships?.producer?.data?.id === producer.id
             )
             
-            // Create title-studio relationship - use INSERT...ON CONFLICT to avoid duplicate errors
+            // Create title-studio relationship - use upsert to avoid duplicate errors
             await supabase
               .from('title_studios')
-              .insert({
+              .upsert({
                 title_id: titleId,
-                studio_id: existingStudio.id,
-                is_main_studio: production?.attributes?.role === 'producer',
-                role: production?.attributes?.role || 'production'
-              })
+                studio_id: existingStudio.id
+              }, { onConflict: 'title_id,studio_id' })
               .select()
               .single()
               .catch(() => {
@@ -346,8 +333,7 @@ async function processKitsuStaff(kitsuData: any, titleId: string, contentType: s
                 .from('title_authors')
                 .upsert({
                   title_id: titleId,
-                  author_id: existingPerson.id,
-                  role: mappedRole
+                  author_id: existingPerson.id
                 }, { onConflict: 'title_id,author_id' })
             }
           }
