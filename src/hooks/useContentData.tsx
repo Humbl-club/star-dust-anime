@@ -1,4 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef, useEffect, useState, useMemo } from 'react';
+import { debounce } from 'lodash';
 import { animeService, mangaService, AnimeContent, MangaContent } from '@/services/api';
 import { queryKeys } from '@/utils/queryKeys';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +50,9 @@ export function useContentData(options: UseContentDataOptions & { contentType: '
 // Implementation
 export function useContentData(options: UseContentDataOptions): UseContentDataReturn<AnimeContent | MangaContent> {
   const queryClient = useQueryClient();
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [requestId] = useState(() => crypto.randomUUID());
+  
   const {
     contentType,
     filters = {},
@@ -80,133 +85,185 @@ export function useContentData(options: UseContentDataOptions): UseContentDataRe
     year, 
     season, 
     sort_by, 
-    order
+    order,
+    requestId // Add requestId for deduplication
   ];
 
-  const queryFn = async () => {
-    const startTime = performance.now();
-    
-    try {
-      logger.debug(`🔍 useContentData: Direct Supabase query for ${contentType}:`, {
-        page, limit, search, genre, status, type, year, season, sort_by, order
-      });
-
-      // Build the base query with proper select statement
-      const baseSelect = `
-        *,
-        ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
-        title_genres(genres(name)),
-        ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
-      `;
-
-      const genreSelect = `
-        *,
-        ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
-        title_genres!inner(genres!inner(name)),
-        ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
-      `;
-
-      let query = supabase
-        .from('titles')
-        .select(genre && genre !== 'all' ? genreSelect : baseSelect);
-
-      // Apply genre filter using inner join
-      if (genre && genre !== 'all') {
-        query = query.eq('title_genres.genres.name', genre);
+  // Debounced fetch function with abort controller
+  const debouncedQueryFn = useMemo(
+    () => debounce(async (signal?: AbortSignal) => {
+      // Cancel previous request if exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-
-      // Apply year filter
-      if (year && year !== 'all') {
-        query = query.eq('year', parseInt(year));
-      }
-
-      // Apply status filter
-      if (status && status !== 'all') {
-        const statusColumn = contentType === 'anime' ? 'anime_details.status' : 'manga_details.status';
-        query = query.eq(statusColumn, status);
-      }
-
-      // Apply type filter
-      if (type && type !== 'all') {
-        const typeColumn = contentType === 'anime' ? 'anime_details.type' : 'manga_details.type';
-        query = query.eq(typeColumn, type);
-      }
-
-      // Apply season filter (anime only)
-      if (contentType === 'anime' && season && season !== 'all') {
-        query = query.eq('anime_details.season', season);
-      }
-
-      // Apply search filter across multiple fields
-      if (search && search.trim()) {
-        const searchTerm = search.trim();
-        query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
-      }
-
-      // Apply sorting with proper null handling
-      const sortColumn = sort_by || 'score';
-      const sortOrder = order || 'desc';
       
-      if (sortColumn === 'score') {
-        query = query.order(sortColumn, { 
-          ascending: sortOrder === 'asc', 
-          nullsFirst: false 
-        });
-      } else {
-        query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
-      }
-
-      // Apply pagination
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
-      query = query.range(from, to);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        logger.error('❌ useContentData Supabase error:', error);
-        throw error;
-      }
-
-      const endTime = performance.now();
-      const duration = Math.round(endTime - startTime);
-
-      logger.debug(`✅ useContentData completed in ${duration}ms:`, {
-        contentType,
-        itemsReturned: data?.length || 0,
-        totalCount: count
-      });
-
-      // Calculate pagination info
-      const totalCount = count || data?.length || 0;
-      const totalPages = Math.ceil(totalCount / limit);
-
-      return {
-        data: (data || []) as unknown as (AnimeContent | MangaContent)[],
-        pagination: {
-          current_page: page,
-          per_page: limit,
-          total: totalCount,
-          total_pages: totalPages,
-          has_next_page: page < totalPages,
-          has_prev_page: page > 1
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      const currentSignal = signal || abortControllerRef.current.signal;
+      
+      const startTime = performance.now();
+      
+      try {
+        // Check if request was aborted before starting
+        if (currentSignal.aborted) {
+          throw new Error('Request aborted');
         }
-      };
+        
+        logger.debug(`🔍 useContentData: Direct Supabase query for ${contentType}:`, {
+          page, limit, search, genre, status, type, year, season, sort_by, order, requestId
+        });
 
-    } catch (error) {
-      const endTime = performance.now();
-      const duration = Math.round(endTime - startTime);
-      
-      logger.error(`❌ useContentData error after ${duration}ms:`, {
-        contentType,
-        error: error.message,
-        stack: error.stack,
-        filters: { search, genre, status, type, year, season }
-      });
+        // Build the base query with proper select statement
+        const baseSelect = `
+          *,
+          ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+          title_genres(genres(name)),
+          ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
+        `;
 
-      throw new Error(`Failed to load ${contentType}: ${error.message}`);
-    }
+        const genreSelect = `
+          *,
+          ${contentType === 'anime' ? 'anime_details!inner(*)' : 'manga_details!inner(*)'},
+          title_genres!inner(genres!inner(name)),
+          ${contentType === 'anime' ? 'title_studios(studios(name))' : 'title_authors(authors(name))'}
+        `;
+
+        let query = supabase
+          .from('titles')
+          .select(genre && genre !== 'all' ? genreSelect : baseSelect)
+          .abortSignal(currentSignal);
+
+        // Apply genre filter using inner join
+        if (genre && genre !== 'all') {
+          query = query.eq('title_genres.genres.name', genre);
+        }
+
+        // Apply year filter
+        if (year && year !== 'all') {
+          query = query.eq('year', parseInt(year));
+        }
+
+        // Apply status filter
+        if (status && status !== 'all') {
+          const statusColumn = contentType === 'anime' ? 'anime_details.status' : 'manga_details.status';
+          query = query.eq(statusColumn, status);
+        }
+
+        // Apply type filter
+        if (type && type !== 'all') {
+          const typeColumn = contentType === 'anime' ? 'anime_details.type' : 'manga_details.type';
+          query = query.eq(typeColumn, type);
+        }
+
+        // Apply season filter (anime only)
+        if (contentType === 'anime' && season && season !== 'all') {
+          query = query.eq('anime_details.season', season);
+        }
+
+        // Apply search filter across multiple fields
+        if (search && search.trim()) {
+          const searchTerm = search.trim();
+          query = query.or(`title.ilike.%${searchTerm}%,title_english.ilike.%${searchTerm}%,title_japanese.ilike.%${searchTerm}%`);
+        }
+
+        // Apply sorting with proper null handling
+        const sortColumn = sort_by || 'score';
+        const sortOrder = order || 'desc';
+        
+        if (sortColumn === 'score') {
+          query = query.order(sortColumn, { 
+            ascending: sortOrder === 'asc', 
+            nullsFirst: false 
+          });
+        } else {
+          query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
+        }
+
+        // Apply pagination
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+        query = query.range(from, to);
+
+        // Check abort signal again before making request
+        if (currentSignal.aborted) {
+          throw new Error('Request aborted');
+        }
+
+        const { data, error, count } = await query;
+
+        // Check abort signal after request
+        if (currentSignal.aborted) {
+          throw new Error('Request aborted');
+        }
+
+        if (error) {
+          logger.error('❌ useContentData Supabase error:', error);
+          throw error;
+        }
+
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+
+        logger.debug(`✅ useContentData completed in ${duration}ms:`, {
+          contentType,
+          itemsReturned: data?.length || 0,
+          totalCount: count,
+          requestId
+        });
+
+        // Calculate pagination info
+        const totalCount = count || data?.length || 0;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return {
+          data: (data || []) as unknown as (AnimeContent | MangaContent)[],
+          pagination: {
+            current_page: page,
+            per_page: limit,
+            total: totalCount,
+            total_pages: totalPages,
+            has_next_page: page < totalPages,
+            has_prev_page: page > 1
+          }
+        };
+
+      } catch (error) {
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+        
+        // Don't log abort errors as errors
+        if (error.name === 'AbortError' || error.message === 'Request aborted') {
+          logger.debug('🔄 useContentData request aborted', { requestId, duration });
+          throw error;
+        }
+        
+        logger.error(`❌ useContentData error after ${duration}ms:`, {
+          contentType,
+          error: error.message,
+          stack: error.stack,
+          filters: { search, genre, status, type, year, season },
+          requestId
+        });
+
+        throw new Error(`Failed to load ${contentType}: ${error.message}`);
+      }
+    }, 300),
+    [contentType, page, limit, search, genre, status, type, year, season, sort_by, order, requestId]
+  );
+
+  const queryFn = async () => {
+    return await debouncedQueryFn();
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      debouncedQueryFn.cancel();
+    };
+  }, [debouncedQueryFn]);
 
   // React Query hook
   const {
