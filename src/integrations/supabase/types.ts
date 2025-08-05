@@ -2908,7 +2908,6 @@ export type Database = {
           id: string | null
           image_url: string | null
           next_episode_date: string | null
-          next_episode_number: number | null
           popularity: number | null
           rank: number | null
           score: number | null
@@ -2918,7 +2917,6 @@ export type Database = {
           title: string | null
           title_english: string | null
           title_japanese: string | null
-          trailer_url: string | null
           trending_score: number | null
           type: string | null
           updated_at: string | null
@@ -2935,8 +2933,6 @@ export type Database = {
           created_at: string | null
           id: string | null
           image_url: string | null
-          next_chapter_date: string | null
-          next_chapter_number: number | null
           popularity: number | null
           published_from: string | null
           published_to: string | null
