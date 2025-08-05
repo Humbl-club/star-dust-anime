@@ -1639,6 +1639,48 @@ export type Database = {
           },
         ]
       }
+      metadata_sync_status: {
+        Row: {
+          completed_at: string | null
+          content_type: string
+          error_message: string | null
+          failed_items: number | null
+          id: string
+          metadata: Json | null
+          processed_items: number | null
+          started_at: string | null
+          status: string | null
+          sync_type: string
+          total_items: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          content_type: string
+          error_message?: string | null
+          failed_items?: number | null
+          id?: string
+          metadata?: Json | null
+          processed_items?: number | null
+          started_at?: string | null
+          status?: string | null
+          sync_type: string
+          total_items?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          content_type?: string
+          error_message?: string | null
+          failed_items?: number | null
+          id?: string
+          metadata?: Json | null
+          processed_items?: number | null
+          started_at?: string | null
+          status?: string | null
+          sync_type?: string
+          total_items?: number | null
+        }
+        Relationships: []
+      }
       notification_logs: {
         Row: {
           body: string
