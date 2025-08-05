@@ -3269,6 +3269,26 @@ export type Database = {
           recent_activities: Json
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
@@ -3399,9 +3419,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
       set_service_key: {
         Args: { key_value: string }
         Returns: undefined
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       test_sync_connectivity: {
         Args: Record<PropertyKey, never>
