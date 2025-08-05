@@ -1,8 +1,10 @@
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { queryKeys } from '@/utils/queryKeys';
 import { toast } from 'sonner';
+import { useInitializationStore } from '@/store/initializationStore';
 
 interface InitializationResult {
   success: boolean;
@@ -14,8 +16,9 @@ interface InitializationResult {
 }
 
 export const useUserInitialization = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const { setIsInitialized } = useInitializationStore();
 
   // Check and initialize user atomically
   const initializationQuery = useQuery({
@@ -37,6 +40,22 @@ export const useUserInitialization = () => {
     gcTime: Infinity,
     retry: 1
   });
+
+  // Update global initialization state when auth state is determined
+  React.useEffect(() => {
+    if (!authLoading) {
+      // Auth state is determined (either logged in or logged out)
+      if (user?.id) {
+        // User is logged in, wait for initialization to complete
+        if (initializationQuery.data?.success || initializationQuery.isError) {
+          setIsInitialized(true);
+        }
+      } else {
+        // User is logged out, initialization is complete
+        setIsInitialized(true);
+      }
+    }
+  }, [authLoading, user?.id, initializationQuery.data, initializationQuery.isError, setIsInitialized]);
 
   // Repair function for broken accounts
   const repairMutation = useMutation({

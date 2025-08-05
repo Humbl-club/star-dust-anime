@@ -15,6 +15,9 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { GraphQLProvider } from "@/providers/GraphQLProvider";
 import { Loader2 } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useInitializationStore } from '@/store/initializationStore';
+import { useUserInitialization } from '@/hooks/useUserInitialization';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -116,9 +119,59 @@ persistQueryClient({
   },
 });
 
+// Main App Content Component that requires initialization
+const AppContent = () => {
+  // Initialize user data - this will update the global initialization state
+  useUserInitialization();
+  
+  return (
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <OfflineIndicator />
+          <ConnectionStatus />
+          <InstallPrompt />
+          <Routes>
+            {routes.map(({ path, element: Component, protected: isProtected }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <ErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      {isProtected ? (
+                        <ProtectedRoute>
+                          <Component />
+                        </ProtectedRoute>
+                      ) : (
+                        <Component />
+                      )}
+                    </Suspense>
+                  </ErrorBoundary>
+                }
+              />
+            ))}
+          </Routes>
+        </AuthProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
+  );
+};
+
+// Full-page loading component for initialization
+const InitializationLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <LoadingSpinner size="lg" />
+      <p className="text-muted-foreground mt-4">Initializing application...</p>
+    </div>
+  </div>
+);
+
 const App = () => {
   // Add service worker hook
   const { updateAvailable, updateServiceWorker } = useServiceWorker();
+  const { isInitialized } = useInitializationStore();
   
   // Safety check for React
   if (!React || !React.useEffect) {
@@ -133,36 +186,11 @@ const App = () => {
           <ErrorBoundary>
             <TooltipProvider>
               <Toaster />
-              <BrowserRouter>
-                <ErrorBoundary>
-                  <AuthProvider>
-                    <OfflineIndicator />
-                    <ConnectionStatus />
-                    <InstallPrompt />
-                    <Routes>
-                      {routes.map(({ path, element: Component, protected: isProtected }) => (
-                        <Route
-                          key={path}
-                          path={path}
-                          element={
-                            <ErrorBoundary>
-                              <Suspense fallback={<PageLoader />}>
-                                {isProtected ? (
-                                  <ProtectedRoute>
-                                    <Component />
-                                  </ProtectedRoute>
-                                ) : (
-                                  <Component />
-                                )}
-                              </Suspense>
-                            </ErrorBoundary>
-                          }
-                        />
-                      ))}
-                    </Routes>
-                  </AuthProvider>
-                </ErrorBoundary>
-              </BrowserRouter>
+              {!isInitialized ? (
+                <InitializationLoader />
+              ) : (
+                <AppContent />
+              )}
             </TooltipProvider>
           </ErrorBoundary>
         </GraphQLProvider>
