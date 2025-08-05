@@ -1,14 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { analyzeBundleSize } from '@/utils/performance';
+// Bundle size analysis removed
 import App from './App.tsx';
 import './index.css';
 import './native.css';
 
-// Analyze bundle size in development
-if (process.env.NODE_ENV === 'development') {
-  analyzeBundleSize();
-}
+// Bundle analysis removed for compatibility
 import { toast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { initSentry } from '@/lib/sentry';

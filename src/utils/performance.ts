@@ -64,19 +64,7 @@ export function getMemoryUsage() {
   return null;
 }
 
-// Bundle size analysis helper
-export function analyzeBundleSize() {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Bundle Analysis:');
-    console.log('Memory Usage:', getMemoryUsage());
-    
-    // Log largest imports (development only)
-    if (import.meta.hot) {
-      console.log('📦 Large Dependencies Loaded:');
-      // This would be enhanced with actual bundle analyzer data
-    }
-  }
-}
+// Bundle size analysis removed - caused native dependency build issues
 
 // Performance measurement utilities
 export class PerformanceTracker {
