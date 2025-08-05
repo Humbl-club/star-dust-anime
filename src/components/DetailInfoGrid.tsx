@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Calendar, Clock, Award, Book, BookOpen, FileText } from 'lucide-react';
+import { Play, Calendar, Award, BookOpen, FileText } from 'lucide-react';
 
 interface DetailInfoItem {
   icon: React.ComponentType<{ className?: string }>;

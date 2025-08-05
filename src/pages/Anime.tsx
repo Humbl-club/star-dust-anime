@@ -36,7 +36,7 @@ import { AnimeGridSkeleton } from "@/components/ui/AnimeCardSkeleton";
 import { MobileOptimizedCard } from "@/components/MobileOptimizedCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { Navigation } from "@/components/Navigation";
-import { ContentRatingBadge } from "@/components/ContentRatingBadge";
+
 import { UnifiedSearchBar } from "@/components/UnifiedSearchBar";
 import { AdvancedFiltering } from "@/components/features/AdvancedFiltering";
 import { LegalFooter } from "@/components/LegalFooter";

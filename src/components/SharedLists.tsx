@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Share2, Eye, EyeOff, Link, Users } from 'lucide-react';
+import { Share2, Eye, Link, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimeCard } from '@/components/features/AnimeCard';
 

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookOpen, Heart, Star, Trash2, Edit, Share } from 'lucide-react';
+import { Plus, BookOpen, Heart, Trash2, Edit, Share } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Collection {

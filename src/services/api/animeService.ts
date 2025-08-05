@@ -1,4 +1,4 @@
-import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse, ApiResponse } from './baseService';
+import { BaseApiService, BaseContent, BaseQueryOptions, ServiceResponse } from './baseService';
 import { PaginationInfo } from '@/types/api.types';
 
 export interface AnimeContent extends BaseContent {

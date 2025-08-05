@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { 
   BarChart3, Users, Database, Settings, 
-  AlertTriangle, Activity, TrendingUp 
+  AlertTriangle, TrendingUp 
 } from 'lucide-react';
 import { AdminStats } from '@/components/admin/AdminStats';
 import { ContentManager } from '@/components/admin/ContentManager';

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { Star, Play, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
+import { Star, BookOpen, Calendar, Flag, MoreVertical } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddToListButton } from "./AddToListButton";
 import { ContentReportModal } from "@/components/ContentReportModal";

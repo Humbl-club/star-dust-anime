@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { Star, BookOpen, Calendar } from "lucide-react";
+import { Star, BookOpen } from "lucide-react";
 import { AddToListButton } from "./AddToListButton";
 import { type Manga } from "@/data/animeData";
 
