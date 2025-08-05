@@ -36,14 +36,20 @@ export const CACHE_TTL = {
 };
 
 export const CACHE_KEYS = {
-  TRENDING: (contentType: string, limit: number) => `cache:trending:${contentType}:${limit}`,
-  POPULAR: (contentType: string, limit: number) => `cache:popular:${contentType}:${limit}`,
-  RECENT: (contentType: string, limit: number) => `cache:recent:${contentType}:${limit}`,
-  SEARCH: (query: string, contentType: string, limit: number) => `cache:search:${query}:${contentType}:${limit}`,
-  DETAIL: (contentType: string, id: string) => `cache:detail:${contentType}:${id}`,
-  STATS: () => `cache:stats:site`,
-  HOMEPAGE: () => `cache:homepage:aggregated`,
-  GENRES: (contentType: string) => `cache:genres:${contentType}`,
+  TRENDING: (contentType: string, limit: number) => 
+    `cache:v2:trending:${contentType}:${limit}:${Math.floor(Date.now() / (5 * 60 * 1000))}`,
+  POPULAR: (contentType: string, limit: number) => 
+    `cache:v2:popular:${contentType}:${limit}`,
+  RECENT: (contentType: string, limit: number) => 
+    `cache:v2:recent:${contentType}:${limit}`,
+  SEARCH: (query: string, contentType: string, limit: number, filters?: any) => 
+    `cache:v2:search:${contentType}:${encodeURIComponent(query)}:${limit}:${JSON.stringify(filters || {})}`,
+  DETAIL: (contentType: string, id: string) => 
+    `cache:v2:detail:${contentType}:${id}`,
+  STATS: () => `cache:v2:stats:site:${Math.floor(Date.now() / (60 * 60 * 1000))}`,
+  HOMEPAGE: () => `cache:v2:homepage:aggregated:${Math.floor(Date.now() / (10 * 60 * 1000))}`,
+  GENRES: (contentType: string) => 
+    `cache:v2:genres:${contentType}`,
 };
 
 // Cache utility functions
