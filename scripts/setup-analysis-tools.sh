@@ -15,7 +15,6 @@ mkdir -p code-analysis-reports
 mkdir -p code-analysis-reports/eslint
 mkdir -p code-analysis-reports/typescript
 mkdir -p code-analysis-reports/dependencies
-mkdir -p code-analysis-reports/bundle
 mkdir -p code-analysis-reports/security
 
 # Function to check if command exists
@@ -65,35 +64,24 @@ else
     echo -e "${RED}TypeScript not found. Please install it first.${NC}"
 fi
 
-# Dependency Analysis
+# Dependency Analysis (using madge if available)
 echo -e "${BLUE}Running dependency analysis...${NC}"
 if command_exists madge; then
-    run_analysis "Dependency Graph" \
-        "npx madge --image code-analysis-reports/dependencies/graph.png src/" \
-        "code-analysis-reports/dependencies/madge.log"
-    
     run_analysis "Circular Dependencies" \
         "npx madge --circular src/" \
         "code-analysis-reports/dependencies/circular.txt"
-fi
-
-if command_exists depcruise; then
-    run_analysis "Dependency Cruiser" \
-        "npx depcruise --output-type json src/" \
-        "code-analysis-reports/dependencies/cruiser.json"
-fi
-
-# Bundle Analysis
-echo -e "${BLUE}Running bundle analysis...${NC}"
-if [ -f "dist/index.html" ]; then
-    if command_exists source-map-explorer; then
-        run_analysis "Bundle Analysis" \
-            "npx source-map-explorer dist/assets/*.js --html code-analysis-reports/bundle/bundle-analysis.html" \
-            "code-analysis-reports/bundle/analysis.log"
-    fi
+        
+    run_analysis "Dependency List" \
+        "npx madge --json src/" \
+        "code-analysis-reports/dependencies/deps.json"
 else
-    echo -e "${YELLOW}No build found. Running build first...${NC}"
-    npm run build
+    echo -e "${YELLOW}madge not available. Installing...${NC}"
+    npm install --save-dev madge
+    if command_exists madge; then
+        run_analysis "Circular Dependencies" \
+            "npx madge --circular src/" \
+            "code-analysis-reports/dependencies/circular.txt"
+    fi
 fi
 
 # Security Analysis
@@ -106,17 +94,18 @@ run_analysis "Package Vulnerabilities" \
     "npm audit --audit-level moderate" \
     "code-analysis-reports/security/vulnerabilities.txt"
 
-# Code Metrics
+# Code Metrics (basic)
 echo -e "${BLUE}Generating code metrics...${NC}"
-if command_exists cloc; then
-    run_analysis "Lines of Code" \
-        "cloc src/ --json" \
-        "code-analysis-reports/metrics/cloc.json"
-else
-    echo -e "${YELLOW}cloc not installed. Generating basic metrics...${NC}"
-    find src/ -name "*.ts" -o -name "*.tsx" | wc -l > code-analysis-reports/metrics/file-count.txt
-    find src/ -name "*.ts" -o -name "*.tsx" -exec cat {} \; | wc -l > code-analysis-reports/metrics/line-count.txt
-fi
+mkdir -p code-analysis-reports/metrics
+
+echo "Counting files and lines..."
+find src/ -name "*.ts" -o -name "*.tsx" | wc -l > code-analysis-reports/metrics/file-count.txt
+find src/ -name "*.ts" -o -name "*.tsx" -exec cat {} \; | wc -l > code-analysis-reports/metrics/line-count.txt
+
+# Count components, hooks, pages
+find src/components -name "*.tsx" | wc -l > code-analysis-reports/metrics/component-count.txt
+find src/hooks -name "*.tsx" -o -name "*.ts" | wc -l > code-analysis-reports/metrics/hook-count.txt
+find src/pages -name "*.tsx" | wc -l > code-analysis-reports/metrics/page-count.txt
 
 # Generate Summary Report
 echo -e "${BLUE}Generating summary report...${NC}"
@@ -135,27 +124,33 @@ Generated on: $(date)
 - Types: [typescript/types.log](./typescript/types.log)
 
 ### Dependencies
-- Dependency Graph: [dependencies/graph.png](./dependencies/graph.png)
 - Circular Dependencies: [dependencies/circular.txt](./dependencies/circular.txt)
-- Dependency Cruiser: [dependencies/cruiser.json](./dependencies/cruiser.json)
-
-### Bundle Analysis
-- Bundle Analysis: [bundle/bundle-analysis.html](./bundle/bundle-analysis.html)
+- Dependency List: [dependencies/deps.json](./dependencies/deps.json)
 
 ### Security
 - NPM Audit: [security/npm-audit.json](./security/npm-audit.json)
 - Vulnerabilities: [security/vulnerabilities.txt](./security/vulnerabilities.txt)
 
-### Metrics
-- Lines of Code: [metrics/cloc.json](./metrics/cloc.json)
-- File Count: [metrics/file-count.txt](./metrics/file-count.txt)
+### Code Metrics
+- Total Files: $(cat code-analysis-reports/metrics/file-count.txt 2>/dev/null || echo "N/A")
+- Total Lines: $(cat code-analysis-reports/metrics/line-count.txt 2>/dev/null || echo "N/A")
+- Components: $(cat code-analysis-reports/metrics/component-count.txt 2>/dev/null || echo "N/A")
+- Hooks: $(cat code-analysis-reports/metrics/hook-count.txt 2>/dev/null || echo "N/A")
+- Pages: $(cat code-analysis-reports/metrics/page-count.txt 2>/dev/null || echo "N/A")
+
+## Architecture Overview
+- **Frontend**: React + TypeScript + Vite
+- **State Management**: Zustand + React Query
+- **Styling**: Tailwind CSS
+- **Database**: Supabase
+- **Authentication**: Supabase Auth
 
 ## Next Steps
 1. Review ESLint report for code quality issues
 2. Check TypeScript compilation for type errors
 3. Examine dependency graph for optimization opportunities
 4. Address security vulnerabilities
-5. Monitor bundle size for performance
+5. Monitor code complexity and maintainability
 EOF
 
 echo -e "${GREEN}🎉 Code analysis setup completed!${NC}"
