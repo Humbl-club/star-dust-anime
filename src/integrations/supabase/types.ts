@@ -189,16 +189,19 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          slug: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          slug?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          slug?: string | null
         }
         Relationships: []
       }
@@ -410,6 +413,51 @@ export type Database = {
           },
         ]
       }
+      content_characters: {
+        Row: {
+          anilist_id: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          mal_id: number | null
+          name: string
+          name_alternative: Json | null
+          name_japanese: string | null
+          role: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          anilist_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name: string
+          name_alternative?: Json | null
+          name_japanese?: string | null
+          role?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          anilist_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name?: string
+          name_alternative?: Json | null
+          name_japanese?: string | null
+          role?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       content_reports: {
         Row: {
           created_at: string | null
@@ -488,6 +536,51 @@ export type Database = {
           started_at?: string | null
           status?: string | null
           total_items?: number | null
+        }
+        Relationships: []
+      }
+      content_tags: {
+        Row: {
+          anilist_id: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_adult: boolean | null
+          is_spoiler: boolean | null
+          kitsu_id: number | null
+          name: string
+          rank: number | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          anilist_id?: number | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          is_spoiler?: boolean | null
+          kitsu_id?: number | null
+          name: string
+          rank?: number | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          anilist_id?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          is_spoiler?: boolean | null
+          kitsu_id?: number | null
+          name?: string
+          rank?: number | null
+          slug?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1321,18 +1414,21 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          slug: string | null
           type: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          slug?: string | null
           type?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          slug?: string | null
           type?: string | null
         }
         Relationships: []
@@ -2107,16 +2203,19 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          slug: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          slug?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          slug?: string | null
         }
         Relationships: []
       }
@@ -2502,6 +2601,180 @@ export type Database = {
           },
           {
             foreignKeyName: "title_comments_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_content_characters: {
+        Row: {
+          character_id: string
+          created_at: string | null
+          id: string
+          order_index: number | null
+          role: string | null
+          title_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          role?: string | null
+          title_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          role?: string | null
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_content_characters_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "content_characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_content_tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_spoiler: boolean | null
+          rank: number | null
+          source: string | null
+          tag_id: string
+          title_id: string
+          votes: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_spoiler?: boolean | null
+          rank?: number | null
+          source?: string | null
+          tag_id: string
+          title_id: string
+          votes?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_spoiler?: boolean | null
+          rank?: number | null
+          source?: string | null
+          tag_id?: string
+          title_id?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_content_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "content_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_content_tags_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "v_trending_manga"
