@@ -22,11 +22,13 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useUserTitleLists } from '@/hooks/useUserTitleLists';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wifi, WifiOff } from 'lucide-react';
 
 const MyLists = () => {
   const { user } = useAuth();
   const { canUseFeature } = useEmailVerification();
-  const { titleLists, listStatuses, isLoading } = useUserTitleLists();
+  const { titleLists, listStatuses, isLoading, isDataFromCache, isOnline } = useUserTitleLists();
   const [activeTab, setActiveTab] = useState<'anime' | 'manga'>('anime');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [showStats, setShowStats] = useState(false);
@@ -146,6 +148,25 @@ const MyLists = () => {
         <div className="mb-6">
           <SyncStatus />
         </div>
+
+        {/* Offline/Cache Status Indicator */}
+        {(isDataFromCache || !isOnline) && (
+          <Alert className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+            <div className="flex items-center gap-2">
+              {!isOnline ? (
+                <WifiOff className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              ) : (
+                <Wifi className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              )}
+              <AlertDescription className="text-amber-800 dark:text-amber-200">
+                {!isOnline 
+                  ? "Offline Mode: Displaying cached data from your last sync"
+                  : "Displaying cached data - some information may not be the most recent"
+                }
+              </AlertDescription>
+            </div>
+          </Alert>
+        )}
 
         {/* Control Panel */}
         <Card className="mb-8 border-border/30 bg-gradient-to-r from-card/90 to-card/70 backdrop-blur-lg shadow-2xl">

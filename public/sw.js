@@ -41,7 +41,30 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
   
-  // Skip Supabase API calls
+  // Handle Supabase API calls with StaleWhileRevalidate strategy
+  if (url.href.includes('supabase.co') && url.pathname.includes('/functions/v1/')) {
+    event.respondWith(
+      caches.open(DYNAMIC_CACHE).then((cache) => {
+        return cache.match(request).then((cachedResponse) => {
+          const fetchPromise = fetch(request).then((networkResponse) => {
+            if (networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          }).catch(() => {
+            // Return cached response if network fails
+            return cachedResponse;
+          });
+          
+          // Return cached response immediately if available, otherwise wait for network
+          return cachedResponse || fetchPromise;
+        });
+      })
+    );
+    return;
+  }
+  
+  // Skip other Supabase API calls (non-functions)
   if (url.href.includes('supabase.co')) return;
   
   // HTML requests - network first

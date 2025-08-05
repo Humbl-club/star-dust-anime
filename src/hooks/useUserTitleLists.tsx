@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { indexedDBManager, UserListItem } from "@/lib/storage/indexedDB";
+import { useOfflineContent } from "@/hooks/useOfflineContent";
 import type { 
   UserTitleListEntry, 
   UserAnimeListEntry, 
@@ -19,7 +21,9 @@ export const useUserTitleLists = () => {
   const [listStatuses, setListStatuses] = useState<ListStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDataFromCache, setIsDataFromCache] = useState(false);
   const { user } = useAuth();
+  const { isOnline } = useOfflineContent();
 
   // Helper function to convert unified entry to anime entry format
   const toAnimeEntry = (entry: UserTitleListEntry): UserAnimeListEntry => {
@@ -115,14 +119,49 @@ export const useUserTitleLists = () => {
     fetchStatuses();
   }, [statusesFetched]);
 
-  // Fetch user title lists
+  // Fetch user title lists with offline support
   const fetchTitleLists = async () => {
     if (!user?.id) return;
 
     setIsLoading(true);
     setError(null);
+    setIsDataFromCache(false);
 
     try {
+      // If offline, try to load from IndexedDB first
+      if (!isOnline) {
+        const cachedLists = await indexedDBManager.getUserLists(user.id);
+        if (cachedLists.length > 0) {
+          // Convert cached data to the expected format
+          const convertedData = cachedLists.map(item => ({
+            id: item.id,
+            user_id: item.user_id,
+            title_id: item.title_id,
+            media_type: item.media_type,
+            status_id: item.status_id,
+            episodes_watched: item.progress,
+            chapters_read: item.progress,
+            volumes_read: 0,
+            score: item.rating,
+            notes: item.notes,
+            added_at: item.added_at,
+            created_at: item.added_at,
+            updated_at: item.updated_at,
+            // Mock nested objects for compatibility
+            status: { name: 'watching' },
+            title: { title: 'Cached Title' },
+            anime_details: item.media_type === 'anime' ? {} : null,
+            manga_details: item.media_type === 'manga' ? {} : null
+          })) as unknown as UserTitleListEntry[];
+          
+          setRawTitleLists(convertedData);
+          setIsDataFromCache(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from network
       const { data, error } = await supabase
         .from('user_title_lists')
         .select(`
@@ -137,10 +176,71 @@ export const useUserTitleLists = () => {
 
       if (error) throw error;
 
-      setRawTitleLists((data || []) as unknown as UserTitleListEntry[]);
+      const titleListsData = (data || []) as unknown as UserTitleListEntry[];
+      setRawTitleLists(titleListsData);
+      
+      // Cache the data in IndexedDB for offline access
+      if (isOnline && titleListsData.length > 0) {
+        try {
+          for (const item of titleListsData) {
+            const cacheItem: UserListItem = {
+              id: item.id,
+              title_id: item.title_id,
+              user_id: item.user_id,
+              status_id: item.status_id,
+              media_type: item.media_type as 'anime' | 'manga',
+              rating: item.score,
+              progress: item.media_type === 'anime' ? item.episodes_watched : item.chapters_read,
+              notes: item.notes,
+              added_at: item.added_at,
+              updated_at: item.updated_at,
+              cached_at: Date.now(),
+              sync_status: 'synced' as const
+            };
+            await indexedDBManager.cacheUserListItem(cacheItem);
+          }
+        } catch (cacheError) {
+          console.warn('Failed to cache user lists:', cacheError);
+        }
+      }
+      
     } catch (err) {
       console.error('Error fetching title lists:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch lists');
+      
+      // Try to load from cache as fallback
+      if (user?.id) {
+        try {
+          const cachedLists = await indexedDBManager.getUserLists(user.id);
+          if (cachedLists.length > 0) {
+            const convertedData = cachedLists.map(item => ({
+              id: item.id,
+              user_id: item.user_id,
+              title_id: item.title_id,
+              media_type: item.media_type,
+              status_id: item.status_id,
+              episodes_watched: item.progress,
+              chapters_read: item.progress,
+              volumes_read: 0,
+              score: item.rating,
+              notes: item.notes,
+              added_at: item.added_at,
+              created_at: item.added_at,
+              updated_at: item.updated_at,
+              status: { name: 'watching' },
+              title: { title: 'Cached Title' },
+              anime_details: item.media_type === 'anime' ? {} : null,
+              manga_details: item.media_type === 'manga' ? {} : null
+            })) as unknown as UserTitleListEntry[];
+            
+            setRawTitleLists(convertedData);
+            setIsDataFromCache(true);
+            setError(null); // Clear error since we have cached data
+          }
+        } catch (cacheError) {
+          console.error('Failed to load cached lists:', cacheError);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -427,6 +527,10 @@ export const useUserTitleLists = () => {
     // New structured API
     titleListsStructured: titleLists, // Object with anime/manga properties
     listStatuses,
-    fetchTitleLists
+    fetchTitleLists,
+    
+    // Offline support
+    isDataFromCache,
+    isOnline
   };
 };
