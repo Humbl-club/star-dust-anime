@@ -51,3 +51,6 @@ verify_jwt = false
 
 [functions.temp-anilist-populate-enhanced]
 verify_jwt = false
+
+[functions.kitsu-sync-engine-enhanced]
+verify_jwt = false
