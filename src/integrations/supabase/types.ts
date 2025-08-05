@@ -2189,6 +2189,7 @@ export type Database = {
           favorites: number | null
           fts: unknown | null
           id: string
+          id_kitsu: number | null
           image_url: string | null
           members: number | null
           popularity: number | null
@@ -2211,6 +2212,7 @@ export type Database = {
           favorites?: number | null
           fts?: unknown | null
           id?: string
+          id_kitsu?: number | null
           image_url?: string | null
           members?: number | null
           popularity?: number | null
@@ -2233,6 +2235,7 @@ export type Database = {
           favorites?: number | null
           fts?: unknown | null
           id?: string
+          id_kitsu?: number | null
           image_url?: string | null
           members?: number | null
           popularity?: number | null
