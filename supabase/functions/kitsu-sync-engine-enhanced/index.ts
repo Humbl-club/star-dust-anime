@@ -258,15 +258,21 @@ async function processKitsuProductions(kitsuData: any, titleId: string, contentT
               p.relationships?.producer?.data?.id === producer.id
             )
             
-            // Create title-studio relationship
+            // Create title-studio relationship - use INSERT...ON CONFLICT to avoid duplicate errors
             await supabase
               .from('title_studios')
-              .upsert({
+              .insert({
                 title_id: titleId,
                 studio_id: existingStudio.id,
                 is_main_studio: production?.attributes?.role === 'producer',
                 role: production?.attributes?.role || 'production'
-              }, { onConflict: 'title_id,studio_id' })
+              })
+              .select()
+              .single()
+              .catch(() => {
+                // If duplicate key error, ignore it silently
+                console.log(`Studio relationship already exists: ${producer.attributes.name}`)
+              })
           }
         } catch (error) {
           console.error(`Error processing Kitsu producer:`, error)
@@ -334,7 +340,7 @@ async function processKitsuStaff(kitsuData: any, titleId: string, contentType: s
             const role = staff?.attributes?.role?.toLowerCase() || 'author'
             const mappedRole = role === 'story' ? 'author' : role === 'art' ? 'artist' : role
             
-            // Create title-person relationship (using title_authors for authors)
+            // Create title-author relationship (using title_authors for authors)
             if (mappedRole === 'author' || mappedRole === 'artist') {
               await supabase
                 .from('title_authors')
@@ -460,7 +466,6 @@ class EnhancedKitsuSyncEngine {
     
     const results = { processed: 0, updated: 0 }
     let offset = 0
-    const trendingIds = []
 
     while (results.processed < limit) {
       const data = await fetchKitsuWithRelationships(contentType, offset, true)
@@ -487,7 +492,6 @@ class EnhancedKitsuSyncEngine {
             results.processed
           )
           results.updated++
-          trendingIds.push({ id: existing.id, rank: results.processed })
         }
       }
 
@@ -539,15 +543,14 @@ class EnhancedKitsuSyncEngine {
     
     const results = { processed: 0, updated: 0 }
 
-    // Get titles that need updates
+    // Get titles that need updates (only check existing Kitsu fields)
     const { data: titles } = await supabase
       .from('titles')
       .select('id, title, title_english, title_japanese')
-      .or('kitsu_rating.is.null,last_kitsu_update.lt.now() - interval \'7 days\'')
       .limit(limit)
 
     if (!titles || titles.length === 0) {
-      console.log('No titles need rating/metadata updates')
+      console.log('No titles found for rating/metadata updates')
       return results
     }
 
