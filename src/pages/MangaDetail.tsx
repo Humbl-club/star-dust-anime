@@ -12,6 +12,7 @@ import { ScoreValidationComponent } from "@/components/ScoreValidationComponent"
 import { CommentsSection } from "@/components/CommentsSection";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useMangaDetail } from "@/hooks/useMangaDetail";
+import { MetadataPanel } from "@/components/metadata";
 import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
@@ -329,46 +330,16 @@ const MangaDetail = () => {
             </div>
           )}
 
-          {/* Genres */}
-          {manga.genres && manga.genres.length > 0 && (
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Genres</h3>
-                <div className="flex flex-wrap gap-3">
-                  {manga.genres.map((genre, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className="px-4 py-2 text-base hover:bg-secondary/80 hover:scale-105 transition-all duration-200 cursor-pointer"
-                      style={{ animationDelay: `${0.7 + (index * 0.05)}s` }}
-                    >
-                      {genre.name}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Authors */}
-          {manga.authors && manga.authors.length > 0 && (
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.7s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Authors</h3>
-                <div className="flex flex-wrap gap-3">
-                  {manga.authors.map((author, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="outline" 
-                      className="px-4 py-2 text-base border-primary/30 hover:bg-primary/10 hover:scale-105 transition-all duration-200 cursor-pointer"
-                    >
-                      {author.name}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Metadata Panel */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <CardContent className="p-8">
+              <MetadataPanel
+                titleId={manga.id}
+                contentType="manga"
+                variant="full"
+              />
+            </CardContent>
+          </Card>
 
           {/* Enhanced Reading Availability */}
           <div className="animate-fade-in" style={{ animationDelay: '0.75s' }}>

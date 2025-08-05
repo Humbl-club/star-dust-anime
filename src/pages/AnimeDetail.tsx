@@ -12,6 +12,7 @@ import { CommentsSection } from "@/components/CommentsSection";
 import { AnimeMetaTags } from "@/components/SEOMetaTags";
 import { RichSynopsis } from "@/components/RichSynopsis";
 import { useAnimeDetail } from "@/hooks/useAnimeDetail";
+import { MetadataPanel } from "@/components/metadata";
 import { DetailPageLayout } from "@/components/layouts/DetailPageLayout";
 import { DetailStatsBar } from "@/components/DetailStatsBar";
 import { DetailImageCard } from "@/components/DetailImageCard";
@@ -474,46 +475,16 @@ const AnimeDetail = () => {
             </div>
           )}
 
-          {/* Genres */}
-          {anime.genres && anime.genres.length > 0 && (
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Genres</h3>
-                <div className="flex flex-wrap gap-3">
-                  {anime.genres.map((genre, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className="px-4 py-2 text-base hover:bg-secondary/80 hover:scale-105 transition-all duration-200 cursor-pointer"
-                      style={{ animationDelay: `${0.7 + (index * 0.05)}s` }}
-                    >
-                      {genre.name}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Studios */}
-          {anime.studios && anime.studios.length > 0 && (
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.7s' }}>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Studios</h3>
-                <div className="flex flex-wrap gap-3">
-                  {anime.studios.map((studio, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="outline" 
-                      className="px-4 py-2 text-base border-primary/30 hover:bg-primary/10 hover:scale-105 transition-all duration-200 cursor-pointer"
-                    >
-                      {studio.name}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Metadata Panel */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-lg animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <CardContent className="p-8">
+              <MetadataPanel
+                titleId={anime.id}
+                contentType="anime"
+                variant="full"
+              />
+            </CardContent>
+          </Card>
 
 
           {/* Enhanced Streaming Availability */}
