@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from 'react';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
@@ -119,40 +118,35 @@ persistQueryClient({
   },
 });
 
-// Main App Content Component that requires initialization
+// Main App Content Component 
 const AppContent = () => {
-  // Initialize user data - this will update the global initialization state
-  useUserInitialization();
-  
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <AuthProvider>
-          <OfflineIndicator />
-          <ConnectionStatus />
-          <InstallPrompt />
-          <Routes>
-            {routes.map(({ path, element: Component, protected: isProtected }) => (
-              <Route
-                key={path}
-                path={path}
-                element={
-                  <ErrorBoundary>
-                    <Suspense fallback={<PageLoader />}>
-                      {isProtected ? (
-                        <ProtectedRoute>
-                          <Component />
-                        </ProtectedRoute>
-                      ) : (
+        <OfflineIndicator />
+        <ConnectionStatus />
+        <InstallPrompt />
+        <Routes>
+          {routes.map(({ path, element: Component, protected: isProtected }) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <ErrorBoundary>
+                  <Suspense fallback={<PageLoader />}>
+                    {isProtected ? (
+                      <ProtectedRoute>
                         <Component />
-                      )}
-                    </Suspense>
-                  </ErrorBoundary>
-                }
-              />
-            ))}
-          </Routes>
-        </AuthProvider>
+                      </ProtectedRoute>
+                    ) : (
+                      <Component />
+                    )}
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            />
+          ))}
+        </Routes>
       </ErrorBoundary>
     </BrowserRouter>
   );
@@ -168,10 +162,19 @@ const InitializationLoader = () => (
   </div>
 );
 
+// Initialization wrapper that needs auth context
+const InitializationWrapper = ({ children }: { children: React.ReactNode }) => {
+  // Initialize user data - this will update the global initialization state
+  useUserInitialization();
+  return <>{children}</>;
+};
+
 const App = () => {
   // Add service worker hook
   const { updateAvailable, updateServiceWorker } = useServiceWorker();
   const { isInitialized } = useInitializationStore();
+  
+  console.log('🚀 App render - isInitialized:', isInitialized);
   
   // Safety check for React
   if (!React || !React.useEffect) {
@@ -186,11 +189,15 @@ const App = () => {
           <ErrorBoundary>
             <TooltipProvider>
               <Toaster />
-              {!isInitialized ? (
-                <InitializationLoader />
-              ) : (
-                <AppContent />
-              )}
+              <AuthProvider>
+                <InitializationWrapper>
+                  {!isInitialized ? (
+                    <InitializationLoader />
+                  ) : (
+                    <AppContent />
+                  )}
+                </InitializationWrapper>
+              </AuthProvider>
             </TooltipProvider>
           </ErrorBoundary>
         </GraphQLProvider>
