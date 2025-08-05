@@ -41,7 +41,11 @@ serve(async (req) => {
       throw new Error('Missing content_id or type parameter');
     }
 
-    // Parallel data fetching using Promise.all
+    // First get the main content to extract the UUID
+    const mainContent = await fetchMainContent(supabase, content_id, type);
+    const actualTitleId = mainContent?.id || content_id;
+
+    // Parallel data fetching using Promise.all with the actual UUID
     const [
       contentResult,
       recommendationsResult,
@@ -49,20 +53,20 @@ serve(async (req) => {
       userListResult,
       relatedTitlesResult
     ] = await Promise.allSettled([
-      // 1. Main content details
-      fetchMainContent(supabase, content_id, type),
+      // 1. Main content details (already fetched)
+      Promise.resolve(mainContent),
       
       // 2. Recommendations
-      fetchRecommendations(supabase, content_id, type),
+      fetchRecommendations(supabase, actualTitleId, type),
       
       // 3. Streaming availability
-      fetchStreamingAvailability(supabase, content_id),
+      fetchStreamingAvailability(supabase, actualTitleId),
       
       // 4. User list status (if user authenticated)
-      user_id ? fetchUserListStatus(supabase, user_id, content_id, type) : Promise.resolve(null),
+      user_id ? fetchUserListStatus(supabase, user_id, actualTitleId, type) : Promise.resolve(null),
       
       // 5. Related titles
-      fetchRelatedTitles(supabase, content_id, type)
+      fetchRelatedTitles(supabase, actualTitleId, type)
     ]);
 
     const response: ContentDetailsResponse = {
@@ -112,16 +116,30 @@ async function fetchMainContent(supabase: any, content_id: string, type: 'anime'
   const relatedTable = isAnime ? 'title_studios' : 'title_authors';
   const relatedJoin = isAnime ? 'studios' : 'authors';
 
-  const { data, error } = await supabase
+  // First try to find by UUID, then by anilist_id, then by title slug
+  let query = supabase
     .from('titles')
     .select(`
       *,
       ${detailsTable}!inner(*),
       title_genres(genres(*)),
       ${relatedTable}(${relatedJoin}(*))
-    `)
-    .or(`id.eq.${content_id},anilist_id.eq.${content_id}`)
-    .single();
+    `);
+
+  // Check if content_id is a UUID format
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(content_id);
+  const isNumeric = /^\d+$/.test(content_id);
+
+  if (isUuid) {
+    query = query.eq('id', content_id);
+  } else if (isNumeric) {
+    query = query.eq('anilist_id', parseInt(content_id));
+  } else {
+    // Treat as slug/title - search in title, title_english, or title_japanese
+    query = query.or(`title.ilike.%${content_id}%,title_english.ilike.%${content_id}%,title_japanese.ilike.%${content_id}%`);
+  }
+
+  const { data, error } = await query.single();
 
   if (error) throw error;
   return data;
