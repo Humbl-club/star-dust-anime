@@ -48,3 +48,6 @@ verify_jwt = false
 
 [functions.check-streaming-availability]
 verify_jwt = false
+
+[functions.temp-anilist-populate-enhanced]
+verify_jwt = false

@@ -39,7 +39,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
           large
           color
         }
-        bannerImage
         startDate {
           year
           month
@@ -58,7 +57,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
         episodes
         chapters
         volumes
-        duration
         genres
         popularity
         favourites
@@ -84,7 +82,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
               id
               name
               isAnimationStudio
-              siteUrl
             }
           }
         }
@@ -99,7 +96,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
                 full
                 native
               }
-              languageV2
               image {
                 large
               }
@@ -108,13 +104,7 @@ const ANILIST_COMPREHENSIVE_QUERY = `
                 month
                 day
               }
-              dateOfDeath {
-                year
-                month
-                day
-              }
               description
-              siteUrl
             }
           }
         }
@@ -129,7 +119,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
                 full
                 native
               }
-              languageV2
               image {
                 large
               }
@@ -144,13 +133,6 @@ const ANILIST_COMPREHENSIVE_QUERY = `
                 large
               }
               description
-              gender
-              dateOfBirth {
-                year
-                month
-                day
-              }
-              siteUrl
             }
           }
         }
@@ -365,6 +347,55 @@ async function processAuthors(staff: any, titleId: string, contentType: string) 
   }
 }
 
+// Process staff/people (create people records)
+async function processStaff(staff: any, titleId: string) {
+  if (!staff?.edges) return;
+
+  // Limit to important roles
+  const importantRoles = ['Director', 'Original Creator', 'Story', 'Story & Art', 'Art', 'Character Design', 'Music'];
+
+  for (const staffEdge of staff.edges.slice(0, 10)) { // Limit to 10 staff members
+    if (!importantRoles.includes(staffEdge.role)) continue;
+
+    const person = staffEdge.node;
+    
+    try {
+      // Check if person exists
+      let { data: existingPerson } = await supabase
+        .from('people')
+        .select('id')
+        .eq('anilist_id', person.id)
+        .single();
+
+      if (!existingPerson) {
+        // Create new person
+        const birthDate = person.dateOfBirth ? 
+          `${person.dateOfBirth.year || 1900}-${String(person.dateOfBirth.month || 1).padStart(2, '0')}-${String(person.dateOfBirth.day || 1).padStart(2, '0')}` : null;
+
+        const { data: newPerson } = await supabase
+          .from('people')
+          .insert({
+            name: person.name.full,
+            name_japanese: person.name.native,
+            slug: createSlug(person.name.full),
+            birth_date: birthDate,
+            biography: person.description?.replace(/<[^>]*>/g, ''),
+            image_url: person.image?.large,
+            anilist_id: person.id
+          })
+          .select()
+          .single();
+        
+        existingPerson = newPerson;
+      }
+
+      console.log(`  👤 Processed staff: ${person.name.full} (${staffEdge.role})`);
+    } catch (error) {
+      console.error(`Error processing staff ${person.name.full}:`, error);
+    }
+  }
+}
+
 // Process characters
 async function processCharacters(characters: any, titleId: string) {
   if (!characters?.edges) return;
@@ -415,18 +446,43 @@ async function processCharacters(characters: any, titleId: string) {
         // Process voice actors if they exist
         if (charEdge.voiceActors && charEdge.voiceActors.length > 0) {
           for (const va of charEdge.voiceActors.slice(0, 1)) { // Only main voice actor
-            // For now, just store voice actor info in character_voice_actors table
-            // We'd need a people table to properly store voice actor data
             try {
-              await supabase
-                .from('character_voice_actors')
-                .upsert({
-                  title_id: titleId,
-                  character_id: existingCharacter.id,
-                  person_id: existingCharacter.id, // Temporary - would need proper people table
-                  language: va.languageV2 || 'Japanese',
-                  is_main: true
-                }, { onConflict: 'title_id,character_id,person_id,language' });
+              // Check if voice actor person exists
+              let { data: existingVA } = await supabase
+                .from('people')
+                .select('id')
+                .eq('anilist_id', va.id)
+                .single();
+
+              if (!existingVA) {
+                // Create new voice actor person
+                const { data: newVA } = await supabase
+                  .from('people')
+                  .insert({
+                    name: va.name.full,
+                    name_japanese: va.name.native,
+                    slug: createSlug(va.name.full),
+                    image_url: va.image?.large,
+                    anilist_id: va.id
+                  })
+                  .select()
+                  .single();
+                
+                existingVA = newVA;
+              }
+
+              if (existingVA) {
+                // Create character-voice actor relationship
+                await supabase
+                  .from('character_voice_actors')
+                  .upsert({
+                    title_id: titleId,
+                    character_id: existingCharacter.id,
+                    person_id: existingVA.id,
+                    language: 'Japanese',
+                    is_main: true
+                  }, { onConflict: 'title_id,character_id,person_id,language' });
+              }
             } catch (vaError) {
               console.warn(`Could not process voice actor for ${character.name.full}:`, vaError);
             }
@@ -450,6 +506,7 @@ async function populateFromAniListWithMetadata(type: 'ANIME' | 'MANGA', startPag
       tags: 0,
       studios: 0,
       authors: 0,
+      people: 0,
       characters: 0
     }
   }
@@ -590,6 +647,12 @@ async function populateFromAniListWithMetadata(type: 'ANIME' | 'MANGA', startPag
             results.metadata.authors += 1
           }
 
+          // Process staff/people
+          if (media.staff) {
+            await processStaff(media.staff, newTitle.id)
+            results.metadata.people += Math.min(media.staff.edges?.length || 0, 10)
+          }
+
           // Process characters
           if (media.characters) {
             await processCharacters(media.characters, newTitle.id)
@@ -664,12 +727,3 @@ serve(async (req) => {
 // 3. Run for manga: invoke with {"contentType": "manga", "totalPages": 20}
 // 4. DELETE THIS ENTIRE FUNCTION after population is complete
 // 5. Remove deployment: supabase functions delete temp-anilist-populate-enhanced
-// 
-// This will populate:
-// - Titles with basic info (no ratings - Kitsu handles that)
-// - Genres with proper slugs
-// - Content tags with full metadata and categories
-// - Studios with relationships (anime only)
-// - Authors with relationships (manga only) 
-// - Characters with enhanced metadata
-// - All relationship tables properly linked
