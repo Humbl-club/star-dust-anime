@@ -3093,6 +3093,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      find_fuzzy_title_matches: {
+        Args: {
+          search_title: string
+          search_title_english?: string
+          search_title_japanese?: string
+          content_type_filter?: string
+          limit_results?: number
+          min_similarity?: number
+        }
+        Returns: {
+          title_id: string
+          title: string
+          title_english: string
+          title_japanese: string
+          content_type: string
+          similarity_score: number
+        }[]
+      }
       get_anime_count: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3420,6 +3438,17 @@ export type Database = {
       initialize_user_gamification: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      insert_title_with_details: {
+        Args: {
+          title_data: Json
+          anime_data?: Json
+          manga_data?: Json
+          genre_names?: string[]
+          studio_names?: string[]
+          author_names?: string[]
+        }
+        Returns: string
       }
       log_cache_performance: {
         Args: {

@@ -9,6 +9,7 @@ import { AdminStats } from '@/components/admin/AdminStats';
 import { ContentManager } from '@/components/admin/ContentManager';
 import { UserManager } from '@/components/admin/UserManager';
 import { SystemHealth } from '@/components/admin/SystemHealth';
+import { PendingMatchesManager } from '@/components/admin/PendingMatchesManager';
 import { AdminRoute } from '@/components/AdminRoute';
 
 export default function AdminDashboard() {
@@ -24,7 +25,7 @@ export default function AdminDashboard() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+            <TabsList className="grid grid-cols-5 w-full max-w-4xl">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -32,6 +33,10 @@ export default function AdminDashboard() {
               <TabsTrigger value="content" className="flex items-center gap-2">
                 <Database className="h-4 w-4" />
                 Content
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Pending Matches
               </TabsTrigger>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -49,6 +54,10 @@ export default function AdminDashboard() {
             
             <TabsContent value="content">
               <ContentManager />
+            </TabsContent>
+            
+            <TabsContent value="matches">
+              <PendingMatchesManager />
             </TabsContent>
             
             <TabsContent value="users">
