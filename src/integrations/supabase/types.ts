@@ -1379,6 +1379,13 @@ export type Database = {
             referencedRelation: "genres_new"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "genres_new_parent_genre_id_fkey"
+            columns: ["parent_genre_id"]
+            isOneToOne: false
+            referencedRelation: "mv_popular_genres"
+            referencedColumns: ["id"]
+          },
         ]
       }
       legal_pages: {
@@ -2608,6 +2615,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "title_genres_enhanced_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "mv_popular_genres"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "title_genres_enhanced_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
@@ -2930,6 +2944,13 @@ export type Database = {
           votes?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "title_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "mv_popular_tags"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "title_tags_tag_id_fkey"
             columns: ["tag_id"]
@@ -3672,6 +3693,29 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_popular_genres: {
+        Row: {
+          avg_relevance: number | null
+          category: string | null
+          id: string | null
+          name: string | null
+          slug: string | null
+          title_count: number | null
+        }
+        Relationships: []
+      }
+      mv_popular_tags: {
+        Row: {
+          avg_rank: number | null
+          category: string | null
+          id: string | null
+          name: string | null
+          slug: string | null
+          total_votes: number | null
+          usage_count: number | null
+        }
+        Relationships: []
+      }
       mv_trending_content: {
         Row: {
           anilist_id: number | null
@@ -4018,6 +4062,16 @@ export type Database = {
           image_url: string
           score: number
           anilist_id: number
+        }[]
+      }
+      get_title_metadata: {
+        Args: { title_id_param: string }
+        Returns: {
+          genres: Json
+          tags: Json
+          studios: Json
+          creators: Json
+          characters: Json
         }[]
       }
       get_title_validation_stats: {
