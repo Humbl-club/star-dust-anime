@@ -54,10 +54,13 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
   const groupedContent = React.useMemo(() => {
     if (!trendingData) return {};
     
-    const currentYear = new Date().getFullYear();
+    console.log('Raw trending data:', trendingData.slice(0, 3)); // Debug first 3 items
+    
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
     const currentSeason = getCurrentSeason();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     
     const groups: Record<string, TrendingContent[]> = {
       currentSeason: [],
@@ -67,45 +70,60 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
     };
 
     trendingData.forEach((item: any) => {
+      // Debug each item
+      console.log('Processing item:', {
+        title: item.title,
+        type: contentType,
+        status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
+        score: item.score,
+        aired_to: item.anime_details?.aired_to,
+        published_to: item.manga_details?.published_to
+      });
+
       if (contentType === 'anime' && item.anime_details) {
         const status = item.anime_details.status;
-        const season = item.anime_details.season;
-        const year = item.year;
-        const airedTo = item.anime_details.aired_to ? new Date(item.anime_details.aired_to) : null;
+        const airedToStr = item.anime_details.aired_to;
+        const airedTo = airedToStr ? new Date(airedToStr) : null;
         
-        // Currently airing - include all currently airing anime regardless of season
-        if (status === 'Currently Airing' || status === 'RELEASING') {
+        // Check actual status values in our data
+        if (status && (status.includes('Airing') || status === 'RELEASING' || status === 'Currently Airing')) {
           groups.currentSeason.push(item);
         } 
-        // Upcoming anime
-        else if (status === 'Not yet aired' || status === 'NOT_YET_RELEASED') {
+        else if (status && (status.includes('Not yet') || status === 'NOT_YET_RELEASED' || status === 'Not Yet Released')) {
           groups.upcoming.push(item);
         } 
-        // Recently completed - finished within the last 3 months
-        else if ((status === 'Finished Airing' || status === 'FINISHED') && airedTo && airedTo > threeMonthsAgo) {
+        else if (status && (status.includes('Finished') || status === 'FINISHED') && airedTo && airedTo > oneMonthAgo) {
           groups.recentlyCompleted.push(item);
         }
-        // High rated anime (score > 8.0)
-        if (item.score && item.score >= 8.0) {
+        
+        // Top rated with higher threshold
+        if (item.score && item.score >= 8.5) {
           groups.topRated.push(item);
         }
       } else if (contentType === 'manga' && item.manga_details) {
         const status = item.manga_details.status;
-        const publishedTo = item.manga_details.published_to ? new Date(item.manga_details.published_to) : null;
+        const publishedToStr = item.manga_details.published_to;
+        const publishedTo = publishedToStr ? new Date(publishedToStr) : null;
         
-        // Currently publishing
-        if (status === 'Publishing' || status === 'RELEASING') {
+        if (status && (status.includes('Publishing') || status === 'RELEASING')) {
           groups.currentSeason.push(item);
         } 
-        // Recently completed - finished within the last 3 months
-        else if ((status === 'Finished' || status === 'FINISHED') && publishedTo && publishedTo > threeMonthsAgo) {
+        else if (status && (status.includes('Finished') || status === 'FINISHED') && publishedTo && publishedTo > oneMonthAgo) {
           groups.recentlyCompleted.push(item);
         }
-        // High rated manga (score > 8.0)
-        if (item.score && item.score >= 8.0) {
+        
+        // Top rated with higher threshold
+        if (item.score && item.score >= 8.5) {
           groups.topRated.push(item);
         }
       }
+    });
+
+    console.log('Grouped results:', {
+      currentSeason: groups.currentSeason.length,
+      upcoming: groups.upcoming.length,
+      recentlyCompleted: groups.recentlyCompleted.length,
+      topRated: groups.topRated.length
     });
 
     // Sort each group properly
