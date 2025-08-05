@@ -17,13 +17,66 @@ const TRENDING_CACHE_KEY = 'trending_content'
 const POPULAR_CACHE_KEY = 'popular_content' 
 const RECENT_CACHE_KEY = 'recent_content'
 
+// Comprehensive error handling wrapper
+const withErrorHandling = async (
+  handler: () => Promise<Response>,
+  fallbackData: any = { data: [], cached: false }
+): Promise<Response> => {
+  try {
+    return await handler();
+  } catch (error) {
+    console.error('Edge function error:', error);
+    
+    // Check if Redis is down
+    if (error.message?.includes('Redis') || error.message?.includes('ECONNREFUSED')) {
+      console.warn('Redis unavailable, continuing without cache');
+      // Try to execute handler without cache
+      try {
+        return await handler();
+      } catch (secondError) {
+        console.error('Handler failed even without cache:', secondError);
+      }
+    }
+    
+    // Check if Supabase is down
+    if (error.message?.includes('PGRST') || error.message?.includes('Failed to fetch')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Database temporarily unavailable', 
+          fallback: true,
+          ...fallbackData 
+        }),
+        { 
+          status: 503, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        ...fallbackData 
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+};
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  try {
+  return await withErrorHandling(async () => {
     const { endpoint, contentType, limit = 24, sort_by = 'popularity', filters = {}, query } = await req.json()
     
     console.log(`📡 Cache request: ${endpoint} for ${contentType}`)
@@ -42,16 +95,7 @@ serve(async (req: Request) => {
       default:
         return await handleGenericContent(contentType, limit, sort_by, filters)
     }
-  } catch (error) {
-    console.error('❌ Cache function error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
-  }
+  })
 })
 
 async function handleTrendingContent(contentType: 'anime' | 'manga', limit: number) {
