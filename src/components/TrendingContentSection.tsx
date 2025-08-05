@@ -56,13 +56,14 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
     
     const currentYear = new Date().getFullYear();
     const currentSeason = getCurrentSeason();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
     
     const groups: Record<string, TrendingContent[]> = {
       currentSeason: [],
       upcoming: [],
       recentlyCompleted: [],
+      topRated: [],
     };
 
     trendingData.forEach((item: any) => {
@@ -72,29 +73,46 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
         const year = item.year;
         const airedTo = item.anime_details.aired_to ? new Date(item.anime_details.aired_to) : null;
         
+        // Currently airing - include all currently airing anime regardless of season
         if (status === 'Currently Airing' || status === 'RELEASING') {
-          // Only include current season anime for current season section
-          if (season === currentSeason && year === currentYear) {
-            groups.currentSeason.push(item);
-          }
-        } else if (status === 'Not yet aired' || status === 'NOT_YET_RELEASED') {
+          groups.currentSeason.push(item);
+        } 
+        // Upcoming anime
+        else if (status === 'Not yet aired' || status === 'NOT_YET_RELEASED') {
           groups.upcoming.push(item);
-        } else if ((status === 'Finished Airing' || status === 'FINISHED') && airedTo && airedTo > sixMonthsAgo) {
-          // Only include anime that finished within the last 6 months
+        } 
+        // Recently completed - finished within the last 3 months
+        else if ((status === 'Finished Airing' || status === 'FINISHED') && airedTo && airedTo > threeMonthsAgo) {
           groups.recentlyCompleted.push(item);
+        }
+        // High rated anime (score > 8.0)
+        if (item.score && item.score >= 8.0) {
+          groups.topRated.push(item);
         }
       } else if (contentType === 'manga' && item.manga_details) {
         const status = item.manga_details.status;
         const publishedTo = item.manga_details.published_to ? new Date(item.manga_details.published_to) : null;
         
+        // Currently publishing
         if (status === 'Publishing' || status === 'RELEASING') {
           groups.currentSeason.push(item);
-        } else if ((status === 'Finished' || status === 'FINISHED') && publishedTo && publishedTo > sixMonthsAgo) {
-          // Only include manga that finished within the last 6 months
+        } 
+        // Recently completed - finished within the last 3 months
+        else if ((status === 'Finished' || status === 'FINISHED') && publishedTo && publishedTo > threeMonthsAgo) {
           groups.recentlyCompleted.push(item);
+        }
+        // High rated manga (score > 8.0)
+        if (item.score && item.score >= 8.0) {
+          groups.topRated.push(item);
         }
       }
     });
+
+    // Sort each group properly
+    groups.currentSeason.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    groups.upcoming.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    groups.recentlyCompleted.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    groups.topRated.sort((a, b) => (b.score || 0) - (a.score || 0));
 
     return groups;
   }, [trendingData, contentType]);
@@ -193,7 +211,7 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Badge variant="secondary" className="h-5 w-5 rounded-full" />
-            <h3 className="text-xl font-semibold">Recently Completed (Last 6 Months)</h3>
+            <h3 className="text-xl font-semibold">Recently Completed (Last 3 Months)</h3>
             <Badge variant="outline" className="ml-2">
               {groupedContent.recentlyCompleted.length}
             </Badge>
@@ -204,6 +222,28 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
                 ...item,
                 status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
                 trending_score: item.popularity || item.score || 0
+              }} contentType={contentType} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top Rated Section */}
+      {groupedContent.topRated?.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h3 className="text-xl font-semibold">Top Rated</h3>
+            <Badge variant="outline" className="ml-2">
+              {groupedContent.topRated.length}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {groupedContent.topRated.slice(0, Math.floor(limit / 2)).map((item: any) => (
+              <TrendingAnimeCard key={item.id} content={{
+                ...item,
+                status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
+                trending_score: item.score || 0
               }} contentType={contentType} />
             ))}
           </div>
