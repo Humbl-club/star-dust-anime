@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
 
 interface MangaDetail {
@@ -34,129 +34,106 @@ interface MangaDetail {
   // Related data arrays
   genres?: Array<{ id: string; name: string; type?: string; created_at?: string }>;
   authors?: Array<{ id: string; name: string; created_at?: string }>;
+  
+  // Consolidated data from edge function
+  recommendations?: any[];
+  streaming_availability?: any;
+  user_list_status?: any;
+  related_titles?: any[];
 }
 
 interface UseMangaDetailResult {
   manga: MangaDetail | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
 
 export const useMangaDetail = (mangaId: string): UseMangaDetailResult => {
-  const [manga, setManga] = useState<MangaDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  const fetchMangaDetail = async () => {
-    if (!mangaId) {
-      setError('Manga ID is required');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      logger.debug(`🔍 Fetching manga detail for ID: ${mangaId}`);
-      logger.debug(`🔍 ID type: ${typeof mangaId}, Is numeric: ${/^\d+$/.test(mangaId)}`);
-
-      let query = supabase
-        .from('titles')
-        .select(`
-          *,
-          manga_details!inner(*),
-          title_genres(genres(*)),
-          title_authors(authors(*))
-        `);
-
-      // Try UUID first (most common case)
-      if (mangaId.includes('-')) {
-        logger.debug('🔍 Querying by UUID...');
-        query = query.eq('id', mangaId);
-      } else if (/^\d+$/.test(mangaId)) {
-        logger.debug('🔍 Querying by AniList ID...');
-        query = query.eq('anilist_id', parseInt(mangaId));
-      } else {
-        // Fallback: try as string ID
-        logger.debug('🔍 Querying by string ID...');
-        query = query.eq('id', mangaId);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['manga-detail-consolidated', mangaId, user?.id],
+    queryFn: async () => {
+      if (!mangaId) {
+        throw new Error('Manga ID is required');
       }
 
-      const { data, error: queryError } = await query.maybeSingle();
+      logger.debug(`🚀 Fetching consolidated manga details for: ${mangaId}`);
+      
+      const { data, error } = await supabase.functions.invoke('get-content-details', {
+        body: {
+          content_id: mangaId,
+          type: 'manga',
+          user_id: user?.id
+        }
+      });
 
-      logger.debug('🔍 Query result:', { data, queryError });
-
-      if (queryError) {
-        console.error('❌ Database query error:', queryError);
-        throw new Error(queryError.message || 'Failed to fetch manga details');
+      if (error) {
+        logger.debug('❌ Consolidated manga detail error:', error);
+        throw new Error(error.message || 'Failed to fetch manga details');
       }
 
-      if (!data) {
+      if (!data?.content) {
         logger.debug('⚠️ No manga found for ID:', mangaId);
-        setManga(null);
-        return;
+        throw new Error('Manga not found');
       }
 
-      // Transform the data to match the expected format
-      const transformedManga: MangaDetail = {
+      // Transform the data to match the expected interface
+      const transformedData: MangaDetail = {
         // Title fields
-        id: data.id,
-        anilist_id: data.anilist_id,
-        title: data.title,
-        title_english: data.title_english,
-        title_japanese: data.title_japanese,
-        synopsis: data.synopsis || '',
-        image_url: data.image_url || '',
-        score: data.score,
-        anilist_score: data.anilist_score,
-        rank: data.rank,
-        popularity: data.popularity,
-        year: data.year,
-        color_theme: data.color_theme,
-        num_users_voted: 0, // Will be calculated separately if needed
-        created_at: data.created_at,
-        updated_at: data.updated_at,
+        id: data.content.id,
+        anilist_id: data.content.anilist_id,
+        title: data.content.title,
+        title_english: data.content.title_english,
+        title_japanese: data.content.title_japanese,
+        synopsis: data.content.synopsis || '',
+        image_url: data.content.image_url || '',
+        score: data.content.score,
+        anilist_score: data.content.anilist_score,
+        rank: data.content.rank,
+        popularity: data.content.popularity,
+        year: data.content.year,
+        color_theme: data.content.color_theme,
+        num_users_voted: 0,
+        created_at: data.content.created_at,
+        updated_at: data.content.updated_at,
         
         // Manga detail fields (from manga_details join)
-        chapters: data.manga_details?.chapters,
-        volumes: data.manga_details?.volumes,
-        published_from: data.manga_details?.published_from,
-        published_to: data.manga_details?.published_to,
-        status: data.manga_details?.status || 'Unknown',
-        type: data.manga_details?.type || 'Manga',
-        next_chapter_date: data.manga_details?.next_chapter_date,
-        next_chapter_number: data.manga_details?.next_chapter_number,
-        last_sync_check: data.manga_details?.last_sync_check,
+        chapters: data.content.manga_details?.[0]?.chapters,
+        volumes: data.content.manga_details?.[0]?.volumes,
+        published_from: data.content.manga_details?.[0]?.published_from,
+        published_to: data.content.manga_details?.[0]?.published_to,
+        status: data.content.manga_details?.[0]?.status || 'Unknown',
+        type: data.content.manga_details?.[0]?.type || 'Manga',
+        next_chapter_date: data.content.manga_details?.[0]?.next_chapter_date,
+        next_chapter_number: data.content.manga_details?.[0]?.next_chapter_number,
+        last_sync_check: data.content.manga_details?.[0]?.last_sync_check,
         
-        // Related data arrays
-        genres: data.title_genres?.map((tg: any) => tg.genres).filter(Boolean) || [],
-        authors: data.title_authors?.map((ta: any) => ta.authors).filter(Boolean) || [],
+        // Extract genres and authors
+        genres: data.content.title_genres?.map((tg: any) => tg.genres).filter(Boolean) || [],
+        authors: data.content.title_authors?.map((ta: any) => ta.authors).filter(Boolean) || [],
+        
+        // Add consolidated data from edge function
+        recommendations: data.recommendations || [],
+        streaming_availability: data.streaming_availability,
+        user_list_status: data.user_list_status,
+        related_titles: data.related_titles || []
       };
 
-      logger.debug('✅ Successfully transformed manga:', transformedManga.title);
-      setManga(transformedManga);
-
-    } catch (err: any) {
-      console.error('❌ Error fetching manga detail:', err);
-      const errorMessage = `Failed to load manga details: ${err.message || 'Unknown error'}`;
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (mangaId) {
-      fetchMangaDetail();
-    }
-  }, [mangaId]);
+      logger.debug('✅ Successfully transformed consolidated manga:', transformedData.title);
+      return transformedData;
+    },
+    enabled: !!mangaId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2
+  });
 
   return {
-    manga,
-    loading,
-    error,
-    refetch: fetchMangaDetail
+    manga: data || null,
+    loading: isLoading,
+    error: error?.message || null,
+    refetch
   };
 };
