@@ -64,25 +64,17 @@ else
     echo -e "${RED}TypeScript not found. Please install it first.${NC}"
 fi
 
-# Dependency Analysis (using madge if available)
+# Basic Dependency Analysis
 echo -e "${BLUE}Running dependency analysis...${NC}"
-if command_exists madge; then
-    run_analysis "Circular Dependencies" \
-        "npx madge --circular src/" \
-        "code-analysis-reports/dependencies/circular.txt"
-        
-    run_analysis "Dependency List" \
-        "npx madge --json src/" \
-        "code-analysis-reports/dependencies/deps.json"
-else
-    echo -e "${YELLOW}madge not available. Installing...${NC}"
-    npm install --save-dev madge
-    if command_exists madge; then
-        run_analysis "Circular Dependencies" \
-            "npx madge --circular src/" \
-            "code-analysis-reports/dependencies/circular.txt"
-    fi
-fi
+echo "Analyzing package.json dependencies..."
+
+# Basic dependency listing
+cat package.json | grep -A 20 '"dependencies"' > code-analysis-reports/dependencies/dependencies.txt
+cat package.json | grep -A 20 '"devDependencies"' > code-analysis-reports/dependencies/dev-dependencies.txt
+
+# Check for potential issues
+echo "Checking for common dependency issues..."
+npm ls --depth=0 > code-analysis-reports/dependencies/installed-packages.txt 2>&1
 
 # Security Analysis
 echo -e "${BLUE}Running security analysis...${NC}"
@@ -124,8 +116,9 @@ Generated on: $(date)
 - Types: [typescript/types.log](./typescript/types.log)
 
 ### Dependencies
-- Circular Dependencies: [dependencies/circular.txt](./dependencies/circular.txt)
-- Dependency List: [dependencies/deps.json](./dependencies/deps.json)
+- Dependencies: [dependencies/dependencies.txt](./dependencies/dependencies.txt)
+- Dev Dependencies: [dependencies/dev-dependencies.txt](./dependencies/dev-dependencies.txt)
+- Installed Packages: [dependencies/installed-packages.txt](./dependencies/installed-packages.txt)
 
 ### Security
 - NPM Audit: [security/npm-audit.json](./security/npm-audit.json)
