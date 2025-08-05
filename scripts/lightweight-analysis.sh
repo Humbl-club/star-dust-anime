@@ -188,5 +188,11 @@ echo ""
 echo "To view: cat $REPORT"
 echo "To share: Upload $REPORT to project knowledge"
 
-# Make script executable
+# Make both scripts executable
 chmod +x scripts/lightweight-analysis.sh
+chmod +x scripts/clean-native-deps.sh
+
+echo ""
+echo "📋 Scripts are now executable!"
+echo "Run: ./scripts/clean-native-deps.sh (to clean problematic dependencies)"
+echo "Run: ./scripts/lightweight-analysis.sh (to run this analysis again)"
