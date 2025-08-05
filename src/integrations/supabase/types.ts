@@ -2200,18 +2200,21 @@ export type Database = {
       }
       studios: {
         Row: {
+          anilist_id: number | null
           created_at: string | null
           id: string
           name: string
           slug: string | null
         }
         Insert: {
+          anilist_id?: number | null
           created_at?: string | null
           id?: string
           name: string
           slug?: string | null
         }
         Update: {
+          anilist_id?: number | null
           created_at?: string | null
           id?: string
           name?: string
@@ -3295,6 +3298,8 @@ export type Database = {
           id: string
           id_kitsu: number | null
           image_url: string | null
+          last_anilist_update: string | null
+          last_kitsu_update: string | null
           members: number | null
           num_users_voted: number | null
           popularity: number | null
@@ -3319,6 +3324,8 @@ export type Database = {
           id?: string
           id_kitsu?: number | null
           image_url?: string | null
+          last_anilist_update?: string | null
+          last_kitsu_update?: string | null
           members?: number | null
           num_users_voted?: number | null
           popularity?: number | null
@@ -3343,6 +3350,8 @@ export type Database = {
           id?: string
           id_kitsu?: number | null
           image_url?: string | null
+          last_anilist_update?: string | null
+          last_kitsu_update?: string | null
           members?: number | null
           num_users_voted?: number | null
           popularity?: number | null
