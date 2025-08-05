@@ -10,6 +10,7 @@ import { ContentManager } from '@/components/admin/ContentManager';
 import { UserManager } from '@/components/admin/UserManager';
 import { SystemHealth } from '@/components/admin/SystemHealth';
 import { PendingMatchesManager } from '@/components/admin/PendingMatchesManager';
+import { BulkImportTrigger } from '@/components/admin/BulkImportTrigger';
 import { AdminRoute } from '@/components/AdminRoute';
 
 export default function AdminDashboard() {
@@ -53,7 +54,10 @@ export default function AdminDashboard() {
             </TabsContent>
             
             <TabsContent value="content">
-              <ContentManager />
+              <div className="space-y-6">
+                <BulkImportTrigger />
+                <ContentManager />
+              </div>
             </TabsContent>
             
             <TabsContent value="matches">
