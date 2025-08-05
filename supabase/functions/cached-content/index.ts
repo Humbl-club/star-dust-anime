@@ -79,16 +79,19 @@ async function handleTrendingContent(contentType: 'anime' | 'manga', limit: numb
       title_english,
       image_url,
       score,
+      anilist_score,
       popularity,
       favorites,
       year,
+      created_at,
       ${contentType === 'anime' ? `
         anime_details!inner(
           episodes,
           status,
           type,
           season,
-          aired_from
+          aired_from,
+          next_episode_date
         )
       ` : `
         manga_details!inner(
@@ -96,7 +99,8 @@ async function handleTrendingContent(contentType: 'anime' | 'manga', limit: numb
           volumes,
           status,
           type,
-          published_from
+          published_from,
+          next_chapter_date
         )
       `},
       title_genres(genres(name))
@@ -445,13 +449,26 @@ function calculateTrendingScore(item: any): number {
   const createdAt = new Date(item.created_at)
   const daysSinceCreated = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
   
-  // Trending score formula: popularity + favorites + recency bonus
+  // Enhanced trending score formula
   const recencyBonus = Math.max(0, 30 - daysSinceCreated) * 10
   const scoreBonus = (item.score || 0) * 100
+  const anilistScoreBonus = (item.anilist_score || 0) * 80
   const popularityScore = (item.popularity || 0) / 1000
   const favoritesScore = (item.favorites || 0) / 10
   
-  return popularityScore + favoritesScore + scoreBonus + recencyBonus
+  // Add bonus for currently airing/publishing
+  let statusBonus = 0
+  if (item.anime_details) {
+    if (item.anime_details.status === 'Currently Airing') statusBonus = 50
+    if (item.anime_details.next_episode_date && 
+        new Date(item.anime_details.next_episode_date) > now) statusBonus += 30
+  } else if (item.manga_details) {
+    if (item.manga_details.status === 'Publishing') statusBonus = 40
+    if (item.manga_details.next_chapter_date && 
+        new Date(item.manga_details.next_chapter_date) > now) statusBonus += 25
+  }
+  
+  return popularityScore + favoritesScore + scoreBonus + anilistScoreBonus + recencyBonus + statusBonus
 }
 
 // Cache warming function - automatically called on startup
