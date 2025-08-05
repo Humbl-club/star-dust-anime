@@ -229,6 +229,145 @@ export type Database = {
         }
         Relationships: []
       }
+      character_voice_actors: {
+        Row: {
+          character_id: string
+          created_at: string | null
+          id: string
+          is_main: boolean | null
+          language: string
+          person_id: string
+          title_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string | null
+          id?: string
+          is_main?: boolean | null
+          language?: string
+          person_id: string
+          title_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string | null
+          id?: string
+          is_main?: boolean | null
+          language?: string
+          person_id?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "character_voice_actors_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "character_voice_actors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      characters: {
+        Row: {
+          anilist_id: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          mal_id: number | null
+          name: string
+          name_alternative: Json | null
+          name_japanese: string | null
+          role: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          anilist_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name: string
+          name_alternative?: Json | null
+          name_japanese?: string | null
+          role?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          anilist_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name?: string
+          name_alternative?: Json | null
+          name_japanese?: string | null
+          role?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       claimed_usernames: {
         Row: {
           claimed_at: string | null
@@ -1198,6 +1337,50 @@ export type Database = {
         }
         Relationships: []
       }
+      genres_new: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_adult: boolean | null
+          name: string
+          parent_genre_id: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          name: string
+          parent_genre_id?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          name?: string
+          parent_genre_id?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genres_new_parent_genre_id_fkey"
+            columns: ["parent_genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres_new"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_pages: {
         Row: {
           content: string
@@ -1443,6 +1626,60 @@ export type Database = {
           title_japanese?: string | null
           updated_at?: string | null
           year?: number | null
+        }
+        Relationships: []
+      }
+      people: {
+        Row: {
+          anilist_id: number | null
+          biography: string | null
+          birth_date: string | null
+          birth_place: string | null
+          created_at: string | null
+          death_date: string | null
+          id: string
+          image_url: string | null
+          mal_id: number | null
+          name: string
+          name_japanese: string | null
+          name_romanized: string | null
+          slug: string
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          anilist_id?: number | null
+          biography?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          created_at?: string | null
+          death_date?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name: string
+          name_japanese?: string | null
+          name_romanized?: string | null
+          slug: string
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          anilist_id?: number | null
+          biography?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          created_at?: string | null
+          death_date?: string | null
+          id?: string
+          image_url?: string | null
+          mal_id?: number | null
+          name?: string
+          name_japanese?: string | null
+          name_romanized?: string | null
+          slug?: string
+          updated_at?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }
@@ -1876,6 +2113,48 @@ export type Database = {
         }
         Relationships: []
       }
+      studios_enhanced: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          founded_year: number | null
+          id: string
+          is_animation_studio: boolean | null
+          logo_url: string | null
+          name: string
+          name_japanese: string | null
+          slug: string
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          founded_year?: number | null
+          id?: string
+          is_animation_studio?: boolean | null
+          logo_url?: string | null
+          name: string
+          name_japanese?: string | null
+          slug: string
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          founded_year?: number | null
+          id?: string
+          is_animation_studio?: boolean | null
+          logo_url?: string | null
+          name?: string
+          name_japanese?: string | null
+          slug?: string
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       sync_logs: {
         Row: {
           completed_at: string | null
@@ -1945,6 +2224,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tags: {
+        Row: {
+          anilist_id: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_adult: boolean | null
+          is_spoiler: boolean | null
+          kitsu_id: number | null
+          name: string
+          rank: number | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          anilist_id?: number | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          is_spoiler?: boolean | null
+          kitsu_id?: number | null
+          name: string
+          rank?: number | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          anilist_id?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_adult?: boolean | null
+          is_spoiler?: boolean | null
+          kitsu_id?: number | null
+          name?: string
+          rank?: number | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       title_authors: {
         Row: {
           author_id: string
@@ -2010,6 +2334,90 @@ export type Database = {
           },
           {
             foreignKeyName: "title_authors_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_characters: {
+        Row: {
+          character_id: string
+          created_at: string | null
+          id: string
+          order_index: number | null
+          role: string | null
+          title_id: string
+        }
+        Insert: {
+          character_id: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          role?: string | null
+          title_id: string
+        }
+        Update: {
+          character_id?: string
+          created_at?: string | null
+          id?: string
+          order_index?: number | null
+          role?: string | null
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_characters_character_id_fkey"
+            columns: ["character_id"]
+            isOneToOne: false
+            referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_characters_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "v_trending_manga"
@@ -2166,6 +2574,174 @@ export type Database = {
           },
         ]
       }
+      title_genres_enhanced: {
+        Row: {
+          created_at: string | null
+          genre_id: string
+          id: string
+          relevance_score: number | null
+          source: string | null
+          title_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          genre_id: string
+          id?: string
+          relevance_score?: number | null
+          source?: string | null
+          title_id: string
+        }
+        Update: {
+          created_at?: string | null
+          genre_id?: string
+          id?: string
+          relevance_score?: number | null
+          source?: string | null
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_genres_enhanced_genre_id_fkey"
+            columns: ["genre_id"]
+            isOneToOne: false
+            referencedRelation: "genres_new"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_genres_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_people: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_main_creator: boolean | null
+          person_id: string
+          role: string
+          title_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_main_creator?: boolean | null
+          person_id: string
+          role: string
+          title_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_main_creator?: boolean | null
+          person_id?: string
+          role?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_people_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_people_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       title_studios: {
         Row: {
           studio_id: string
@@ -2231,6 +2807,180 @@ export type Database = {
           },
           {
             foreignKeyName: "title_studios_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_studios_enhanced: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_main_studio: boolean | null
+          role: string | null
+          studio_id: string
+          title_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_main_studio?: boolean | null
+          role?: string | null
+          studio_id: string
+          title_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_main_studio?: boolean | null
+          role?: string | null
+          studio_id?: string
+          title_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_studios_enhanced_studio_id_fkey"
+            columns: ["studio_id"]
+            isOneToOne: false
+            referencedRelation: "studios_enhanced"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_studios_enhanced_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_manga"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      title_tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_spoiler: boolean | null
+          rank: number | null
+          source: string | null
+          tag_id: string
+          title_id: string
+          votes: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_spoiler?: boolean | null
+          rank?: number | null
+          source?: string | null
+          tag_id: string
+          title_id: string
+          votes?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_spoiler?: boolean | null
+          rank?: number | null
+          source?: string | null
+          tag_id?: string
+          title_id?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "title_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "anime_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_airing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_currently_publishing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "mv_trending_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "v_trending_anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "title_tags_title_id_fkey"
             columns: ["title_id"]
             isOneToOne: false
             referencedRelation: "v_trending_manga"
