@@ -1386,6 +1386,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_matches: {
+        Row: {
+          admin_decision: string | null
+          confidence_score: number | null
+          content_type: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          kitsu_id: number
+          potential_matches: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number | null
+          synopsis: string | null
+          title: string
+          title_english: string | null
+          title_japanese: string | null
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          admin_decision?: string | null
+          confidence_score?: number | null
+          content_type: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          kitsu_id: number
+          potential_matches?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number | null
+          synopsis?: string | null
+          title: string
+          title_english?: string | null
+          title_japanese?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          admin_decision?: string | null
+          confidence_score?: number | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          kitsu_id?: number
+          potential_matches?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number | null
+          synopsis?: string | null
+          title?: string
+          title_english?: string | null
+          title_japanese?: string | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       performance_metrics: {
         Row: {
           created_at: string | null
@@ -2192,6 +2252,7 @@ export type Database = {
           id_kitsu: number | null
           image_url: string | null
           members: number | null
+          num_users_voted: number | null
           popularity: number | null
           rank: number | null
           score: number | null
@@ -2215,6 +2276,7 @@ export type Database = {
           id_kitsu?: number | null
           image_url?: string | null
           members?: number | null
+          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
@@ -2238,6 +2300,7 @@ export type Database = {
           id_kitsu?: number | null
           image_url?: string | null
           members?: number | null
+          num_users_voted?: number | null
           popularity?: number | null
           rank?: number | null
           score?: number | null
