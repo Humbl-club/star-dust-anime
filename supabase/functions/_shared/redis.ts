@@ -37,7 +37,7 @@ export const CACHE_TTL = {
 
 export const CACHE_KEYS = {
   TRENDING: (contentType: string, limit: number) => 
-    `cache:v2:trending:${contentType}:${limit}:${Math.floor(Date.now() / (5 * 60 * 1000))}`,
+    `cache:v2:trending:${contentType}:${limit}:${Date.now() / (5 * 60 * 1000) | 0}`,
   POPULAR: (contentType: string, limit: number) => 
     `cache:v2:popular:${contentType}:${limit}`,
   RECENT: (contentType: string, limit: number) => 
@@ -46,8 +46,8 @@ export const CACHE_KEYS = {
     `cache:v2:search:${contentType}:${encodeURIComponent(query)}:${limit}:${JSON.stringify(filters || {})}`,
   DETAIL: (contentType: string, id: string) => 
     `cache:v2:detail:${contentType}:${id}`,
-  STATS: () => `cache:v2:stats:site:${Math.floor(Date.now() / (60 * 60 * 1000))}`,
-  HOMEPAGE: () => `cache:v2:homepage:aggregated:${Math.floor(Date.now() / (10 * 60 * 1000))}`,
+  STATS: () => `cache:v2:stats:site:${Date.now() / (60 * 60 * 1000) | 0}`,
+  HOMEPAGE: () => `cache:v2:homepage:aggregated:${Date.now() / (10 * 60 * 1000) | 0}`,
   GENRES: (contentType: string) => 
     `cache:v2:genres:${contentType}`,
 };
