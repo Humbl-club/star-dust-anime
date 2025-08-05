@@ -4348,13 +4348,7 @@ export type Database = {
       }
       get_title_metadata: {
         Args: { title_id_param: string }
-        Returns: {
-          genres: Json
-          tags: Json
-          studios: Json
-          creators: Json
-          characters: Json
-        }[]
+        Returns: Json
       }
       get_title_validation_stats: {
         Args: { title_id_param: string }
@@ -4599,6 +4593,27 @@ export type Database = {
       safe_refresh_materialized_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      search_titles_by_metadata: {
+        Args: {
+          genre_slugs?: string[]
+          tag_slugs?: string[]
+          studio_slugs?: string[]
+          creator_slugs?: string[]
+          content_type_filter?: string
+          limit_results?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          title_english: string
+          title_japanese: string
+          synopsis: string
+          image_url: string
+          score: number
+          year: number
+          content_type: string
+        }[]
       }
       set_limit: {
         Args: { "": number }
