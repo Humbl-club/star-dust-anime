@@ -1,41 +1,35 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSimpleNewApiData } from '@/hooks/useSimpleNewApiData';
 import { TrendingAnimeCard } from './TrendingAnimeCard';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { Badge } from './ui/badge';
 import { TrendingUp, Calendar, Clock } from 'lucide-react';
 
-interface TrendingAnime {
+// Use the actual data types from the API
+interface TrendingContent {
   id: string;
   title: string;
   title_english?: string;
+  title_japanese?: string;
   image_url?: string;
   score?: number;
   popularity?: number;
-  status: string;
-  season?: string;
-  next_episode_date?: string;
-  next_episode_number?: number;
-  episodes?: number;
-  current_season: string;
-  status_indicator?: 'NEW' | 'FINALE_SOON';
-  trending_score: number;
-}
-
-interface TrendingManga {
-  id: string;
-  title: string;
-  title_english?: string;
-  image_url?: string;
-  score?: number;
-  popularity?: number;
-  status: string;
-  next_chapter_date?: string;
-  next_chapter_number?: number;
-  chapters?: number;
-  status_indicator?: 'NEW' | 'ENDING_SOON';
-  trending_score: number;
+  year?: number;
+  status?: string; // Add fallback status
+  trending_score?: number; // Add fallback trending score
+  anime_details?: {
+    status: string;
+    season?: string;
+    episodes?: number;
+    next_episode_date?: string;
+    next_episode_number?: number;
+  };
+  manga_details?: {
+    status: string;
+    chapters?: number;
+    next_chapter_date?: string;
+    next_chapter_number?: number;
+  };
 }
 
 interface TrendingContentSectionProps {
@@ -49,47 +43,38 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
   title,
   limit = 12,
 }) => {
-  const { data: trendingData, isLoading, error } = useQuery({
-    queryKey: ['trending', contentType, limit],
-    queryFn: async () => {
-      const tableName = contentType === 'anime' ? 'mv_currently_airing' : 'mv_currently_publishing';
-      
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .order('trending_score', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+  const { data: trendingData, loading: isLoading, error } = useSimpleNewApiData({
+    contentType,
+    limit,
+    sort_by: 'score',
+    order: 'desc'
   });
 
   // Group content by season and status
   const groupedContent = React.useMemo(() => {
     if (!trendingData) return {};
     
-    const groups: Record<string, any[]> = {
+    const groups: Record<string, TrendingContent[]> = {
       currentSeason: [],
       upcoming: [],
       recentlyCompleted: [],
     };
 
     trendingData.forEach((item: any) => {
-      if (contentType === 'anime') {
-        if (item.status === 'Currently Airing') {
+      if (contentType === 'anime' && item.anime_details) {
+        const status = item.anime_details.status;
+        if (status === 'Currently Airing' || status === 'RELEASING') {
           groups.currentSeason.push(item);
-        } else if (item.status === 'Not yet aired') {
+        } else if (status === 'Not yet aired' || status === 'NOT_YET_RELEASED') {
           groups.upcoming.push(item);
-        } else if (item.status === 'Finished Airing') {
+        } else if (status === 'Finished Airing' || status === 'FINISHED') {
           groups.recentlyCompleted.push(item);
         }
-      } else {
-        if (item.status === 'Publishing') {
+      } else if (contentType === 'manga' && item.manga_details) {
+        const status = item.manga_details.status;
+        if (status === 'Publishing' || status === 'RELEASING') {
           groups.currentSeason.push(item);
-        } else if (item.status === 'Finished') {
+        } else if (status === 'Finished' || status === 'FINISHED') {
           groups.recentlyCompleted.push(item);
         }
       }
@@ -154,8 +139,12 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
             </Badge>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {groupedContent.currentSeason.slice(0, 12).map((item: TrendingAnime | TrendingManga) => (
-              <TrendingAnimeCard key={item.id} content={item} contentType={contentType} />
+            {groupedContent.currentSeason.slice(0, 12).map((item: any) => (
+              <TrendingAnimeCard key={item.id} content={{
+                ...item,
+                status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
+                trending_score: item.score || 0
+              }} contentType={contentType} />
             ))}
           </div>
         </div>
@@ -172,8 +161,12 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
             </Badge>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {groupedContent.upcoming.slice(0, 6).map((item: TrendingAnime | TrendingManga) => (
-              <TrendingAnimeCard key={item.id} content={item} contentType={contentType} />
+            {groupedContent.upcoming.slice(0, 6).map((item: any) => (
+              <TrendingAnimeCard key={item.id} content={{
+                ...item,
+                status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
+                trending_score: item.score || 0
+              }} contentType={contentType} />
             ))}
           </div>
         </div>
@@ -190,8 +183,12 @@ export const TrendingContentSection: React.FC<TrendingContentSectionProps> = ({
             </Badge>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {groupedContent.recentlyCompleted.slice(0, 6).map((item: TrendingAnime | TrendingManga) => (
-              <TrendingAnimeCard key={item.id} content={item} contentType={contentType} />
+            {groupedContent.recentlyCompleted.slice(0, 6).map((item: any) => (
+              <TrendingAnimeCard key={item.id} content={{
+                ...item,
+                status: contentType === 'anime' ? item.anime_details?.status : item.manga_details?.status,
+                trending_score: item.score || 0
+              }} contentType={contentType} />
             ))}
           </div>
         </div>
